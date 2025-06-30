@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, Fragment } from "react";
 import AddressSearch from "@/shared/components/AddressSearch";
 import { FileUploadSection } from "@/shared/components/FileUploadSection";
 import { useAddressStore } from "@/store/useAddressStore";
@@ -8,18 +8,19 @@ import { useNavigate } from "react-router-dom";
 import type { createManagerSignup } from "@/features/manager/types/ManagerAuthType";
 import { signupManager } from "@/features/manager/api/managerAuth";
 
-// form 상태에 사용할 타입 확장 (기본 필드 + 비밀번호 확인 + 약관 동의)
 interface ManagerSignupForm extends createManagerSignup {
   confirmPassword: string;
   termsAgreed: boolean;
 }
 
-// 요일, 시간대 정의 (업무 가능 시간표용)
 const days = ["월", "화", "수", "목", "금", "토", "일"];
 const hours = Array.from({ length: 16 }, (_, i) => `${(i + 8).toString().padStart(2, "0")}시`);
 
 export const ManagerSignup = () => {
   const navigate = useNavigate();
+
+  // 에러 상태
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   // 파일 업로드 상태
   const [files, setFiles] = useState<File[]>([]);
@@ -28,10 +29,10 @@ export const ManagerSignup = () => {
   const [selectedTimes, setSelectedTimes] = useState<Record<string, Set<string>>>({});
 
   // 주소 정보 상태 (Zustand에서 관리)
-  const { roadAddress, latitude, longitude, detailAddress } = useAddressStore();
+  const { roadAddress, latitude, longitude, detailAddress, setAddress } = useAddressStore();
 
-  // form 입력 상태 초기값
-  const [form, setForm] = useState<ManagerSignupForm>({
+  // form 입력 상태 초기값 (주소 관련 필드 제거)
+  const [form, setForm] = useState<Omit<ManagerSignupForm, 'roadAddress' | 'detailAddress' | 'latitude' | 'longitude'>>({
     phone: "",
     email: "",
     password: "",
@@ -39,10 +40,6 @@ export const ManagerSignup = () => {
     userName: "",
     birthDate: "",
     gender: "",
-    latitude: 0,
-    longitude: 0,
-    roadAddress: "",
-    detailAddress: "",
     bio: "",
     profileImageId: null,
     fileId: null,
@@ -50,36 +47,23 @@ export const ManagerSignup = () => {
     termsAgreed: false,
   });
 
+  // 주소 상태 초기화
   useEffect(() => {
-    useAddressStore.getState().setAddress("", 0, 0, "");
-  }, []);
-
-  // 주소 정보가 바뀔 때 form에도 자동 반영
-  useEffect(() => {
-    if (latitude !== null && longitude !== null) {
-      setForm((prev) => ({
-        ...prev,
-        latitude,
-        longitude,
-        roadAddress: roadAddress,
-        detailAddress: detailAddress,
-      }));
-    }
-  }, [roadAddress, latitude, longitude, detailAddress]);
+    setAddress("", 0, 0, "");
+  }, [setAddress]);
 
   // 공통 입력값 변경 핸들러 (checkbox 포함)
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
-    setForm((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
+    setForm((prev) => ({ ...prev, [name]: type === "checkbox" ? checked : value }));
+    setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
   // 연락처 입력 시 하이픈 자동 포맷 적용
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const formatted = formatPhoneNumber(e.target.value);
     setForm((prev) => ({ ...prev, phone: formatted }));
+    setErrors((prev) => ({ ...prev, phone: "" }));
   };
 
   // 업무 가능 시간 선택/해제 토글
@@ -124,137 +108,61 @@ export const ManagerSignup = () => {
         time: hour.replace("시", ":00"),
       }))
     );
-
-    setForm((prev) => ({
-      ...prev,
-      availableTimes: converted,
-    }));
+    setForm((prev) => ({ ...prev, availableTimes: converted }));
   }, [selectedTimes]);
 
-  // 필수 입력 필드
-  const requiredFields = [
-    { name: "phone", label: "연락처"},
-    { name: "email", label: "이메일"},
-    { name: "password", label: "비밀번호"},
-    { name: "confirmPassword", label: "비밀번호 확인"},
-    { name: "userName", label: "이름"},
-    { name: "birthDate", label: "생년월일"},
-    { name: "gender", label: "성별"},
-    { name: "bio", label: "한줄소개"},
-  ];
+  // 유효성 검사
+  const validate = () => {
+    const newErrors: Record<string, string> = {};
 
-  // 필수 입력 validate
-  const validateRequiredFields = () => {
-    for (const field of requiredFields) {
-      const key = field.name as keyof ManagerSignupForm;
-      const value = form[key];
+    if (!form.phone.trim()) newErrors.phone = "연락처를 입력해주세요.";
+    if (!newErrors.phone && !isValidPhone(form.phone)) newErrors.phoneFormat = "연락처 형식이 올바르지 않습니다.";
+    if (!form.email.trim()) newErrors.email = "이메일을 입력해주세요.";
+    if (!newErrors.email && !isValidEmail(form.email)) newErrors.emailFormat = "이메일 형식이 올바르지 않습니다.";
+    if (!isValidPassword(form.password)) newErrors.password = "8~20자, 대소문자/숫자/특수문자 중 3가지 이상 포함해야 합니다.";
+    if (form.password !== form.confirmPassword) newErrors.confirmPassword = "비밀번호가 일치하지 않습니다.";
+    if (!form.userName.trim()) newErrors.userName = "이름을 입력해주세요.";
+    if (!form.birthDate) newErrors.birthDate = "생년월일을 입력해주세요.";
+    if (!form.gender) newErrors.gender = "성별을 선택해주세요.";
+    if (!form.bio.trim()) newErrors.bio = "한줄소개를 입력해주세요.";
+    if (!roadAddress.trim() || !detailAddress.trim() || !latitude || !longitude) {
+      newErrors.address = '주소를 다시 입력해주세요.';
+    }
+    // if (form.profileImageId === null) newErrors.profileImageId = "프로필 사진을 업로드해주세요.";
+    // if (form.fileId === null) newErrors.fileId = "첨부파일을 업로드해주세요.";
+    if (form.availableTimes.length === 0) newErrors.availableTimes = "업무 가능 시간을 1개 이상 선택해주세요.";
 
-      // 문자열인 경우: 공백 제거하고 비어있으면 invalid
-      if (typeof value === "string" && value.trim() === "") {
-        alert(`${field.label}을(를) 입력해주세요.`);
-        return false;
-      }
-
-      // null 또는 undefined 체크
-      if (value === null || value === undefined) {
-        alert(`${field.label}을(를) 입력해주세요.`);
-        return false;
-      }
-    }
-    return true;
-  };
-
-  // 추가 필수 입력 validate
-  const validateExtraFields = () => {
-    if (!form.roadAddress.trim()) {
-      alert("도로명 주소를 입력해주세요.");
-      return;
-    }
-    if (!form.detailAddress.trim()) {
-      alert("상세 주소를 입력해주세요.");
-      return;
-    }
-    if (  form.latitude == null || isNaN(form.latitude) ||
-          form.longitude == null || isNaN(form.longitude) ) 
-    {
-      alert("잘못된 주소입니다. 다시 입력해주세요.");
-      return;
-    }
-    // if (form.profileImageId === null) {
-    //   alert("프로필 사진을 업로드해주세요.");
-    //   return false;
-    // }
-    // if (form.fileId === null) {
-    //   alert("첨부파일을 등록해주세요.");
-    //   return false;
-    // }
-    if (form.availableTimes.length === 0) {
-      console.log(form.availableTimes);
-      alert("업무 가능 시간을 1개 이상 선택해주세요.");
-      return false;
-    }
-    return true;
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   // 회원가입 제출 처리
   const handleSubmit = async () => {
-    // 필수 입력값 체크
-    if (!validateRequiredFields()) return;
-    // 추가 필수 입력값 체크
-    if (!validateExtraFields()) return;
+    if (!validate()) return;
+    if (!form.termsAgreed) { alert("이용약관에 동의해주세요."); return false; }
 
-    // 연락처 유효성 검사
-    if (!isValidPhone(form.phone)) {
-      alert("연락처 형식이 올바르지 않습니다.");
-      return;
-    }
-    // 이메일 유효성 검사
-    if (!isValidEmail(form.email)) {
-      alert("이메일 형식이 올바르지 않습니다.");
-      return;
-    }
-    // 비밀번호 유효성 검사
-    if (!isValidPassword(form.password)) {
-      alert("비밀번호는 8~20자, 대소문자/숫자/특수문자 중 3가지 이상 포함해야 합니다.");
-      return;
-    }
-    // 비밀번호 확인
-    if (form.password !== form.confirmPassword) {
-      alert("비밀번호가 일치하지 않습니다.");
-      return;
-    }
-    // 약관 동의 체크
-    if (!form.termsAgreed) {
-      alert("이용약관에 동의해주세요.");
-      return;
-    }
-
-    // 업무 가능 시간 포맷 변환 (요일, 시간 → ENUM + hh:mm)
-    const availableTimes = Object.entries(selectedTimes).flatMap(([day, hours]) =>
-      Array.from(hours).map((hour) => ({
-        dayOfWeek: convertToEnum(day),
-        time: hour.replace("시", ":00"),
-      }))
-    );
-
-    // 최종 요청 객체 생성
     const { confirmPassword, termsAgreed, ...filteredForm } = form;
-
     const requestBody: createManagerSignup = {
       ...filteredForm,
-      availableTimes,
+      roadAddress,
+      detailAddress,
+      latitude: latitude ?? 0,
+      longitude: longitude ?? 0,
+      availableTimes: form.availableTimes,
     };
 
     try {
       await signupManager(requestBody);
       alert("매니저 지원이 완료되었습니다.");
+      setAddress("", 0, 0, "");
       navigate("/managers/auth/login");
     } catch (err: any) {
       alert(err.message || "매니저 지원 실패");
     }
   };
 
-  return (
+return (
+  <Fragment>
     <div className="w-full min-h-screen p-10 bg-slate-50 flex justify-center items-start">
       <div className="w-[900px] bg-white rounded-xl shadow p-10 flex flex-col gap-10">
         <div className="self-stretch text-center justify-start text-slate-800 text-3xl font-bold font-['Inter'] leading-loose">매니저 지원</div>
@@ -281,6 +189,12 @@ export const ManagerSignup = () => {
                 placeholder="010-0000-0000"
                 className="h-12 px-4 bg-slate-50 rounded-lg outline outline-1 outline-slate-200 text-sm text-slate-700 placeholder-slate-400"
               />
+              {errors.phone && !form.phone && (
+                <p className="text-red-500 text-xs">{errors.phone}</p>
+              )}
+              {errors.phoneFormat && (
+                <p className="text-red-500 text-xs">{errors.phoneFormat}</p>
+              )}
             </div>
             <div className="flex-1 flex flex-col gap-2">
               <label className="text-slate-700 text-sm font-medium font-['Inter'] leading-none">이메일 *</label>
@@ -292,6 +206,12 @@ export const ManagerSignup = () => {
                 placeholder="이메일 주소"
                 className="h-12 px-4 bg-slate-50 rounded-lg outline outline-1 outline-slate-200 text-sm text-slate-700 placeholder-slate-400"
               />
+              {errors.email && !form.email && (
+                <p className="text-red-500 text-xs">{errors.email}</p>
+              )}
+              {errors.emailFormat && (
+                <p className="text-red-500 text-xs">{errors.emailFormat}</p>
+              )}
             </div>
           </div>
 
@@ -313,6 +233,9 @@ export const ManagerSignup = () => {
                 placeholder="비밀번호"
                 className="h-12 px-4 bg-slate-50 rounded-lg outline outline-1 outline-slate-200 text-sm text-slate-700 placeholder-slate-400"
               />
+              {errors.password && !form.password && (
+                <p className="text-red-500 text-xs">{errors.password}</p>
+              )}
             </div>
             <div className="flex-1 flex flex-col gap-2">
               <label className="text-slate-700 text-sm font-medium font-['Inter'] leading-none">비밀번호 확인 *</label>
@@ -324,6 +247,9 @@ export const ManagerSignup = () => {
                 placeholder="비밀번호"
                 className="h-12 px-4 bg-slate-50 rounded-lg outline outline-1 outline-slate-200 text-sm text-slate-700 placeholder-slate-400"
               />
+              {errors.confirmPassword && !form.confirmPassword && (
+                <p className="text-red-500 text-xs">{errors.confirmPassword}</p>
+              )}
             </div>
           </div>
 
@@ -338,6 +264,9 @@ export const ManagerSignup = () => {
                 placeholder="이름"
                 className="h-12 px-4 bg-slate-50 rounded-lg outline outline-1 outline-slate-200 text-sm text-slate-700 placeholder-slate-400"
               />
+              {errors.userName && !form.userName && (
+                <p className="text-red-500 text-xs">{errors.userName}</p>
+              )}
             </div>
             <div className="flex-1 flex flex-col gap-2">
               <label className="text-slate-700 text-sm font-medium font-['Inter'] leading-none">생년월일 *</label>
@@ -348,6 +277,9 @@ export const ManagerSignup = () => {
                 onChange={handleChange}
                 className="h-12 px-4 bg-slate-50 rounded-lg outline outline-1 outline-slate-200 text-sm text-slate-700"
               />
+              {errors.birthDate && !form.birthDate && (
+                <p className="text-red-500 text-xs">{errors.birthDate}</p>
+              )}
             </div>
           </div>
 
@@ -393,6 +325,9 @@ export const ManagerSignup = () => {
                   </div>
                 </label>
               </div>
+              {errors.gender && !form.gender && (
+                <p className="text-red-500 text-xs">{errors.gender}</p>
+              )}
             </div>
           </div>
 
@@ -400,8 +335,9 @@ export const ManagerSignup = () => {
           <AddressSearch
             roadAddress={roadAddress}
             detailAddress={detailAddress}
-            setRoadAddress={(val) => setForm((prev) => prev ? { ...prev, roadAddress: val } : prev)}
-            setDetailAddress={(val) => setForm((prev) => prev ? { ...prev, detailAddress: val } : prev)}
+            errors={errors.address}
+            setRoadAddress={(val) => setAddress(val, latitude ?? 0, longitude ?? 0, detailAddress)}
+            setDetailAddress={(val) => setAddress(roadAddress, latitude ?? 0, longitude ?? 0, val)}
           />
         </div>
 
@@ -410,18 +346,23 @@ export const ManagerSignup = () => {
         <div className="flex flex-col gap-6">
           <div className="text-slate-800 text-lg font-semibold">프로필 정보</div>
           <div className="flex gap-4">
-            <div className="w-28 h-28 bg-slate-100 rounded-full flex justify-center items-center">
-              <div className="w-14 h-14 bg-slate-300" />
+            <div className="w-28 h-28 bg-slate-100 rounded-[60px] flex justify-center items-center">
+              <span className="material-symbols-outlined text-[64px] text-slate-500 leading-none inline-block">
+                face
+              </span>
             </div>
             <div className="flex flex-col gap-2">
               <label className="text-slate-700 text-sm font-medium font-['Inter'] leading-none">프로필 사진 *</label>
+              {errors.profileImageId && !form.profileImageId && (
+                <p className="text-red-500 text-xs">{errors.profileImageId}</p>
+              )}
               <div className="w-40 h-10 px-4 bg-slate-50 rounded-md outline outline-1 outline-slate-200 flex justify-center items-center text-slate-700 text-sm font-medium">파일 선택</div>
               <p className="text-xs text-slate-500">JPG, PNG 파일 (최대 10MB)</p>
             </div>
           </div>
 
           {/* 첨부파일 */}
-          <FileUploadSection files={files} setFiles={setFiles} multiple={true} isRequired={true}/>
+          <FileUploadSection files={files} setFiles={setFiles} multiple={true} isRequired={true} errors={errors.fileId}/>
 
           {/* 한줄소개 */}
           <div className="flex flex-col gap-2 w-full">
@@ -434,6 +375,9 @@ export const ManagerSignup = () => {
               placeholder="자신을 소개하는 한 줄을 작성해주세요"
               className="h-12 px-4 bg-slate-50 rounded-lg outline outline-1 outline-slate-200 text-sm text-slate-700 placeholder-slate-400"
             />
+            {errors.bio && !form.bio && (
+                <p className="text-red-500 text-xs">{errors.bio}</p>
+              )}
           </div>
 
           {/* 업무 가능 시간 */}
@@ -441,6 +385,9 @@ export const ManagerSignup = () => {
             <div className="flex flex-col gap-1">
               <label className="text-slate-700 text-sm font-medium font-['Inter'] leading-none">업무 가능 시간 *</label>
               <p className="text-xs text-slate-500">가능한 시간대를 선택해주세요.</p>
+              {errors.availableTimes && form.availableTimes.length === 0 && (
+                <p className="text-red-500 text-xs">{errors.availableTimes}</p>
+              )}
             </div>
 
             <div className="w-full overflow-x-auto">
@@ -521,5 +468,6 @@ export const ManagerSignup = () => {
         </button>
       </div>
     </div>
+  </Fragment>
   );
 };

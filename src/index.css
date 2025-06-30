@@ -8,6 +8,11 @@
   filter: grayscale(1) brightness(0.6); /* 아이콘 톤 맞춤 */
 }
 
+/* 버튼 hover 시, 마우스 포인터 손가락 모양 설정 */
+button:hover {
+  cursor: pointer;
+}
+
 
 
 /* 애니메이션 */

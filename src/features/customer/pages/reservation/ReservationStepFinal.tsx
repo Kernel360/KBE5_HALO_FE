@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { ReservationStepIndicator } from '@/features/customer/components/ReservationStepIndicator';
+import { UserRound } from 'lucide-react';
 import type { ReservationConfirmRspType } from '@/features/customer/types/reservation/ReservationConfirmRspType';
 
 // 체크 이모지
@@ -67,10 +67,10 @@ const ReservationStepFinal: React.FC = () => {
   }
 
   return (
-    <div className="w-full px-16 py-10 bg-gray-50 flex flex-col items-center">
-      <ReservationStepIndicator step={3} /> {/* Step 3: 결제 및 완료 */}
+    <div className="w-full px-16 py-10 flex flex-col items-center">
+      <div className="self-stretch text-center text-gray-900 text-3xl font-bold leading-loose">서비스 예약</div>
 
-      <div className="max-w-[800px] w-full flex flex-col items-center gap-8 bg-white p-8 rounded-xl shadow-md">
+      <div className="max-w-[800px] w-full flex flex-col items-center gap-8 bg-white p-8 rounded-xl ">
       <CheckCircleIcon colorClass="text-indigo-400" /> 
         <h2 className="text-2xl font-bold text-gray-900 text-center mb-2">예약이 완료되었습니다</h2>
         <p className="text-base text-gray-600 text-center mb-6">
@@ -85,7 +85,6 @@ const ReservationStepFinal: React.FC = () => {
               예약 확정
             </div>
           </div>
-          <p className="text-sm text-gray-500 mt-[-10px] mb-2">예약번호: {finalReservationData.reservationId}</p>
           
           <div className="grid grid-cols-2 gap-y-4 gap-x-8">
             {/* 서비스 정보 섹션 */}
@@ -118,8 +117,9 @@ const ReservationStepFinal: React.FC = () => {
             <div className="flex flex-col items-center justify-center p-4 bg-gray-50 rounded-lg shadow-sm">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">담당 매니저</h3>
               <div className="w-20 h-20 bg-gray-100 rounded-full flex justify-center items-center mb-2">
-                <img src="/default-profile.png" alt="manager profile" className="w-full h-full rounded-full object-cover" />
-              </div>
+              <div className="w-28 h-28 rounded-[60px] flex flex-col justify-center items-center">
+                    <UserRound className="w-10 h-10 text-gray-400" />
+                  </div>              </div>
               <div className="text-gray-900 text-base font-semibold">{finalReservationData.managerName} 매니저</div>
             </div>
           </div>

@@ -12,3 +12,18 @@ export const formatPhoneNumber = (value: string): string => {
     return `${rawValue.slice(0, 3)}-${rawValue.slice(3, 7)}-${rawValue.slice(7, 11)}`;
   }
 };
+
+/**
+ * 시작 시간과 소요시간 입력 시 아래와 같이 표시
+ * 12:00 ~ 15:00 (총 3시간)
+ */
+export const formatTimeRange = (startTime: string, duration: number): string => {
+  const [hour, minute] = startTime.split(":").map(Number);
+
+  const pad = (n: number) => n.toString().padStart(2, "0");
+
+  const startHour = hour;
+  const endHour = (hour + duration) % 24; // 24시 넘어가면 0부터 다시
+
+  return `${pad(startHour)}:${pad(minute)} ~ ${pad(endHour)}:${pad(minute)} (총 ${duration}시간)`;
+};

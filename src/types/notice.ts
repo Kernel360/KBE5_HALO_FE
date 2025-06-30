@@ -1,20 +1,24 @@
-export type NoticeStatus = '게시중' | '임시저장';
-
-export type NoticeType = 'notice' | 'event';
-
-export interface Notice {
+export type Notice = {
   id: string;
   title: string;
-  status: NoticeStatus;
+  content: string;
   author: string;
   createdAt: string;
-  type: NoticeType;
-}
+  status?: string;
+  // 필요한 필드 추가 가능
+};
 
-export interface NoticeSearchParams {
+export type NoticeSearchParams = {
+  type?: string;
   title?: string;
-  status?: NoticeStatus;
+  author?: string;
   startDate?: string;
   endDate?: string;
-  type?: NoticeType;
-} 
+  page?: number;
+  size?: number;
+  status?: string;
+};
+
+export type NoticeStatus = '게시중' | '임시저장';
+export type NoticeType = 'notice' | 'event'; 
+

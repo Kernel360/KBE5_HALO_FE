@@ -4,15 +4,16 @@ import { Fragment } from "react";
 interface CleanignLogModalProps {
   open: boolean;
   checkType: "IN" | "OUT";
-  checkId?: number | undefined;
-  fileId: number | undefined;
+  // checkId?: number | undefined;
+  // fileId: number | undefined;
   files: File[];
   setFiles: React.Dispatch<React.SetStateAction<File[]>>;
   onCheck: (checkType: "IN" | "OUT") => void;
   onClose: () => void;
 }
 
-export const CleanignLogModal = ({ open, checkType, checkId, fileId, files, setFiles, onCheck, onClose }: CleanignLogModalProps) => {
+// export const CleanignLogModal = ({ open, checkType, checkId, fileId, files, setFiles, onCheck, onClose }: CleanignLogModalProps) => {
+export const CleanignLogModal = ({ open, checkType, files, setFiles, onCheck, onClose }: CleanignLogModalProps) => {
   
   if (!open) return null;
   return (
@@ -44,7 +45,7 @@ export const CleanignLogModal = ({ open, checkType, checkId, fileId, files, setF
               className="w-24 h-11 bg-indigo-600 rounded-lg flex justify-center items-center cursor-pointer"
             >
               <div className="justify-start text-white text-sm font-medium font-['Inter'] leading-none">
-                {checkType === "IN" ? "체크인" : "체크아웃"} {checkId} {fileId}
+                {checkType === "IN" ? "체크인" : "체크아웃"}
               </div>
             </button>
           </div>

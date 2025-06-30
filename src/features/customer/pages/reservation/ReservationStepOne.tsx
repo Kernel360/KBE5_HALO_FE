@@ -9,6 +9,7 @@ import { formatPhoneNumber } from '@/shared/utils/format';
 import AddressSearch from '@/shared/components/AddressSearch';
 import { useAddressStore } from '@/store/useAddressStore';
 import { ReservationStepIndicator } from '@/features/customer/components/ReservationStepIndicator';
+import { MapPin, Phone, Sparkles, StickyNote, CalendarClock } from 'lucide-react';
 
 export const ReservationStepOne: React.FC = () => {
   const navigate = useNavigate();
@@ -92,19 +93,19 @@ export const ReservationStepOne: React.FC = () => {
     const selectedDate = form.requestDate;
     const today = new Date().toISOString().split('T')[0];
 
-    return Array.from({ length: 25 }, (_, i) => {
-      const hour = 6 + Math.floor(i / 2);
-      const minute = i % 2 === 0 ? '00' : '30';
+    // Generate hours from 6:00 to 20:00 (8PM) in 1-hour increments (6,7,...,20)
+    return Array.from({ length: 15 }, (_, i) => {
+      const hour = 6 + i;
+      const timeStr = `${String(hour).padStart(2, '0')}:00`;
 
       if (selectedDate === today) {
         const current = new Date();
-        current.setHours(current.getHours() + 1);
+        current.setHours(current.getHours() + 2);
         const limitHour = current.getHours();
-        const limitMin = current.getMinutes();
-        if (hour < limitHour || (hour === limitHour && parseInt(minute) <= limitMin)) return null;
+        if (hour < limitHour) return null;
       }
 
-      return `${String(hour).padStart(2, '0')}:${minute}`;
+      return timeStr;
     }).filter(Boolean) as string[];
   }, [form.requestDate]);
 
@@ -203,14 +204,17 @@ export const ReservationStepOne: React.FC = () => {
   const isNextDisabled = selectedMain?.depth === 0 && (selectedMain?.price ?? 0) === 0;
 
   return (
-    <div className="w-full px-16 py-10 bg-gray-50 flex flex-col items-center">
+    <div className="w-full px-16 py-10 flex flex-col items-center">
       <ReservationStepIndicator step={1} />
       <div className="max-w-[1200px] w-full flex gap-8">
         {/* 좌측 */}
         <div className="flex-1 flex flex-col gap-8">
           {/* 주소 */}
           <div className="bg-white p-6 rounded-xl border border-gray-200 flex flex-col gap-5">
-            <h2 className="text-lg font-semibold text-gray-900">서비스 주소</h2>
+            <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+              <MapPin size={18} className="text-indigo-600" />
+              서비스 주소
+            </h2>
             <AddressSearch
               roadAddress={roadAddress}
               detailAddress={detailAddress}
@@ -221,7 +225,10 @@ export const ReservationStepOne: React.FC = () => {
 
           {/* 연락처 */}
           <div className="bg-white p-6 rounded-xl border border-gray-200 flex flex-col gap-5">
-            <h2 className="text-lg font-semibold text-gray-900">연락처</h2>
+            <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+              <Phone size={18} className="text-indigo-600" />
+              연락처
+            </h2>
             <input
               id="phone"
               type="tel"
@@ -233,9 +240,13 @@ export const ReservationStepOne: React.FC = () => {
             />
           </div>
 
+
           {/* 서비스 선택 */}
           <div className="bg-white p-6 rounded-xl border border-gray-200 flex flex-col gap-5">
-            <div className="text-lg font-semibold text-gray-900">서비스 종류</div>
+            <div className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+              <Sparkles size={18} className="text-indigo-600" />
+              서비스 종류
+            </div>
             <select
               value={form.mainServiceId}
               onChange={(e) => handleChange('mainServiceId', Number(e.target.value))}
@@ -300,24 +311,16 @@ export const ReservationStepOne: React.FC = () => {
                 </>
               )}
           </div>
-
-          {/* 메모 */}
-          <div className="bg-white p-6 rounded-xl border border-gray-200 flex flex-col gap-5">
-            <h2 className="text-lg font-semibold text-gray-900">서비스 상세</h2>
-            <textarea
-              className="h-24 px-3 py-2 bg-gray-50 rounded-md border border-gray-300"
-              placeholder="반려동물 유무와 기타 요청사항을 입력해주세요."
-              value={form.memo}
-              onChange={(e) => handleChange('memo', e.target.value)}
-            />
-          </div>
         </div>
 
         {/* 우측 */}
         <div className="w-96 flex flex-col gap-6">
           {/* 날짜 및 시간 */}
           <div className="bg-white p-6 rounded-xl border border-gray-200 flex flex-col gap-3">
-            <h2 className="text-lg font-semibold text-gray-900">서비스 날짜 및 시간</h2>
+            <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+              <CalendarClock size={18} className="text-indigo-600" />
+              서비스 날짜 및 시간
+            </h2>
             <input
               type="date"
               min={availableDate}
@@ -335,6 +338,20 @@ export const ReservationStepOne: React.FC = () => {
                 <option key={time} value={time}>{time}</option>
               ))}
             </select>
+          </div>
+
+          {/* 메모 */}
+          <div className="bg-white p-6 rounded-xl border border-gray-200 flex flex-col gap-5">
+            <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+              <StickyNote size={18} className="text-indigo-600" />
+              전달 사항
+            </h2>
+            <textarea
+              className="h-24 px-3 py-2 bg-gray-50 rounded-md border border-gray-300"
+              placeholder="반려동물 유무와 기타 요청사항을 입력해주세요."
+              value={form.memo}
+              onChange={(e) => handleChange('memo', e.target.value)}
+            />
           </div>
 
           {/* 요약 */}

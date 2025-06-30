@@ -11,8 +11,8 @@ function AdminNotices() {
   const itemsPerPage = 3;
   const [notices, setNotices] = useState<Notice[]>([]);
   const [totalPages, setTotalPages] = useState(1);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [, setLoading] = useState(false);
+  const [, setError] = useState<string | null>(null);
 
   // API 연동: 탭/검색/페이지 변경 시 호출
   useEffect(() => {
@@ -61,7 +61,7 @@ function AdminNotices() {
 
   const handleDelete = (id: string) => {
     // TODO: 삭제 API 연동 필요
-    alert('삭제 기능은 추후 구현 예정입니다.');
+    alert(`/admins/notices/${id}/edit`);
   };
 
   const handlePageChange = (page: number) => {

@@ -3,7 +3,7 @@ import { Fragment } from "react";
 export const ManagerMain = () => {
   return (
     <Fragment>
-      <div className="flex-1 self-stretch inline-flex flex-col justify-start items-start">
+      <div className="flex-1 flex flex-col justify-start items-start w-full min-w-0">
         <div className="self-stretch h-16 px-6 bg-white border-b border-gray-200 inline-flex justify-start items-center">
           <div className="justify-start text-gray-900 text-xl font-bold font-['Inter'] leading-normal">대시보드</div>
         </div>
@@ -31,44 +31,10 @@ export const ManagerMain = () => {
               </div>
             </div>
           </div>
+
+
+          {/* 두번째 */}
           <div className="self-stretch p-6 bg-white rounded-xl shadow-[0px_2px_12px_0px_rgba(0,0,0,0.04)] flex flex-col justify-start items-start gap-4">
-            <div className="self-stretch inline-flex justify-between items-center">
-              <div className="justify-start text-slate-800 text-lg font-semibold font-['Inter'] leading-snug">오늘의 스케줄</div>
-              <div className="justify-start text-slate-500 text-sm font-medium font-['Inter'] leading-none">2023년 5월 15일 월요일</div>
-            </div>
-            <div className="self-stretch p-4 bg-slate-50 rounded-lg inline-flex justify-between items-center">
-              <div className="flex-1 inline-flex flex-col justify-start items-start gap-1">
-                <div className="self-stretch justify-start text-slate-800 text-base font-semibold font-['Inter'] leading-tight">홍길동 고객 방문 청소</div>
-                <div className="self-stretch justify-start text-slate-500 text-sm font-normal font-['Inter'] leading-none">서울시 강남구 테헤란로 123</div>
-                <div className="self-stretch justify-start text-indigo-600 text-sm font-medium font-['Inter'] leading-none">09:00 - 12:00</div>
-              </div>
-              <div className="flex justify-end items-center gap-2">
-                <div className="w-24 h-10 bg-indigo-100 rounded-md flex justify-center items-center">
-                  <div className="justify-start text-indigo-600 text-sm font-medium font-['Inter'] leading-none">체크인</div>
-                </div>
-                <div className="w-24 h-10 bg-slate-100 rounded-md flex justify-center items-center">
-                  <div className="justify-start text-slate-500 text-sm font-medium font-['Inter'] leading-none">체크아웃</div>
-                </div>
-              </div>
-            </div>
-            <div className="self-stretch p-4 bg-slate-50 rounded-lg inline-flex justify-between items-center">
-              <div className="flex-1 inline-flex flex-col justify-start items-start gap-1">
-                <div className="self-stretch justify-start text-slate-800 text-base font-semibold font-['Inter'] leading-tight">김철수 고객 방문 청소</div>
-                <div className="self-stretch justify-start text-slate-500 text-sm font-normal font-['Inter'] leading-none">서울시 서초구 서초대로 456</div>
-                <div className="self-stretch justify-start text-blue-500 text-sm font-medium font-['Inter'] leading-none">14:00 - 17:00</div>
-              </div>
-              <div className="flex justify-end items-center gap-2">
-                <div className="w-24 h-10 bg-slate-100 rounded-md flex justify-center items-center">
-                  <div className="justify-start text-slate-500 text-sm font-medium font-['Inter'] leading-none">체크인</div>
-                </div>
-                <div className="w-24 h-10 bg-slate-100 rounded-md flex justify-center items-center">
-                  <div className="justify-start text-slate-500 text-sm font-medium font-['Inter'] leading-none">체크아웃</div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="self-stretch inline-flex justify-start items-start gap-4">
-            <div className="flex-1 p-6 bg-white rounded-xl shadow-[0px_2px_12px_0px_rgba(0,0,0,0.04)] inline-flex flex-col justify-start items-start gap-4">
               <div className="self-stretch justify-start text-slate-800 text-lg font-semibold font-['Inter'] leading-snug">이번주 스케줄</div>
               <div className="self-stretch inline-flex justify-start items-start">
                 <div className="flex-1 inline-flex flex-col justify-start items-center gap-2">
@@ -114,7 +80,48 @@ export const ManagerMain = () => {
                   </div>
                 </div>
               </div>
-            </div>
+
+              <div className="self-stretch p-6 bg-white rounded-xl shadow-[0px_2px_12px_0px_rgba(0,0,0,0.04)] flex flex-col justify-start items-start gap-4">
+                <div className="self-stretch p-4 bg-slate-50 rounded-lg inline-flex justify-between items-center">
+                  <div className="flex-1 inline-flex flex-col justify-start items-start gap-1">
+                    <div className="self-stretch justify-start text-slate-800 text-base font-semibold font-['Inter'] leading-tight">홍길동 고객 방문 청소</div>
+                    <div className="self-stretch justify-start text-slate-500 text-sm font-normal font-['Inter'] leading-none">서울시 강남구 테헤란로 123</div>
+                    <div className="self-stretch justify-start text-indigo-600 text-sm font-medium font-['Inter'] leading-none">09:00 - 12:00</div>
+                  </div>
+                  <div className="flex justify-end items-center gap-2">
+                    <div className="w-24 h-10 bg-indigo-100 rounded-md flex justify-center items-center">
+                      <div className="justify-start text-indigo-600 text-sm font-medium font-['Inter'] leading-none">체크인</div>
+                    </div>
+                    <div className="w-24 h-10 bg-slate-100 rounded-md flex justify-center items-center">
+                      <div className="justify-start text-slate-500 text-sm font-medium font-['Inter'] leading-none">체크아웃</div>
+                    </div>
+                  </div>
+                </div>
+                <div className="self-stretch p-4 bg-slate-50 rounded-lg inline-flex justify-between items-center">
+                  <div className="flex-1 inline-flex flex-col justify-start items-start gap-1">
+                    <div className="self-stretch justify-start text-slate-800 text-base font-semibold font-['Inter'] leading-tight">김철수 고객 방문 청소</div>
+                    <div className="self-stretch justify-start text-slate-500 text-sm font-normal font-['Inter'] leading-none">서울시 서초구 서초대로 456</div>
+                    <div className="self-stretch justify-start text-indigo-600 text-sm font-medium font-['Inter'] leading-none">14:00 - 17:00</div>
+                  </div>
+                  <div className="flex justify-end items-center gap-2">
+                    <div className="w-24 h-10 bg-slate-100 rounded-md flex justify-center items-center">
+                      <div className="justify-start text-slate-500 text-sm font-medium font-['Inter'] leading-none">체크인</div>
+                    </div>
+                    <div className="w-24 h-10 bg-slate-100 rounded-md flex justify-center items-center">
+                      <div className="justify-start text-slate-500 text-sm font-medium font-['Inter'] leading-none">체크아웃</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+          </div>
+
+
+
+
+
+
+          {/* 세번째 */}
+          <div className="self-stretch inline-flex justify-start items-start gap-4">
             <div className="flex-1 p-6 bg-white rounded-xl shadow-[0px_2px_12px_0px_rgba(0,0,0,0.04)] inline-flex flex-col justify-start items-start gap-4">
               <div className="self-stretch inline-flex justify-between items-center">
                 <div className="justify-start text-slate-800 text-lg font-semibold font-['Inter'] leading-snug">최근 리뷰</div>
@@ -126,21 +133,11 @@ export const ManagerMain = () => {
                     <div className="justify-start text-slate-800 text-base font-semibold font-['Inter'] leading-tight">김철수</div>
                   </div>
                   <div className="flex justify-end items-center gap-1">
-                    <div className="w-4 h-4 relative overflow-hidden">
-                      <div className="w-4 h-3.5 left-0 top-0 absolute bg-yellow-400" />
-                    </div>
-                    <div className="w-4 h-4 relative overflow-hidden">
-                      <div className="w-4 h-3.5 left-0 top-0 absolute bg-yellow-400" />
-                    </div>
-                    <div className="w-4 h-4 relative overflow-hidden">
-                      <div className="w-4 h-3.5 left-0 top-0 absolute bg-yellow-400" />
-                    </div>
-                    <div className="w-4 h-4 relative overflow-hidden">
-                      <div className="w-4 h-3.5 left-0 top-0 absolute bg-yellow-400" />
-                    </div>
-                    <div className="w-4 h-4 relative overflow-hidden">
-                      <div className="w-4 h-3.5 left-0 top-0 absolute bg-slate-200" />
-                    </div>
+                      <span className="material-icons-outlined text-base text-yellow-400">star</span>
+                      <span className="material-icons-outlined text-base text-yellow-400">star</span>
+                      <span className="material-icons-outlined text-base text-yellow-400">star</span>
+                      <span className="material-icons-outlined text-base text-slate-300">star</span>
+                      <span className="material-icons-outlined text-base text-slate-300">star</span>
                   </div>
                 </div>
                 <div className="self-stretch justify-start text-slate-700 text-sm font-normal font-['Inter'] leading-none">청소가 꼼꼼하게 잘 되어있어요. 다음에도 같은 매니저님 부탁드립니다.</div>
@@ -152,21 +149,11 @@ export const ManagerMain = () => {
                     <div className="justify-start text-slate-800 text-base font-semibold font-['Inter'] leading-tight">이영희</div>
                   </div>
                   <div className="flex justify-end items-center gap-1">
-                    <div className="w-4 h-4 relative overflow-hidden">
-                      <div className="w-4 h-3.5 left-0 top-0 absolute bg-yellow-400" />
-                    </div>
-                    <div className="w-4 h-4 relative overflow-hidden">
-                      <div className="w-4 h-3.5 left-0 top-0 absolute bg-yellow-400" />
-                    </div>
-                    <div className="w-4 h-4 relative overflow-hidden">
-                      <div className="w-4 h-3.5 left-0 top-0 absolute bg-yellow-400" />
-                    </div>
-                    <div className="w-4 h-4 relative overflow-hidden">
-                      <div className="w-4 h-3.5 left-0 top-0 absolute bg-yellow-400" />
-                    </div>
-                    <div className="w-4 h-4 relative overflow-hidden">
-                      <div className="w-4 h-3.5 left-0 top-0 absolute bg-yellow-400" />
-                    </div>
+                      <span className="material-icons-outlined text-base text-yellow-400">star</span>
+                      <span className="material-icons-outlined text-base text-yellow-400">star</span>
+                      <span className="material-icons-outlined text-base text-yellow-400">star</span>
+                      <span className="material-icons-outlined text-base text-yellow-400">star</span>
+                      <span className="material-icons-outlined text-base text-yellow-400">star</span>
                   </div>
                 </div>
                 <div className="self-stretch justify-start text-slate-700 text-sm font-normal font-['Inter'] leading-none">시간 약속을 잘 지키시고 친절하게 응대해주셔서 좋았습니다.</div>
@@ -174,6 +161,9 @@ export const ManagerMain = () => {
               </div>
             </div>
           </div>
+
+
+          {/* 네번째 */}
           <div className="self-stretch p-6 bg-white rounded-xl shadow-[0px_2px_12px_0px_rgba(0,0,0,0.04)] flex flex-col justify-start items-start gap-4">
             <div className="self-stretch inline-flex justify-between items-center">
               <div className="justify-start text-slate-800 text-lg font-semibold font-['Inter'] leading-snug">공지사항</div>

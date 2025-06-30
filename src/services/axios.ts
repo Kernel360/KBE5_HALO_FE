@@ -26,6 +26,11 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
+    // 로그인 요청이면 재발급 로직 건너뜀
+    if (originalRequest.url.includes('/auth/login')) {
+      return Promise.reject(error);
+    }
+
     if (
       error.response?.status === 401 &&
       !originalRequest._retry // 중복 방지

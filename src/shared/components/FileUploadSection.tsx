@@ -3,6 +3,8 @@ import { useRef } from "react";
 interface FileUploadSectionProps {
   files: File[];
   setFiles: React.Dispatch<React.SetStateAction<File[]>>;
+  title?: string;
+  errors?: string;
   multiple?: boolean;
   isRequired?: boolean;
 }
@@ -11,7 +13,7 @@ const MAX_FILE_SIZE_MB = 10;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 const MAX_FILE_COUNT = 5;
 
-export const FileUploadSection = ({ files, setFiles, multiple = true, isRequired = true }: FileUploadSectionProps) => {
+export const FileUploadSection = ({ files, setFiles, title, errors, multiple = true, isRequired = true }: FileUploadSectionProps) => {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const handleFileButtonClick = () => {
@@ -50,7 +52,7 @@ export const FileUploadSection = ({ files, setFiles, multiple = true, isRequired
   return (
     <div className="self-stretch flex flex-col gap-2 cuser-pointer">
       <label className="text-slate-700 text-sm font-medium font-['Inter'] leading-none">
-        첨부파일
+        {title ? title : "첨부파일"}
         {isRequired && <span> *</span>}
       </label>
       <div className="self-stretch p-4 bg-slate-50 rounded-lg outline outline-1 outline-offset-[-1px] outline-slate-200 flex flex-col gap-3">
@@ -102,6 +104,9 @@ export const FileUploadSection = ({ files, setFiles, multiple = true, isRequired
           JPG, PNG, PDF 파일 (각 최대 {MAX_FILE_SIZE_MB}MB{multiple ? `, 최대 ${MAX_FILE_COUNT}개` : ''})
         </div>
       </div>
+      {errors && files.length === 0 && (
+        <p className="text-red-500 text-xs">{errors}</p>
+      )}
     </div>
   );
 };

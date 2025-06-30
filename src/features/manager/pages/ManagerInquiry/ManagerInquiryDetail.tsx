@@ -43,7 +43,6 @@ export const ManagerInquiryDetail = () => {
       alert("삭제가 완료되었습니다.");
       navigate("/managers/inquiries");
     } catch (error) {
-      console.error(error);
       alert("삭제 중 오류가 발생했습니다.");
     }
   };
@@ -80,7 +79,10 @@ export const ManagerInquiryDetail = () => {
           {/* 문의 내용 카드 */}
           <div className="p-8 bg-white rounded-xl shadow flex flex-col gap-6">
             <div className="flex justify-between items-center">
-              <div className="text-slate-800 text-xl font-bold">{inquiry.title}</div>
+              <div className="text-slate-800 text-xl font-bold">
+                <span className="text-sm font-semibold text-white bg-slate-500 px-2 py-1 rounded mr-3">질문</span>
+                {inquiry.title}
+                </div>
               <div className="flex gap-4 text-sm text-slate-500">
                 <div>작성일시: <span className="text-slate-700">{inquiry.createdAt}</span></div>
               </div>
@@ -88,7 +90,7 @@ export const ManagerInquiryDetail = () => {
 
             <div className="h-px bg-slate-200" />
 
-            <div className="p-4 bg-slate-50 rounded-lg text-slate-700 text-sm whitespace-pre-wrap">
+            <div className="p-4 bg-slate-50 rounded-lg text-slate-700 text-sm whitespace-pre-wrap min-h-[200px]">
               {inquiry.content}
             </div>
 
@@ -111,40 +113,46 @@ export const ManagerInquiryDetail = () => {
             )}
           </div>
 
-          {/* 답변 카드 (답변 있을 경우만) */}
-          {inquiry.answerId && (
-            <div className="p-8 bg-white rounded-xl shadow flex flex-col gap-6">
-              <div className="flex justify-between items-center">
-                <div className="text-slate-800 text-xl font-bold">답변</div>
+          <hr className="my-1 border-t border-slate-200" />
+
+          {/* 답변 카드 */}
+          <div className="p-8 bg-white rounded-xl shadow flex flex-col gap-6">
+            <div className="flex justify-between items-center">
+              <div className="text-slate-800 text-xl font-bold">
+                <span className="text-sm font-semibold text-white bg-indigo-600 px-2 py-1 rounded">답변</span>
+              </div>
+              {inquiry.answerId && (
                 <div className="flex gap-4 text-sm text-slate-500">
                   <div>작성일시: <span className="text-slate-700">{inquiry.replyCreatedAt ?? "-"}</span></div>
                 </div>
-              </div>
-              <div className="h-px bg-slate-200" />
-              <div className="p-4 bg-slate-50 rounded-lg text-slate-700 text-sm whitespace-pre-wrap">
-                {inquiry.replyContent}
-              </div>
+              )}
+            </div>
+            <div className="h-px bg-slate-200" />
+            <div className="p-4 bg-slate-50 rounded-lg text-slate-700 text-sm whitespace-pre-wrap min-h-[200px]">
+              {inquiry.replyContent ?? "아직 관리자의 답변이 등록되지 않았습니다."}
+            </div>
 
-              {/* 첨부파일 (있을 때만 표시) */}
-            {inquiry.replyFileId && (
-              <div className="flex flex-col gap-2">
-                <div className="text-base font-semibold text-slate-800">첨부파일</div>
-                <div className="h-12 px-4 bg-slate-50 rounded-lg flex items-center gap-2 outline outline-1 outline-slate-200">
-                  <span className="material-symbols-outlined text-slate-500">description</span>
-                  {/* <a
-                    href={inquiry.fileUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-slate-700 text-sm font-medium underline hover:text-blue-600"
-                  >
-                    {inquiry.fileName}
-                  </a> */}
-                </div>
+            {/* 첨부파일 (있을 때만 표시) */}
+          {inquiry.replyFileId && (
+            <div className="flex flex-col gap-2">
+              <div className="text-base font-semibold text-slate-800">첨부파일</div>
+              <div className="h-12 px-4 bg-slate-50 rounded-lg flex items-center gap-2 outline outline-1 outline-slate-200">
+                <span className="material-symbols-outlined text-slate-500">description</span>
+                {/* <a
+                  href={inquiry.fileUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-slate-700 text-sm font-medium underline hover:text-blue-600"
+                >
+                  {inquiry.fileName}
+                </a> */}
               </div>
-            )}
-
             </div>
           )}
+
+          </div>
+
+
         </div>
       </div>
     </Fragment>

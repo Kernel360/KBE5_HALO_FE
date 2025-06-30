@@ -30,7 +30,7 @@ export const ManagerMy = () => {
         const body = await getManager();
         setManager(body);
       } catch (err) {
-        console.error("매니저 정보 조회 실패", err);
+      alert("매니저 정보 조회 중 오류가 발생하였습니다.");
       }
     };
     fetchManager();
@@ -93,7 +93,7 @@ export const ManagerMy = () => {
         <div className="self-stretch h-[1049px] p-6 flex flex-col justify-start items-start gap-6">
           <div className="self-stretch p-8 bg-white rounded-xl shadow-[0px_2px_12px_0px_rgba(0,0,0,0.04)] inline-flex justify-start items-start gap-8">
             <div className="w-40 h-40 bg-slate-100 rounded-[80px] flex justify-center items-center">
-              <div className="justify-start text-slate-400 text-5xl font-bold font-['Inter'] leading-[57.60px]">홍</div>
+              <div className="justify-start text-slate-400 text-5xl font-bold font-['Inter'] leading-[57.60px]">{manager.userName?.charAt(0)}</div>
             </div>
             <div className="flex-1 inline-flex flex-col justify-start items-start gap-6">
               <div className="self-stretch flex flex-col justify-start items-start gap-4">
@@ -119,7 +119,7 @@ export const ManagerMy = () => {
                 </div>
                 <div className="self-stretch inline-flex justify-start items-center gap-2">
                   <div className="w-28 justify-start text-slate-500 text-sm font-medium font-['Inter'] leading-none">주소</div>
-                  <div className="flex-1 justify-start text-slate-700 text-sm font-medium font-['Inter'] leading-none">{ manager.roadAddress } { manager.detailAddress }</div>
+                  <div className="flex-1 justify-start text-slate-700 text-sm font-medium font-['Inter'] leading-none">{ manager.roadAddress }, { manager.detailAddress }</div>
                 </div>
               </div>
             </div>
@@ -162,10 +162,6 @@ export const ManagerMy = () => {
           <div className="self-stretch p-8 bg-white rounded-xl shadow-[0px_2px_12px_0px_rgba(0,0,0,0.04)] flex flex-col justify-start items-start gap-4">
             <div className="self-stretch justify-start text-slate-800 text-lg font-semibold font-['Inter'] leading-snug">계약 정보</div>
             <div className="self-stretch inline-flex justify-start items-center gap-2">
-              <div className="w-40 justify-start text-slate-500 text-sm font-medium font-['Inter'] leading-none">계약 시작일</div>
-              <div className="flex-1 justify-start text-slate-700 text-sm font-medium font-['Inter'] leading-none">{ manager.contractAt }</div>
-            </div>
-            <div className="self-stretch inline-flex justify-start items-center gap-2">
               <div className="w-40 justify-start text-slate-500 text-sm font-medium font-['Inter'] leading-none">
                 계약 상태
               </div>
@@ -175,6 +171,12 @@ export const ManagerMy = () => {
                 </div>
               </div>
             </div>
+            {manager.status === 'ACTIVE' && (
+              <div className="self-stretch inline-flex justify-start items-center gap-2">
+                <div className="w-40 justify-start text-slate-500 text-sm font-medium font-['Inter'] leading-none">계약 시작일</div>
+                <div className="flex-1 justify-start text-slate-700 text-sm font-medium font-['Inter'] leading-none">{ manager.contractAt }</div>
+              </div>
+            )}
             {manager.status === 'TERMINATION_PENDING' && (
               <Fragment>
                 <div className="self-stretch inline-flex justify-start items-center gap-2">

@@ -1,104 +1,118 @@
-import { Fragment, useState } from "react";
-import { Link } from "react-router-dom";
+import { Fragment, useEffect, useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { DEFAULT_PAGE_SIZE } from "@/shared/constants/constants";
-
-interface Manager {
-  id: number;
-  name: string;
-  email: string;
-  phone: string;
-  status: "ACTIVE" | "PENDING" | "PENDING";
-  rating: number | null;
-}
-
-const dummyManagers: Manager[] = [
-  // 더미 데이터 12명 정도로 확장 예시
-  {
-    id: 1,
-    name: "김민수",
-    email: "minsu@example.com",
-    phone: "010-1234-5678",
-    status: "ACTIVE",
-    rating: 4.0,
-  },
-  {
-    id: 2,
-    name: "이지연",
-    email: "jiyeon@example.com",
-    phone: "010-2345-6789",
-    status: "ACTIVE",
-    rating: 4.8,
-  },
-  {
-    id: 3,
-    name: "박현우",
-    email: "hyunwoo@example.com",
-    phone: "010-3456-7890",
-    status: "PENDING",
-    rating: null,
-  },
-  {
-    id: 4,
-    name: "한지민",
-    email: "jimin@example.com",
-    phone: "010-1111-2222",
-    status: "PENDING",
-    rating: 3.7,
-  },
-  {
-    id: 5,
-    name: "정해인",
-    email: "haein@example.com",
-    phone: "010-3333-4444",
-    status: "ACTIVE",
-    rating: 4.2,
-  },
-  {
-    id: 6,
-    name: "문채원",
-    email: "chaewon@example.com",
-    phone: "010-5555-6666",
-    status: "PENDING",
-    rating: null,
-  },
-  {
-    id: 7,
-    name: "서강준",
-    email: "kangjoon@example.com",
-    phone: "010-7777-8888",
-    status: "PENDING",
-    rating: 2.9,
-  },
-  {
-    id: 8,
-    name: "이수현",
-    email: "soohyun@example.com",
-    phone: "010-8765-4321",
-    status: "ACTIVE",
-    rating: 4.9,
-  }
-];
+import { fetchAdminManagers } from "@/features/admin/api/adminManager";
+import type { AdminManager } from "@/features/admin/types/AdminManagerType";
 
 export const AdminManagers = () => {
-  const [activeTab, setActiveTab] = useState<'all' | 'active' | 'applied'>('all');
+  const location = useLocation();
+  const initialTab = location.state?.tab === 'applied' ? 'applied' : 'all';
+  const [activeTab, setActiveTab] = useState<'all' | 'active' | 'applied'>(initialTab);
   const [nameKeyword, setNameKeyword] = useState('');
   const [phoneKeyword, setPhoneKeyword] = useState('');
+  const [emailKeyword, setEmailKeyword] = useState('');
+  const [statusKeyword, setStatusKeyword] = useState('');
+  const [ratingMinKeyword, setRatingMinKeyword] = useState('');
+  const [ratingMaxKeyword, setRatingMaxKeyword] = useState('');
   const [page, setPage] = useState(0);
-
-  const filteredManagers = dummyManagers.filter((manager) => {
-    const matchName = manager.name.includes(nameKeyword);
-    const matchPhone = manager.phone.includes(phoneKeyword);
-    const matchStatus =
-      activeTab === 'all'
-        ? true
-        : activeTab === 'active'
-        ? manager.status === 'ACTIVE'
-        : manager.status === 'PENDING';
-
-    return matchName && matchPhone && matchStatus;
+  const [managers, setManagers] = useState<AdminManager[]>([]);
+  const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [searchParams, setSearchParams] = useState({
+    nameKeyword: '',
+    phoneKeyword: '',
+    emailKeyword: '',
+    statusKeyword: '',
+    ratingMinKeyword: '',
+    ratingMaxKeyword: '',
   });
 
-  const totalPages = Math.ceil(filteredManagers.length / DEFAULT_PAGE_SIZE);
+  const navigate = useNavigate();
+
+  const fetchData = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      let res;
+      if (activeTab === 'active') {
+        // 신고된 매니저
+        const mappedParams: any = {
+          userName: searchParams.nameKeyword || undefined,
+          phone: searchParams.phoneKeyword || undefined,
+          email: searchParams.emailKeyword || undefined,
+          status: undefined, // 상태 필터는 사용하지 않음
+          minRating: searchParams.ratingMinKeyword ? Number(searchParams.ratingMinKeyword) : undefined,
+          maxRating: searchParams.ratingMaxKeyword ? Number(searchParams.ratingMaxKeyword) : undefined,
+          page: page,
+          size: DEFAULT_PAGE_SIZE,
+          excludeStatus: ['ACTIVE', 'PENDING', 'TERMINATION_PENDING', 'TERMINATED', 'DELETED', 'REJECTED'],
+        };
+        res = await fetchAdminManagers(mappedParams);
+        setManagers(res.content || res || []);
+        setTotalPages(res.totalPages || 1);
+      } else if (activeTab === 'applied') {
+        // 매니저 신청 내역
+        const mappedParams: any = {
+          userName: searchParams.nameKeyword || undefined,
+          phone: searchParams.phoneKeyword || undefined,
+          email: searchParams.emailKeyword || undefined,
+          status: searchParams.statusKeyword || undefined,
+          minRating: searchParams.ratingMinKeyword ? Number(searchParams.ratingMinKeyword) : undefined,
+          maxRating: searchParams.ratingMaxKeyword ? Number(searchParams.ratingMaxKeyword) : undefined,
+          page: page,
+          size: DEFAULT_PAGE_SIZE,
+          excludeStatus: ['ACTIVE', 'SUSPENDED', 'TERMINATION_PENDING', 'TERMINATED', 'DELETED'],
+        };
+        res = await fetchAdminManagers(mappedParams);
+        setManagers(res.content || res || []);
+        setTotalPages(res.totalPages || 1);
+      } else {
+        // 전체 매니저
+        const mappedParams: any = {
+          userName: searchParams.nameKeyword || undefined,
+          phone: searchParams.phoneKeyword || undefined,
+          email: searchParams.emailKeyword || undefined,
+          status: searchParams.statusKeyword || undefined,
+          minRating: searchParams.ratingMinKeyword ? Number(searchParams.ratingMinKeyword) : undefined,
+          maxRating: searchParams.ratingMaxKeyword ? Number(searchParams.ratingMaxKeyword) : undefined,
+          page: page,
+          size: DEFAULT_PAGE_SIZE,
+          excludeStatus: ['SUSPENDED', 'PENDING', 'REJECTED'],
+        };
+        res = await fetchAdminManagers(mappedParams);
+        setManagers(res.content || res || []);
+        setTotalPages(res.totalPages || 1);
+      }
+    } catch (err: any) {
+      setError(err.message || '매니저 목록 조회 실패');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, [activeTab, page, searchParams]);
+
+  // 탭 변경 시 검색 조건 및 searchParams 초기화
+  useEffect(() => {
+    setNameKeyword("");
+    setPhoneKeyword("");
+    setEmailKeyword("");
+    setStatusKeyword("");
+    setRatingMinKeyword("");
+    setRatingMaxKeyword("");
+    setPage(0);
+    setSearchParams({
+      nameKeyword: '',
+      phoneKeyword: '',
+      emailKeyword: '',
+      statusKeyword: '',
+      ratingMinKeyword: '',
+      ratingMaxKeyword: '',
+    });
+  }, [activeTab]);
 
   return (
     <Fragment>
@@ -114,8 +128,8 @@ export const AdminManagers = () => {
           <div className="border-b border-gray-200 flex">
             {[
               { key: 'all', label: '전체 매니저' },
-              { key: 'active', label: '활성 매니저' },
-              { key: 'applied', label: '신청 내역' },
+              { key: 'active', label: '신고된 매니저' },
+              { key: 'applied', label: '매니저 신청 내역' },
             ].map((tab) => (
               <div
                 key={tab.key}
@@ -139,40 +153,157 @@ export const AdminManagers = () => {
           <form
             onSubmit={(e) => {
               e.preventDefault();
+              setSearchParams({
+                nameKeyword,
+                phoneKeyword,
+                emailKeyword,
+                statusKeyword,
+                ratingMinKeyword,
+                ratingMaxKeyword,
+              });
+              setPage(0);
             }}
             className="w-full p-6 bg-white rounded-xl shadow flex flex-col gap-4"
           >
             <div className="text-slate-800 text-lg font-semibold">검색 조건</div>
-            <div className="flex gap-4">
-              <div className="flex-1 flex flex-col gap-2">
-                <label className="text-slate-700 text-sm font-medium">이름</label>
-                <div className="h-12 px-4 bg-slate-50 rounded-lg outline outline-1 outline-slate-200 flex items-center">
-                  <input
-                    type="text"
-                    placeholder="이름 입력"
-                    value={nameKeyword}
-                    onChange={(e) => setNameKeyword(e.target.value)}
-                    className="w-full bg-transparent outline-none text-sm placeholder:text-slate-400"
-                  />
+            <div className="flex flex-col gap-4">
+              <div className="flex gap-4">
+                <div className="flex-1 flex flex-col gap-2">
+                  <label className="text-slate-700 text-sm font-medium">이름</label>
+                  <div className="h-12 px-4 bg-slate-50 rounded-lg outline outline-1 outline-slate-200 flex items-center">
+                    <input
+                      type="text"
+                      placeholder="이름 입력"
+                      value={nameKeyword}
+                      onChange={(e) => setNameKeyword(e.target.value)}
+                      className="w-full bg-transparent outline-none text-sm placeholder:text-slate-400"
+                    />
+                  </div>
                 </div>
+                <div className="flex-1 flex flex-col gap-2">
+                  <label className="text-slate-700 text-sm font-medium">연락처</label>
+                  <div className="h-12 px-4 bg-slate-50 rounded-lg outline outline-1 outline-slate-200 flex items-center">
+                    <input
+                      type="text"
+                      placeholder="연락처 입력"
+                      value={phoneKeyword}
+                      onChange={(e) => setPhoneKeyword(e.target.value)}
+                      className="w-full bg-transparent outline-none text-sm placeholder:text-slate-400"
+                    />
+                  </div>
+                </div>
+                <div className="flex-1 flex flex-col gap-2">
+                  <label className="text-slate-700 text-sm font-medium">이메일</label>
+                  <div className="h-12 px-4 bg-slate-50 rounded-lg outline outline-1 outline-slate-200 flex items-center">
+                    <input
+                      type="text"
+                      placeholder="이메일 입력"
+                      value={emailKeyword}
+                      onChange={(e) => setEmailKeyword(e.target.value)}
+                      className="w-full bg-transparent outline-none text-sm placeholder:text-slate-400"
+                    />
+                  </div>
+                </div>
+                <div className="flex-1"></div>
               </div>
-              <div className="flex-1 flex flex-col gap-2">
-                <label className="text-slate-700 text-sm font-medium">연락처</label>
-                <div className="h-12 px-4 bg-slate-50 rounded-lg outline outline-1 outline-slate-200 flex items-center">
-                  <input
-                    type="text"
-                    placeholder="연락처 입력"
-                    value={phoneKeyword}
-                    onChange={(e) => setPhoneKeyword(e.target.value)}
-                    className="w-full bg-transparent outline-none text-sm placeholder:text-slate-400"
-                  />
+              <div className="flex gap-4">
+                <div className="flex-1 flex flex-col gap-2">
+                  <label className="text-slate-700 text-sm font-medium">평점</label>
+                  <div className="h-12 px-4 bg-slate-50 rounded-lg outline outline-1 outline-slate-200 flex items-center gap-2">
+                    <input
+                      type="number"
+                      min="1"
+                      max="5"
+                      step="0.1"
+                      placeholder="최소"
+                      value={ratingMinKeyword}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if ((/^\d*\.?\d*$/.test(value) || value === "") && (value === "" || (Number(value) >= 1 && Number(value) <= 5))) {
+                          setRatingMinKeyword(value);
+                        }
+                      }}
+                      className="w-full bg-transparent outline-none text-sm placeholder:text-slate-400"
+                    />
+                    <span className="mx-1 text-slate-400">~</span>
+                    <input
+                      type="number"
+                      min="1"
+                      max="5"
+                      step="0.1"
+                      placeholder="최대"
+                      value={ratingMaxKeyword}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if ((/^\d*\.?\d*$/.test(value) || value === "") && (value === "" || (Number(value) >= 1 && Number(value) <= 5))) {
+                          setRatingMaxKeyword(value);
+                        }
+                      }}
+                      className="w-full bg-transparent outline-none text-sm placeholder:text-slate-400"
+                    />
+                  </div>
                 </div>
+                <div className="flex-1 flex flex-col gap-2">
+                  {activeTab === 'all' && (
+                    <>
+                      <label className="text-slate-700 text-sm font-medium">계약 상태</label>
+                      <div className="h-12 px-4 bg-slate-50 rounded-lg outline outline-1 outline-slate-200 flex items-center">
+                        <select
+                          value={statusKeyword}
+                          onChange={(e) => setStatusKeyword(e.target.value)}
+                          className="w-full bg-transparent outline-none text-sm text-slate-700"
+                        >
+                          <option value="">전체</option>
+                          <option value="ACTIVE">활성</option>
+                          <option value="TERMINATION_PENDING">계약해지대기</option>
+                          <option value="TERMINATED">계약해지</option>
+                          <option value="DELETED">탈퇴</option>
+                        </select>
+                      </div>
+                    </>
+                  )}
+                  {activeTab === 'applied' && (
+                    <>
+                      <label className="text-slate-700 text-sm font-medium">계약 상태</label>
+                      <div className="h-12 px-4 bg-slate-50 rounded-lg outline outline-1 outline-slate-200 flex items-center">
+                        <select
+                          value={statusKeyword}
+                          onChange={(e) => setStatusKeyword(e.target.value)}
+                          className="w-full bg-transparent outline-none text-sm text-slate-700"
+                        >
+                          <option value="">전체</option>
+                          <option value="PENDING">승인대기</option>
+                          <option value="REJECTED">승인거절</option>
+                        </select>
+                      </div>
+                    </>
+                  )}
+                </div>
+                <div className="flex-1"></div>
+                <div className="flex-1"></div>
               </div>
             </div>
             <div className="flex justify-end gap-2">
               <button
                 type="button"
                 className="w-28 h-12 bg-slate-100 rounded-lg text-slate-500 text-sm font-medium hover:bg-slate-200 cursor-pointer"
+                onClick={() => {
+                  setNameKeyword("");
+                  setPhoneKeyword("");
+                  setEmailKeyword("");
+                  setStatusKeyword("");
+                  setRatingMinKeyword("");
+                  setRatingMaxKeyword("");
+                  setPage(0);
+                  setSearchParams({
+                    nameKeyword: '',
+                    phoneKeyword: '',
+                    emailKeyword: '',
+                    statusKeyword: '',
+                    ratingMinKeyword: '',
+                    ratingMaxKeyword: '',
+                  });
+                }}
               >
                 초기화
               </button>
@@ -189,55 +320,82 @@ export const AdminManagers = () => {
           <div className="w-full bg-white rounded-lg shadow flex flex-col">
             {/* 헤더 */}
             <div className="h-12 px-6 bg-gray-50 border-b border-gray-200 flex items-center text-sm font-semibold text-gray-700 space-x-4">
-              <div className="w-[10%] flex justify-center items-center">이름</div>
+              <div className="w-[20%] flex justify-center items-center">이름</div>
               <div className="w-[20%] flex justify-center items-center">연락처</div>
               <div className="w-[20%] flex justify-center items-center">이메일</div>
-              <div className="w-[15%] flex justify-center items-center">상태</div>
-              <div className="w-[15%] flex justify-center items-center">평점</div>
-              <div className="w-[20%] flex justify-center items-center">관리</div>
+              <div className="w-[20%] flex justify-center items-center">평점</div>
+              <div className="w-[20%] flex justify-center items-center">계약 상태</div>
             </div>
 
             {/* 리스트 */}
-            {filteredManagers.map((m) => (
-              <div key={m.id} className="h-16 px-6 border-b border-gray-200 flex text-sm space-x-4">
-                <div className="w-[10%] flex justify-center items-center">
-                  <span className="text-gray-900 font-medium">{m.name}</span>
+            {loading ? (
+              <div className="w-full h-32 flex items-center justify-center text-gray-400">로딩 중...</div>
+            ) : error ? (
+              <div className="w-full h-32 flex items-center justify-center text-red-400">{error}</div>
+            ) : managers.length === 0 ? (
+              <div className="w-full h-32 flex items-center justify-center text-gray-400">등록된 매니저가 없습니다.</div>
+            ) : (
+              managers.map((manager) => (
+                <div
+                  key={manager.managerId}
+                  className="w-full px-6 h-16 border-b border-gray-200 flex items-center text-sm space-x-4 hover:bg-slate-50 cursor-pointer"
+                  onClick={() => navigate(`/admin/managers/${manager.managerId}`)}
+                >
+                  <div className="w-[20%] text-gray-900 font-medium flex justify-center">{manager.userName}</div>
+                  <div className="w-[20%] text-gray-500 flex justify-center">{manager.phone}</div>
+                  <div className="w-[20%] text-gray-500 flex justify-center">{manager.email}</div>
+                  <div className="w-[20%] text-gray-500 flex justify-center items-center">
+                    {manager.averageRating != null ? (
+                      <span className="w-full text-center text-gray-500 text-sm">{Number(manager.averageRating).toFixed(1)}</span>
+                    ) : (
+                      '-' 
+                    )}
+                  </div>
+                  <div className="w-[20%] flex justify-center">
+                    {(() => {
+                      let label = '';
+                      let color = '';
+                      switch (manager.userstatus) {
+                        case 'ACTIVE':
+                          label = '활성';
+                          color = 'bg-emerald-50 text-emerald-500';
+                          break;
+                        case 'PENDING':
+                          label = '승인대기';
+                          color = 'bg-yellow-50 text-yellow-600';
+                          break;
+                        case 'TERMINATION_PENDING':
+                          label = '계약해지대기';
+                          color = 'bg-yellow-50 text-yellow-600';
+                          break;
+                        case 'SUSPENDED':
+                          label = '정지';
+                          color = 'bg-red-50 text-red-500';
+                          break;
+                        case 'DELETED':
+                          label = '탈퇴';
+                          color = 'bg-red-50 text-red-500';
+                          break;
+                        case 'REJECTED':
+                          label = '승인거절';
+                          color = 'bg-red-50 text-red-500';
+                          break;
+                        case 'TERMINATED':
+                          label = '계약해지';
+                          color = 'bg-red-50 text-red-500';
+                          break;
+                        default:
+                          label = manager.userstatus;
+                          color = 'bg-gray-100 text-gray-500';
+                      }
+                      return (
+                        <div className={`px-2 py-0.5 rounded-xl text-xs font-medium inline-block ${color}`}>{label}</div>
+                      );
+                    })()}
+                  </div>
                 </div>
-                <div className="w-[20%] flex justify-center items-center text-gray-500">{m.phone}</div>
-                <div className="w-[20%] flex justify-center items-center text-gray-500">{m.email}</div>
-                <div className="w-[15%] flex justify-center items-center">
-                  {m.status === 'ACTIVE' && (
-                    <span className="px-2 py-0.5 text-xs text-emerald-500 bg-emerald-50 rounded-xl">활성</span>
-                  )}
-                  {m.status === 'PENDING' && (
-                    <span className="px-2 py-0.5 text-xs text-amber-600 bg-amber-100 rounded-xl">대기중</span>
-                  )}
-                </div>
-                <div className="w-[15%] flex justify-center items-center">
-                  {m.rating !== null ? (
-                    <>
-                      <span className="material-icons-outlined text-base text-yellow-400">star</span>
-                      <span className="text-gray-900">{m.rating.toFixed(1)}</span>
-                    </>
-                  ) : (
-                    <span className="text-gray-400">-</span>
-                  )}
-                </div>
-                <div className="w-[20%] flex justify-center items-center gap-2">
-                  <Link 
-                    // key={admin.adminId}
-                    // to={`/admin/accounts/${admin.adminId}`}
-                    key={m.id}
-                    to={`/admin/managers/${m.id}/edit`}
-                    className="px-2 py-1 rounded border border-indigo-600 text-indigo-600 text-sm font-medium hover:bg-indigo-50 cursor-pointer">
-                    수정
-                  </Link>
-                  <button className="px-2 py-1 rounded border border-red-500 text-red-500 text-sm font-medium hover:bg-red-50 cursor-pointer">
-                    삭제
-                  </button>
-                </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
 
           {/* 페이지네이션 - ManagerInquiries에 있는거 가져다가 쓰기... 묘하게 다르네요... */}

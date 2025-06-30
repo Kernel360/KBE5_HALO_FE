@@ -7,4 +7,5 @@ export interface ManagerMatchingRspType {
   bio: string;
   feedbackType: 'GOOD' | 'BAD' | null; // enum 값에 맞게 조정
   recentReservationDate: string; // ISO 날짜 문자열
+  reservationCount: number;
 }

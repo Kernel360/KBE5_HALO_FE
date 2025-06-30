@@ -101,7 +101,7 @@ export const ManagerLogin = () => {
             </div>
 
             {/* 아이디 찾기, 비밀번호 찾기 */}
-            <div className="w-full flex justify-center gap-2 text-sm font-medium">
+            {/* <div className="w-full flex justify-center gap-2 text-sm font-medium">
               <Link to="/managers/auth/recovery-id" className="text-indigo-600 hover:underline">
                 아이디 찾기
               </Link>
@@ -109,7 +109,7 @@ export const ManagerLogin = () => {
               <Link to="/managers/auth/recovery-pwd" className="text-indigo-600 hover:underline">
                 비밀번호 찾기
               </Link>
-            </div>
+            </div> */}
 
             {/* 로그인 */}
             <button
@@ -119,7 +119,7 @@ export const ManagerLogin = () => {
               <div className="justify-start text-white text-base font-semibold font-['Inter'] leading-tight">로그인</div>
             </button>
 
-            <div className="self-stretch inline-flex justify-center items-center gap-4">
+            {/* <div className="self-stretch inline-flex justify-center items-center gap-4">
               <div className="flex-1 h-px bg-gray-200" />
               <div className="justify-start text-gray-400 text-sm font-normal font-['Inter'] leading-none">또는</div>
               <div className="flex-1 h-px bg-gray-200" />
@@ -133,7 +133,7 @@ export const ManagerLogin = () => {
                 />
                 <div className="justify-start text-zinc-800 text-base font-medium font-['Inter'] leading-tight">Google로 로그인</div>
               </div>
-            </div>
+            </div> */}
 
             <div className="self-stretch inline-flex justify-center items-center gap-2">
               <div className="justify-start text-stone-500 text-base font-normal font-['Inter'] leading-tight">아직 계정이 없으신가요?</div>

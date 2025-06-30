@@ -39,7 +39,6 @@ export const logout = async () => {
     console.warn("catch 진입", err);
     console.warn("서버 로그아웃 실패 (무시하고 클라이언트 초기화 진행)", err);
   } finally {
-    console.log("finally 진입 - 클라이언트 상태 초기화");
     useAuthStore.getState().clearTokens();
     useUserStore.getState().clearUser();
   }

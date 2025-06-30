@@ -15,12 +15,18 @@ export interface ManagerInquiryDetail {
   fileId?: number | null;
   files?: File[];
   createdAt: string;
+  author?: {
+    userName?: string;
+    phone?: string;
+    email?: string;
+  };
 
   // 답변 관련 필드
   answerId?: number | null;
   replyContent?: string;
   replyFileId?: number | null;
   replyCreatedAt?: string | null;
+  replyStatus?: boolean | false;
 }
 
 // 문의사항 등록
@@ -37,4 +43,27 @@ export interface UpdateManagerInquiryRequest {
   content: string;
   fileId?: number;
   fileUrls?: string[];
+}
+
+// 매니저 답변 조회
+export interface ManagerInquiryAnswer {
+  answerId: number;
+  inquiryId: number;
+  replyContent: string;
+  replyFileId?: number | null;
+  replyCreatedAt: string;
+}
+
+// 매니저 답변 등록
+export interface CreateManagerInquiryAnswerRequest {
+  inquiryId: number;
+  replyContent: string;
+  replyFileId?: number;
+}
+
+// 매니저 답변 수정
+export interface UpdateManagerInquiryAnswerRequest {
+  answerId: number;
+  replyContent: string;
+  replyFileId?: number;
 }

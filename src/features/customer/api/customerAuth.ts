@@ -39,4 +39,10 @@ export const logoutCustomer = async () => {
   return res;
 };
 
+// 수요자 정보 조회
+export const getCustomerInfo = async () => {
+  const res = await api.get("/customers/auth/my");
+  return res.data;
+};
+
 

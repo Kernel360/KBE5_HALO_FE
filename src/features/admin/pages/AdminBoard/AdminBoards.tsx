@@ -1,21 +1,19 @@
 import { useState, useEffect } from "react";
 import { Fragment } from "react/jsx-runtime";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+
 import api from '@/services/axios';
 
 
 export const AdminBoards = () => {
   const [activeTab, setActiveTab] = useState<"notice" | "event">("notice");
-  const [titleKeyword, setTitleKeyword] = useState("");
-  const [contentKeyword, setContentKeyword] = useState("");
   const [page, setPage] = useState(0);
   const navigate = useNavigate();
   const [editId, setEditId] = useState<string | null>(null);
   const [editRow, setEditRow] = useState<any>(null);
   const [notices, setNotices] = useState<any[]>([]);
   const [events, setEvents] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+
   const [searchState, setSearchState] = useState({
     title: '',
     content: '',
@@ -68,10 +66,11 @@ export const AdminBoards = () => {
     if (!window.confirm('정말 삭제하시겠습니까?')) return;
     try {
       if (activeTab === "notice") {
-        await api.delete(`/api/admin/notices/${id}`);
+        await api.delete(`/admin/notices/${id}`);
         setNotices((prev) => prev.filter((n) => n.id !== id));
       } else {
-        await api.delete(`/api/admin/events/${id}`);
+        await api.delete(`/admin/events/${id}`);
+
         setEvents((prev) => prev.filter((n) => n.id !== id));
       }
     } catch (e) {
@@ -94,12 +93,12 @@ export const AdminBoards = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      setLoading(true);
-      setError('');
       try {
         if (activeTab === 'notice') {
-          const res = await api.get('/api/admin/notices', {
+          const res = await api.get('/admin/notices', {
             params: {
+              type: 'NOTICE',
+
               title: searchState.title,
               content: searchState.content,
               startDate: searchState.startDate,
@@ -120,8 +119,10 @@ export const AdminBoards = () => {
           }));
           setNotices(mapped);
         } else {
-          const res = await api.get('/api/admin/events', {
+          const res = await api.get('/admin/events', {
             params: {
+              type: 'EVENT',
+
               title: searchState.title,
               content: searchState.content,
               startDate: searchState.startDate,
@@ -143,9 +144,8 @@ export const AdminBoards = () => {
           setEvents(mapped);
         }
       } catch (e: any) {
-        setError('목록을 불러오지 못했습니다.');
-      } finally {
-        setLoading(false);
+        console.error('목록을 불러오지 못했습니다.', e);
+
       }
     };
     fetchData();

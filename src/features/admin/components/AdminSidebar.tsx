@@ -1,11 +1,12 @@
 import { useUserStore } from "@/store/useUserStore";
 import { Fragment } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import { logout } from "@/shared/utils/logout";
 
 export const AdminSidebar = () => {
   const navigate = useNavigate();
   const { userName } = useUserStore();
+  const location = useLocation();
 
   const menuItems = [
     { name: "대시보드", path: "/admin" },
@@ -28,7 +29,10 @@ export const AdminSidebar = () => {
       <div className="w-60 h-screen pb-6 bg-white border-r border-gray-200 flex flex-col justify-between">
         {/* 상단 영역 */}
         <div className="flex flex-col gap-6">
-          <div className="p-6 flex items-center gap-3">
+          <div
+            className="p-6 flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
+            onClick={() => navigate('/admin')}
+          >
             <div className="w-8 h-8 bg-indigo-600 rounded-md flex justify-center items-center">
               <div className="text-white text-base font-bold">H</div>
             </div>
@@ -47,14 +51,19 @@ export const AdminSidebar = () => {
               <NavLink
                 key={path}
                 to={path}
-                end
-                className={({ isActive }) =>
-                  `h-11 px-6 flex items-center gap-3 w-full ${
-                    isActive
+                className={() => {
+                  let active;
+                  if (path === "/admin") {
+                    active = location.pathname === "/admin";
+                  } else {
+                    active = location.pathname === path || location.pathname.startsWith(path + "/");
+                  }
+                  return `h-11 px-6 flex items-center gap-3 w-full ${
+                    active
                       ? "bg-violet-50 border-l-[3px] border-indigo-600 text-indigo-600 font-semibold"
-                      : "text-gray-500 font-medium"
-                  }`
-                }
+                      : "text-gray-500 font-medium hover:text-indigo-600 hover:font-semibold"
+                  }`;
+                }}
               >
                 {name}
               </NavLink>

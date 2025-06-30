@@ -5,14 +5,17 @@ import { useAddressStore } from '@/store/useAddressStore';
 interface AddressSearchProps {
   roadAddress: string;
   detailAddress: string;
+  errors?: string;
   setRoadAddress: (val: string) => void;
   setDetailAddress: (val: string) => void;
 }
 
+const GOOGLE_MAP_LIBRARIES = ['places'] as ["places"];
+
 const AddressSearch = ({
     roadAddress,
     detailAddress,
-
+    errors,
     setRoadAddress,
     setDetailAddress,
   }: AddressSearchProps) => {
@@ -21,7 +24,7 @@ const AddressSearch = ({
     const { setAddress } = useAddressStore();
     const { isLoaded } = useLoadScript({
       googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
-      libraries: ['places'] as any,
+      libraries: GOOGLE_MAP_LIBRARIES,
     });
 
   // 도로명주소 자동완성 초기화
@@ -87,6 +90,10 @@ const AddressSearch = ({
           className="w-full bg-transparent text-slate-700 text-sm font-normal outline-none"
         />
       </div>
+
+      {errors && !roadAddress && (
+        <p className="text-red-500 text-xs">{errors}</p>
+      )}
     </div>
   ) : (
     <div className="w-full h-screen flex justify-center items-center">

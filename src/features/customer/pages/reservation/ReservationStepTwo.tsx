@@ -1,18 +1,15 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { formatDateWithDay } from '@/shared/utils/dateUtils';
 import { useLocation, useNavigate, useBlocker } from 'react-router-dom';
 import type { ReservationMatchedRspType } from '@/features/customer/types/reservation/ReservationMatchedRspType';
 import type { ManagerMatchingRspType } from '@/features/customer/types/reservation/ManagerMatchingRspType';
 import type { ReservationConfirmReqType } from '@/features/customer/types/reservation/ReservationConfirmReqType';
-import { Heart, HeartCrack, AlertCircle } from 'lucide-react';
+import { AlertCircle, Check, UserRound } from 'lucide-react';
 import { ReservationStepIndicator } from '@/features/customer/components/ReservationStepIndicator';
 import HalfStar from '@/shared/components/HalfStar'; 
-import { confirmReservation } from '@/features/customer/api/CustomerReservation';
+import { confirmReservation, cancelBeforeConfirmReservation } from '@/features/customer/api/CustomerReservation';
 
-
-
-// ManagerMatchingRspType에 isLiked 속성 추가 (임시)
 interface ManagerWithLike extends ManagerMatchingRspType {
-  isLiked?: boolean; // 이 매니저가 과거에 '좋아요'를 받은 매니저인지 (조회용)
 }
 
 interface Props {
@@ -47,21 +44,31 @@ const ReservationStepTwo: React.FC<Props> = () => {
   useEffect(() => {
     if (blocker.state === 'blocked') {
       const shouldContinue = window.confirm('예약 진행 중입니다. 페이지를 떠나면 예약이 취소됩니다. 정말 나가시겠습니까?');
-      if (shouldContinue) blocker.proceed();
-      else blocker.reset();
+      if (shouldContinue) {
+        (async () => {
+          if (reservationData?.reservation?.reservationId) {
+            try {
+              await cancelBeforeConfirmReservation(
+                reservationData.reservation.reservationId,
+                { matchedManagers: managers.map(manager => manager.managerId) }
+              );
+            } catch (e) {
+              console.error('예약 자동 취소 실패:', e);
+            }
+          }
+          blocker.proceed();
+          navigate('/');
+        })();
+      } else {
+        blocker.reset();
+      }
     }
   }, [blocker]);
 
-  // 좋아요, 아쉬워요 수정해야함
+  // 매니저 데이터 로드
   useEffect(() => {
     if (reservationData?.matchedManagers) {
-      // 초기 매니저 데이터 로드 시 isLiked 상태 추가 (백엔드에서 받은 실제 값으로 대체 필요)
-      const initialManagers: ManagerWithLike[] = reservationData.matchedManagers.map(manager => ({
-        ...manager,
-        // 예시: managerId가 짝수면 좋아요, 홀수면 아쉬워요 (실제 로직으로 대체 필요)
-        isLiked: manager.managerId % 2 === 0,
-      }));
-      setManagers(initialManagers);
+      setManagers(reservationData.matchedManagers);
     }
   }, [reservationData]);
 
@@ -92,8 +99,6 @@ const ReservationStepTwo: React.FC<Props> = () => {
         reservationData.reservation.reservationId,
         confirmRequest
       );
-
-      console.log('넘어온 데이터:', finalReservationResponse);
     
       // 성공 시 최종 페이지로 이동
     if (finalReservationResponse?.body?.reservationId) {
@@ -106,12 +111,10 @@ const ReservationStepTwo: React.FC<Props> = () => {
       });
 
     } else {
-      console.error('reservationId not found in response');
       alert('예약 생성은 완료되었지만 예약 ID를 찾을 수 없습니다.');
     }
 
     } catch (error: any) {
-      console.error('예약 확정 실패:', error.message);
       alert(`예약 확정에 실패했습니다: ${error.message}. 다시 시도해주세요.`);
       setIsNavigating(false);
       isNavigatingRef.current = false;
@@ -160,7 +163,7 @@ const ReservationStepTwo: React.FC<Props> = () => {
 
 
   return (
-    <div className="w-full px-16 py-10 bg-gray-50 flex flex-col items-center">
+    <div className="w-full px-16 py-10 0 flex flex-col items-center">
       <ReservationStepIndicator step={2} />
       <div className="max-w-[1200px] w-full flex gap-8">
         {/* 왼쪽: 매니저 선택 */}
@@ -168,7 +171,7 @@ const ReservationStepTwo: React.FC<Props> = () => {
           <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
             <p className="text-sm text-amber-800 flex items-center gap-1">
               <AlertCircle className="w-4 h-4" />
-              예약 진행 중입니다. 페이지를 새로고침하거나 다른 페이지로 이동하시면 예약이 취소됩니다.
+              예약 진행 중입니다. 다른 페이지로 이동하시면 예약이 취소됩니다.
             </p>
           </div>
 
@@ -180,21 +183,23 @@ const ReservationStepTwo: React.FC<Props> = () => {
               <div
                 key={manager.managerId}
                 onClick={() => setSelectedManager(manager)}
-                className={`bg-white p-6 rounded-xl border transition-all shadow-sm hover:shadow-md cursor-pointer flex gap-6 ${
+                className={`bg-white p-6 rounded-xl border transition-all shadow-sm hover:shadow-md hover:border-indigo-400 cursor-pointer flex gap-6 ${
                   selectedManager?.managerId === manager.managerId ? 'border-indigo-600 ring-2 ring-indigo-100' : 'border-gray-200'
                 }`}
               >
                 {/* Left section: Profile image, name, rating, and Select button */}
                 <div className="w-48 inline-flex flex-col justify-start items-center gap-4">
                   <div className="w-28 h-28 bg-gray-100 rounded-[60px] flex flex-col justify-center items-center">
-                    <img src="/default-profile.png" alt="profile" className="w-full h-full rounded-full object-cover" />
+                    <UserRound className="w-10 h-10 text-gray-400" />
                   </div>
                   <div className="self-stretch flex flex-col justify-start items-center gap-1">
                     <div className="self-stretch text-center justify-start text-gray-900 text-base font-semibold font-['Inter'] leading-tight">{manager.managerName} 매니저</div>
                     <div className="inline-flex justify-center items-center gap-1">
                       {/* 별점 렌더링 로직 적용 */}
                       {renderStars(manager.averageRating)}
-                      <div className="justify-start text-gray-500 text-sm font-medium font-['Inter'] leading-none">{manager.averageRating?.toFixed(1) ?? '0.0'}</div>
+                      <div className="justify-start text-gray-500 text-sm font-medium font-['Inter'] leading-none">
+                        {manager.averageRating?.toFixed(1) ?? '0.0'} ({manager.reviewCount >= 50 ? '50+' : manager.reviewCount})
+                      </div>
                     </div>
                   </div>
                   {/* 선택 버튼 재추가 */}
@@ -208,7 +213,7 @@ const ReservationStepTwo: React.FC<Props> = () => {
                         selectedManager?.managerId === manager.managerId ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-700'
                       } text-base font-semibold font-['Inter'] leading-tight hover:opacity-90`}
                     >
-                      선택
+                      <Check className="w-5 h-5" />
                     </button>
                   </div>
                 </div>
@@ -219,27 +224,22 @@ const ReservationStepTwo: React.FC<Props> = () => {
                     <div className="self-stretch inline-flex justify-start items-center gap-4">
                         
                         <div className="inline-flex flex-col justify-start items-start gap-1">
-                            <div className="justify-start text-gray-500 text-sm font-medium font-['Inter'] leading-none">리뷰 개수</div>
-                            <div className="justify-start text-gray-900 text-base font-semibold font-['Inter'] leading-tight">{manager.reviewCount}건</div>
+                            <div className="justify-start text-gray-500 text-sm font-medium font-['Inter'] leading-none">예약 건수</div>
+                            <div className="justify-start text-gray-900 text-base font-semibold font-['Inter'] leading-tight">{manager.reservationCount}건</div>
                         </div>
-                        <div className="inline-flex flex-col justify-start items-start gap-1">
-                            <div className="justify-start text-gray-500 text-sm font-medium font-['Inter'] leading-none">최근 나의 예약 날짜</div>
-                            <div className="justify-start text-gray-900 text-base font-semibold font-['Inter'] leading-tight">{manager.recentReservationDate || '-'}</div>
-                        </div>
+                        {manager.recentReservationDate && manager.recentReservationDate > '0001-01-01' && (
+                          <div className="inline-flex flex-col justify-start items-start gap-1">
+                              <div className="justify-start text-gray-500 text-sm font-medium font-['Inter'] leading-none">최근 나의 예약 날짜</div>
+                              <div className="justify-start text-gray-900 text-base font-semibold font-['Inter'] leading-tight">{manager.recentReservationDate}</div>
+                          </div>
+                        )}
                         {/* 좋아요/아쉬워요 아이콘 (조회용, 클릭 이벤트 없음) */}
-                        <div className="ml-auto">
-                            {manager.isLiked ? (
-                                <Heart className="w-5 h-5 text-red-500 fill-red-500" />
-                            ) : (
-                                <HeartCrack className="w-5 h-5 text-gray-400" />
-                            )}
-                        </div>
                     </div>
 
                     {/* Manager Introduction */}
                     <div className="self-stretch flex flex-col justify-start items-start gap-2">
                         <div className="self-stretch justify-start text-gray-500 text-sm font-medium font-['Inter'] leading-none">소개</div>
-                        <div className="self-stretch justify-start text-gray-900 text-sm font-normal font-['Inter'] leading-none">안녕하세요, {manager.managerName} 매니저입니다. 3년 이상의 경험으로 깔끔하고 꼼꼼한 청소 서비스를 제공해드립니다. 고객님의 만족을 최우선으로 생각하며 항상 최선을 다하겠습니다.</div>
+                        <div className="self-stretch justify-start text-gray-900 text-sm font-normal font-['Inter'] leading-none">{manager.bio}</div>
                     </div>
 
                     {/* Recent Reviews */}
@@ -283,7 +283,9 @@ const ReservationStepTwo: React.FC<Props> = () => {
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500">서비스 날짜</span>
-                <span className="text-gray-900 font-medium">{reservationData.reservation?.requestDate || '-'}</span>
+                <span className="text-gray-900 font-medium">
+                  {reservationData.reservation?.requestDate ? formatDateWithDay(reservationData.reservation.requestDate) : '-'}
+                </span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500">서비스 시간</span>
@@ -296,14 +298,16 @@ const ReservationStepTwo: React.FC<Props> = () => {
                   {reservationData.reservation?.detailAddress}
                 </span>
               </div>
-              <div className="text-sm"> 
-                <div className="flex justify-between items-start"> 
-                  <span className="text-gray-500">요청 사항</span>
+              {reservationData.reservation?.memo && (
+                <div className="text-sm"> 
+                  <div className="flex justify-between items-start"> 
+                    <span className="text-gray-500">요청 사항</span>
+                  </div>
+                  <div className="text-gray-900 font-medium mt-1"> 
+                    {reservationData.reservation.memo}
+                  </div>
                 </div>
-                <div className="text-gray-900 font-medium mt-1"> 
-                  {reservationData.reservation?.memo}
-                </div>
-              </div>
+              )}
             </div>
 
             {/* 서비스 내역 섹션 추가 */}

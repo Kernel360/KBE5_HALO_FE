@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+
 import api from '@/services/axios';
 
 const serviceOptions = ['청소', '이사', '소독'];
@@ -22,22 +23,17 @@ const AdminReservations = () => {
     status: '',
   });
   const [reservations, setReservations] = useState<Reservation[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
   const [editId, setEditId] = useState<string | null>(null);
   const [editRow, setEditRow] = useState<(Reservation & { startTime?: string; endTime?: string }) | null>(null);
   const [page, setPage] = useState(0);
   const pageSize = 5;
   const pageCount = Math.ceil(reservations.length / pageSize);
-  const pagedData = reservations.slice(page * pageSize, (page + 1) * pageSize);
 
   // Spring API에서 예약 목록 불러오기
   useEffect(() => {
     const fetchReservations = async () => {
-      setLoading(true);
-      setError('');
       try {
-        const res = await api.get('/api/admin/reservations', {
+        const res = await api.get('/admin/reservations', {
           params: {
             customer: search.customer,
             address: search.address,
@@ -50,9 +46,8 @@ const AdminReservations = () => {
         });
         setReservations(res.data.items || []);
       } catch (e: any) {
-        setError('예약 목록을 불러오지 못했습니다.');
-      } finally {
-        setLoading(false);
+        alert('예약 목록을 불러오지 못했습니다.');
+
       }
     };
     fetchReservations();
@@ -100,7 +95,8 @@ const AdminReservations = () => {
   const handleDelete = async (id: string) => {
     if (!window.confirm('정말 삭제하시겠습니까?')) return;
     try {
-      await api.delete(`/api/admin/reservations/${id}`);
+      await api.delete(`/admin/reservations/${id}`);
+
       setReservations((prev) => prev.filter((r) => r.id !== id));
     } catch (e) {
       alert('삭제에 실패했습니다.');

@@ -10,9 +10,11 @@ interface ManagerLayoutProps {
 export const ManagerLayout = ({ children }: ManagerLayoutProps) => {
   return (
     <Fragment>
-      <div className="w-full min-h-screen bg-slate-100 inline-flex justify-start items-start">
+      <div className="flex h-screen w-full bg-slate-100">
         <ManagerSidebar />
-        {children || <Outlet />}
+        <div className="flex-1 w-full overflow-y-auto">
+          {children || <Outlet />}
+        </div>
       </div>
     </Fragment>
   );

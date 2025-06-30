@@ -1,16 +1,94 @@
-import { useState } from "react";
+import { Fragment, useEffect, useState, useRef } from "react";
 import { Link } from "react-router-dom";
-import { Fragment } from "react/jsx-runtime";
+import type { SearchAdminBanners as AdminBannerType } from "@/features/admin/types/AdminBannerType"
+import { isValidDateRange } from "@/shared/utils/validation";
+import { DEFAULT_PAGE_SIZE } from "@/shared/constants/constants";
+import { searchAdminBanners } from "@/features/admin/api/adminBanners";
 
 export const AdminBanners = () => {
-  const [nameKeyword, setNameKeyword] = useState('');
-  const [phoneKeyword, setPhoneKeyword] = useState('');
+  const [fadeKey, setFadeKey] = useState(0);
+  const [banners, setBanners] = useState<AdminBannerType[]>([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(0);
+  const [fromCreatedAt, setFromCreatedAt] = useState<string>("");
+  const [toCreatedAt, setToCreatedAt] = useState<string>(""); 
+  const [titleKeyword, setTitleKeyword] = useState("");
+  const fromDateRef = useRef<HTMLInputElement>(null);
+
+  const fetchBanners = (paramsOverride?: Partial<ReturnType<typeof getCurrentParams>>) => {
+    const params = getCurrentParams();
+    const finalParams = { ...params, ...paramsOverride };
+
+    if (!isValidDateRange(finalParams.fromCreatedAt, finalParams.toCreatedAt)) {
+      alert("시작일은 종료일보다 늦을 수 없습니다.");
+      fromDateRef.current?.focus();
+      return;
+    }
+
+    searchAdminBanners(finalParams)
+      .then((res) => {
+        setBanners(res.content);
+        setTotal(res.page.totalElements);
+        setFadeKey((prev) => prev + 1);
+      });
+  };
+
+  const getCurrentParams = () => ({
+    fromCreatedAt,
+    toCreatedAt,
+    titleKeyword,
+    page,
+    size: DEFAULT_PAGE_SIZE,
+  });
+
+  useEffect(() => {
+    fetchBanners();
+  }, [page]);
+
+  const handleSearch = () => {
+    setPage(0);
+    fetchBanners({ page: 0 });
+  };
+
+  const handleReset = () => {
+    const resetState = {
+      fromCreatedAt: "",
+      toCreatedAt: "",
+      replyStatus: "",
+      titleKeyword: "",
+      contentKeyword: "",
+      page: 0,
+    };
+
+    setFromCreatedAt(resetState.fromCreatedAt);
+    setToCreatedAt(resetState.toCreatedAt);
+    setTitleKeyword(resetState.titleKeyword);
+    setPage(0);
+
+    fetchBanners(resetState);
+  };
+
+  // const handleDelete = async (bannerId: number) => {
+  //   if (!bannerId) return;
+  //   const confirmDelete = window.confirm("정말로 삭제하시겠습니까?");
+  //   if (!confirmDelete) return;
+
+  //   try {
+  //     await deleteAdminBanner(Number(bannerId));
+  //     alert("삭제가 완료되었습니다.");
+  //     fetchBanners();
+  //   } catch (error) {
+  //     alert("삭제 중 오류가 발생했습니다.");
+  //   }
+  // };
+
+  const totalPages = Math.max(Math.ceil(total / DEFAULT_PAGE_SIZE), 1);
 
   return (
     <Fragment>
-      <div className="w-full self-stretch inline-flex flex-col justify-start items-start">
+      <div className="flex-1 self-stretch inline-flex flex-col justify-start items-start">
         <div className="self-stretch h-16 px-6 bg-white border-b border-gray-200 inline-flex justify-between items-center">
-          <div className="text-gray-900 text-xl font-bold font-['Inter'] leading-normal">배너 관리</div>
+          <div className="justify-start text-gray-900 text-xl font-bold font-['Inter'] leading-normal">배너 관리</div>
           <Link
             to="/admin/banners/new"
             className="h-10 px-4 bg-indigo-600 rounded-md flex justify-center items-center gap-2 cursor-pointer hover:bg-indigo-700 transition"
@@ -19,113 +97,177 @@ export const AdminBanners = () => {
             <span className="text-white text-sm font-semibold font-['Inter'] leading-none">배너 등록</span>
           </Link>
         </div>
-
-        <div className="self-stretch flex-1 p-6 flex flex-col justify-start items-start gap-6">
-          {/* 검색 폼 */}
+        
+        <div className="self-stretch p-6 flex flex-col justify-start items-start gap-6">
           <form
-            onSubmit={(e) => e.preventDefault()}
-            className="w-full p-6 bg-white rounded-xl shadow flex flex-col gap-4"
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSearch();
+            }}
+            className="self-stretch p-6 bg-white rounded-xl shadow-[0px_2px_12px_0px_rgba(0,0,0,0.04)] flex flex-col justify-start items-start gap-4"
           >
-            <div className="text-slate-800 text-lg font-semibold">검색 조건</div>
-            <div className="flex gap-4">
-              <div className="flex-1 flex flex-col gap-2">
-                <label className="text-slate-700 text-sm font-medium">이름</label>
-                <div className="h-12 px-4 bg-slate-50 rounded-lg outline outline-1 outline-slate-200 flex items-center">
-                  <input
-                    type="text"
-                    placeholder="이름 입력"
-                    value={nameKeyword}
-                    onChange={(e) => setNameKeyword(e.target.value)}
-                    className="w-full bg-transparent outline-none text-sm placeholder:text-slate-400"
-                  />
+            <div className="self-stretch justify-start text-slate-800 text-lg font-semibold font-['Inter'] leading-snug">검색 조건</div>
+            <div className="self-stretch flex flex-col justify-start items-start gap-4">
+              <div className="self-stretch inline-flex justify-start items-start gap-4">
+                <div className="flex-1 inline-flex flex-col justify-start items-start gap-2">
+                  <div className="self-stretch justify-start text-slate-700 text-sm font-medium font-['Inter'] leading-none">노출기간</div>
+                  <div className="self-stretch inline-flex justify-start items-center gap-2">
+                    <input
+                        type="date"
+                        ref={fromDateRef}
+                        value={fromCreatedAt}
+                        onChange={(e) => setFromCreatedAt(e.target.value)}
+                        className="flex-1 h-12 px-4 bg-slate-50 rounded-lg border border-slate-200 text-slate-700 text-sm placeholder:text-slate-400 focus:outline-indigo-500 "
+                      />
+                      <span className="text-slate-500 text-sm">~</span>
+                      <input
+                        type="date"
+                        value={toCreatedAt}
+                        onChange={(e) => setToCreatedAt(e.target.value)}
+                        className="flex-1 h-12 px-4 bg-slate-50 rounded-lg border border-slate-200 text-slate-700 text-sm placeholder:text-slate-400 focus:outline-indigo-500"
+                      />
+                    </div>
+                  </div>
+                <div className="flex-1 inline-flex flex-col justify-start items-start gap-2">
+                  <div className="self-stretch justify-start text-slate-700 text-sm font-medium font-['Inter'] leading-none">배너명</div>
+                  <div className="self-stretch h-12 px-4 bg-slate-50 rounded-lg outline outline-1 outline-offset-[-1px] outline-slate-200 inline-flex justify-start items-center">
+                    <input
+                      value={titleKeyword}
+                      onChange={(e) => setTitleKeyword(e.target.value)}
+                      placeholder="배너명 검색"
+                      className="w-full text-sm text-slate-700 placeholder:text-slate-400 bg-transparent focus:outline-none"
+                    />
+                  </div>
                 </div>
               </div>
-              <div className="flex-1 flex flex-col gap-2">
-                <label className="text-slate-700 text-sm font-medium">연락처</label>
-                <div className="h-12 px-4 bg-slate-50 rounded-lg outline outline-1 outline-slate-200 flex items-center">
-                  <input
-                    type="text"
-                    placeholder="연락처 입력"
-                    value={phoneKeyword}
-                    onChange={(e) => setPhoneKeyword(e.target.value)}
-                    className="w-full bg-transparent outline-none text-sm placeholder:text-slate-400"
-                  />
-                </div>
+              <div className="self-stretch inline-flex justify-end items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleReset}
+                  className="w-28 h-12 bg-slate-100 rounded-lg flex justify-center items-center text-slate-500 text-sm font-medium font-['Inter'] leading-none hover:bg-slate-200 transition cursor-pointer"
+                >
+                  초기화
+                </button>
+                <button
+                  type="submit"
+                  className="w-28 h-12 bg-indigo-600 rounded-lg flex justify-center items-center text-white text-sm font-medium font-['Inter'] leading-none hover:bg-indigo-700 transition cursor-pointer"
+                >
+                  검색
+                </button>
               </div>
-            </div>
-            <div className="flex justify-end gap-2">
-              <button
-                type="button"
-                className="w-28 h-12 bg-slate-100 rounded-lg text-slate-500 text-sm font-medium hover:bg-slate-200 cursor-pointer"
-              >
-                초기화
-              </button>
-              <button
-                type="submit"
-                className="w-28 h-12 bg-indigo-600 rounded-lg text-white text-sm font-medium hover:bg-indigo-700 cursor-pointer"
-              >
-                검색
-              </button>
             </div>
           </form>
 
-          {/* 목록 */}
-          <div className="self-stretch bg-white rounded-lg shadow-[0px_2px_8px_0px_rgba(0,0,0,0.04)] flex flex-col justify-start items-start">
-            <div className="self-stretch h-12 px-6 bg-gray-50 border-b border-gray-200 flex items-center">
-              <div className="w-[10%] flex justify-center items-center text-gray-700 text-sm font-semibold font-['Inter']">ID</div>
-              <div className="w-[30%] flex justify-center items-center text-gray-700 text-sm font-semibold font-['Inter']">배너명</div>
-              <div className="w-[15%] flex justify-center items-center text-gray-700 text-sm font-semibold font-['Inter']">상태</div>
-              <div className="w-[25%] flex justify-center items-center text-gray-700 text-sm font-semibold font-['Inter']">노출 기간</div>
-              <div className="w-[20%] flex justify-center items-center text-gray-700 text-sm font-semibold font-['Inter']">관리</div>
-            </div>
 
-            {[{
-              id: 'BN001', name: '여름 특별 할인 프로모션', status: '활성', period: '2023-06-01 ~ 2023-06-30', statusColor: 'emerald'
-            }, {
-              id: 'BN002', name: '신규 회원 가입 혜택', status: '활성', period: '2023-05-15 ~ 2023-07-15', statusColor: 'emerald'
-            }, {
-              id: 'BN003', name: '추석 연휴 서비스 안내', status: '대기중', period: '2023-09-01 ~ 2023-09-30', statusColor: 'amber'
-            }, {
-              id: 'BN004', name: '봄맞이 대청소 이벤트', status: '종료', period: '2023-03-01 ~ 2023-04-30', statusColor: 'gray'
-            }].map((item) => (
-              <div key={item.id} className="self-stretch h-16 px-6 border-b border-gray-200 flex items-center">
-                <div className="w-[10%] flex justify-center items-center text-gray-500 text-sm font-normal font-['Inter']">{item.id}</div>
-                <div className="w-[30%] flex justify-center items-center text-gray-900 text-sm font-medium font-['Inter']">{item.name}</div>
-                <div className="w-[15%] flex justify-center items-center">
-                  <div className={`px-2 py-0.5 rounded-xl flex justify-center items-center text-xs font-medium font-['Inter'] leading-none ${
-                    item.statusColor === 'emerald'
-                      ? 'bg-emerald-50 text-emerald-500'
-                      : item.statusColor === 'amber'
-                      ? 'bg-amber-100 text-amber-600'
-                      : 'bg-gray-100 text-gray-500'
-                  }`}>
-                    {item.status}
+          <div className="self-stretch p-6 bg-white rounded-xl shadow-[0px_2px_12px_0px_rgba(0,0,0,0.04)] flex flex-col justify-start items-start">
+            <div className="self-stretch inline-flex justify-between items-center pb-4">
+              <div className="justify-start text-slate-800 text-lg font-semibold font-['Inter'] leading-snug">배너 목록</div>
+              <div className="justify-start text-slate-500 text-sm font-normal font-['Inter'] leading-none">총 {total}건</div>
+            </div>
+            <div className="self-stretch h-12 px-4 bg-slate-50 border-b border-slate-200 inline-flex justify-start items-center">
+              <div className="flex-1 flex justify-center items-center">
+                <div className="flex-1 flex justify-center items-center">
+                  <div className="flex-1 flex justify-center items-center gap-4">
+                    <div className="w-[15%] text-center text-sm font-semibold text-slate-700 font-semibold font-['Inter'] leading-none">번호</div>
+                    <div className="w-[30%] text-center text-sm font-semibold text-slate-700 font-semibold font-['Inter'] leading-none">배너 제목</div>
+                    <div className="w-[15%] text-center text-sm font-semibold text-slate-700 font-semibold font-['Inter'] leading-none">상태</div>
+                    <div className="w-[20%] text-center text-sm font-semibold text-slate-700 font-semibold font-['Inter'] leading-none">게시 기간</div>
+                    <div className="w-[20%] text-center text-sm text-slate-700 font-medium font-['Inter'] leading-none">조회수</div>
+                    {/* <div className="w-[15%] text-center text-sm font-semibold text-slate-700 font-semibold font-['Inter'] leading-none">작성일시</div> */}
+                    {/* <div className="w-[20%] text-center text-sm font-semibold text-slate-700 font-semibold font-['Inter'] leading-none">관리</div> */}
                   </div>
                 </div>
-                <div className="w-[25%] flex justify-center items-center text-gray-500 text-sm font-normal font-['Inter']">{item.period}</div>
-                <div className="w-[20%] flex justify-center items-center gap-2">
-                  <div className="px-2 py-1 rounded outline outline-1 outline-indigo-600 text-indigo-600 text-sm font-medium font-['Inter'] leading-none cursor-pointer">수정</div>
-                  <div className="px-2 py-1 rounded outline outline-1 outline-red-500 text-red-500 text-sm font-medium font-['Inter'] leading-none cursor-pointer">삭제</div>
-                </div>
               </div>
-            ))}
+            </div>
+
+
+            <div key={fadeKey} className="w-full fade-in">
+              { banners.length === 0 ? (
+                <div className="self-stretch h-16 px-4 border-b border-slate-200 flex items-center text-center">
+                  <div className="w-full text-sm text-slate-500">조회된 배너가 없습니다.</div>
+                </div>
+              ) : (
+                banners.map((banner) => (
+                  <Fragment>
+                      <Link 
+                        key={banner.bannerId}
+                        to={`/admin/banners/${banner.bannerId}`}
+                        className="self-stretch h-16 px-4 border-b border-slate-200 flex items-center text-center gap-4">
+                        <div className="w-[15%] text-center text-sm text-slate-700 font-medium font-['Inter'] leading-none">{banner.bannerId}</div>
+                        <div className="w-[30%] text-center text-sm text-slate-700 font-medium font-['Inter'] leading-none">{banner.title}</div>
+                        <div className="w-[15%] text-center flex justify-center">
+                          <div className={`h-7 px-3 rounded-2xl flex items-center font-medium font-['Inter'] leading-none ${
+                                  banner.bannerStatus === "PENDING"
+                                  ? "bg-yellow-100"
+                                  : banner.bannerStatus === "ACTIVE"
+                                  ? "bg-green-100"
+                                  : "bg-gray-100" // EXPIRED
+                            }`}>
+                            <div className="text-sm font-medium">
+                              { banner.bannerStatus === "PENDING"
+                                  ? "대기"
+                                  : banner.bannerStatus === "ACTIVE"
+                                  ? "활성"
+                                  : "만료"}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="w-[20%] text-center text-sm text-slate-700 font-medium font-['Inter'] leading-none">{banner.startAt} ~ {banner.endAt}</div>
+                        <div className="w-[20%] text-center text-sm text-slate-700 font-medium font-['Inter'] leading-none">{banner.views}</div>
+                        {/* <div className="w-[15%] text-center text-sm text-slate-700 font-medium font-['Inter'] leading-none">{banner.createdAt}</div> */}
+                        {/* <div className="w-[20%] flex justify-center items-center gap-2 text-sm text-slate-700 font-medium font-['Inter'] leading-none">
+                          <Link 
+                            to={`/admin/banners/${banner.bannerId}/edit`}
+                            onClick={(e) => e.stopPropagation()}
+                            className="px-2 py-1 rounded border border-indigo-600 text-indigo-600 text-sm font-medium hover:bg-indigo-50 cursor-pointer"
+                          >
+                            수정
+                          </Link>
+                          <button 
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDelete(banner.bannerId);
+                            }}
+                            className="px-2 py-1 rounded border border-red-600 text-red-600 text-sm font-medium hover:bg-red-50 cursor-pointer"
+                          >
+                            삭제
+                          </button>
+                        </div> */}
+                      </Link>
+                  </Fragment>
+                ))
+              )}
+            </div>
+
+            {/* 페이징 */}
+            <div className="self-stretch flex justify-center gap-1 pt-4">
+              <div
+                className="w-8 h-8 rounded-md flex justify-center items-center cursor-pointer bg-slate-100 text-slate-500"
+                onClick={() => setPage((prev) => Math.max(prev - 1, 0))}
+              >
+                <div className="text-sm font-medium font-['Inter'] leading-none">이전</div>
+              </div>
+              {Array.from({ length: totalPages }, (_, i) => i).map((p) => (
+                <div
+                  key={p}
+                  className={`w-8 h-8 rounded-md flex justify-center items-center cursor-pointer ${
+                    page === p ? "bg-indigo-600 text-white" : "bg-slate-100 text-slate-500"
+                  }`}
+                  onClick={() => setPage(p)}
+                >
+                  <div className="text-sm font-medium font-['Inter'] leading-none">{p + 1}</div>
+                </div>
+              ))}
+              <div
+                className="w-8 h-8 rounded-md flex justify-center items-center cursor-pointer bg-slate-100 text-slate-500"
+                onClick={() => setPage((prev) => Math.min(prev + 1, totalPages - 1))}
+              >
+                <div className="text-sm font-medium font-['Inter'] leading-none">다음</div>
+              </div>
+            </div>
           </div>
 
-          {/* 페이지네이션 */}
-          <div className="self-stretch py-4 flex justify-center items-center gap-1">
-            {[1, 2, 3].map((num) => (
-              <button
-                key={num}
-                className={`w-9 h-9 rounded-md flex justify-center items-center ${
-                  num === 1
-                    ? 'bg-indigo-600 text-white'
-                    : 'bg-white outline outline-1 outline-gray-200 text-gray-500'
-                }`}
-              >
-                {num}
-              </button>
-            ))}
-          </div>
         </div>
       </div>
     </Fragment>
