@@ -54,7 +54,7 @@ export const fetchAdminAccounts = async (params?: {
   const cleanedParams = Object.fromEntries(
     Object.entries(params || {}).filter(([, value]) => value !== undefined && value !== "")
   );
-  const res = await api.get('/admin/accounts', { params: cleanedParams });
+  const res = await api.get('/admin/auth', { params: cleanedParams });
   if (!res.data.success) throw new Error(res.data.message || '관리자 계정 목록 조회에 실패했습니다.');
   return res.data.body;
 };
