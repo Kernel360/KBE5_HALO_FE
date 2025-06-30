@@ -37,14 +37,8 @@ export const AdminInquiries = () => {
       return;
     }
 
-    // 날짜 파라미터 변환
-    const apiParams = {
-      ...finalParams,
-      fromCreatedAt: finalParams.fromCreatedAt ? toLocalDateTimeString(finalParams.fromCreatedAt) : undefined,
-      toCreatedAt: finalParams.toCreatedAt ? toLocalDateTimeString(finalParams.toCreatedAt) : undefined,
-    };
-
-    searchAdminInquiries(activeTab, apiParams)
+    // 날짜 파라미터 변환 제거 (yyyy-MM-dd 그대로 전달)
+    searchAdminInquiries(activeTab, finalParams)
       .then((res) => {
         setInquiries(res.content);
         setTotal(res.page.totalElements);
