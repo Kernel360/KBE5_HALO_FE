@@ -1,6 +1,9 @@
 import { Fragment, useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { fetchAdminAccounts, deleteAdminAccount } from "@/features/admin/api/adminAuth";
+import { TableSection } from '../../components/TableSection';
+import { AdminTable } from '../../components/AdminTable';
+import { AdminPagination } from '../../components/AdminPagination';
 
 export const AdminAccounts = () => {
   const [nameKeyword, setNameKeyword] = useState('');
@@ -160,78 +163,21 @@ export const AdminAccounts = () => {
           </form>
 
           {/* 테이블 */}
-          <div className="w-full bg-white rounded-lg shadow">
-            <div className="w-full px-6 h-12 bg-gray-50 border-b border-gray-200 flex items-center text-sm font-semibold text-gray-700 space-x-4">
-              <div className="w-[10%] flex justify-center">이름</div>
-              <div className="w-[25%] flex justify-center">연락처</div>
-              <div className="w-[25%] flex justify-center">이메일</div>
-              <div className="w-[10%] flex justify-center">상태</div>
-              <div className="w-[15%] flex justify-center">생성일</div>
-              <div className="w-[15%] flex justify-center">관리</div>
+          <TableSection title="계정 정보" total={adminData.length}>
+            <AdminTable
+              columns={columns}
+              data={adminData}
+              rowKey={row => row.adminId}
+              emptyMessage={"등록된 관리자가 없습니다."}
+            />
+            <div className="w-full flex justify-center py-4">
+              <AdminPagination
+                page={page}
+                totalPages={totalPages}
+                onChange={setPage}
+              />
             </div>
-
-            {loading ? (
-              <div className="w-full h-32 flex items-center justify-center text-gray-400">로딩 중...</div>
-            ) : error ? (
-              <div className="w-full h-32 flex items-center justify-center text-red-400">{error}</div>
-            ) : adminData.length === 0 ? (
-              <div className="w-full h-32 flex items-center justify-center text-gray-400">등록된 관리자가 없습니다.</div>
-            ) : (
-              adminData.map((admin, index) => (
-                <div key={admin.adminId || index} className="w-full px-6 h-16 border-b border-gray-200 flex items-center text-sm space-x-4">
-                  <div className="w-[10%] text-gray-900 font-medium flex justify-center">{admin.userName}</div>
-                  <div className="w-[25%] text-gray-500 flex justify-center">{admin.phone}</div>
-                  <div className="w-[25%] text-gray-500 flex justify-center">{admin.email}</div>
-                  <div className="w-[10%] flex justify-center">
-                    <div className={`px-2 py-0.5 rounded-xl text-xs font-medium inline-block ${admin.status === '활성' ? 'bg-emerald-50 text-emerald-500' : 'bg-red-50 text-red-500'}`}>{admin.status}</div>
-                  </div>
-                  <div className="w-[15%] text-gray-500 flex justify-center">{admin.createdAt || admin.date}</div>
-                  <div className="w-[15%] flex justify-center gap-2">
-                    <Link 
-                      key={admin.adminId || index}
-                      to={`/admin/accounts/${admin.adminId || index}/edit`}
-                      state={admin}
-                      className="px-2 py-1 rounded border border-indigo-600 text-indigo-600 text-sm font-medium hover:bg-indigo-50 cursor-pointer">
-                      수정
-                    </Link>
-                    <button
-                      className="px-2 py-1 rounded border border-red-500 text-red-500 text-sm font-medium hover:bg-red-50 cursor-pointer"
-                      onClick={() => handleDelete(admin.adminId)}
-                    >
-                      삭제
-                    </button>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-
-          {/* 페이지네이션 - ManagerInquiries에 있는거 가져다가 쓰기... 묘하게 다르네요... */}
-          <div className="self-stretch flex justify-center gap-1 pt-4">
-            <div
-              className="w-8 h-8 rounded-md flex justify-center items-center cursor-pointer bg-slate-100 text-slate-500"
-              onClick={() => setPage((prev) => Math.max(prev - 1, 0))}
-            >
-              <div className="text-sm font-medium leading-none">이전</div>
-            </div>
-            {Array.from({ length: totalPages }, (_, i) => i).map((p) => (
-              <div
-                key={p}
-                className={`w-8 h-8 rounded-md flex justify-center items-center cursor-pointer ${
-                  page === p ? "bg-indigo-600 text-white" : "bg-slate-100 text-slate-500"
-                }`}
-                onClick={() => setPage(p)}
-              >
-                <div className="text-sm font-medium leading-none">{p + 1}</div>
-              </div>
-            ))}
-            <div
-              className="w-8 h-8 rounded-md flex justify-center items-center cursor-pointer bg-slate-100 text-slate-500"
-              onClick={() => setPage((prev) => Math.min(prev + 1, totalPages - 1))}
-            >
-              <div className="text-sm font-medium leading-none">다음</div>
-            </div>
-          </div>
+          </TableSection>
         </div>
       </div>
     </Fragment>
