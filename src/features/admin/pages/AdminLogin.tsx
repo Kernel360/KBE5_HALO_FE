@@ -18,7 +18,8 @@ export const AdminLogin = () => {
   };
 
   // 관리자 로그인
-  const handleLogin = async () => {
+  const handleLogin = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     try {
       // 연락처 유효성 검사 (010-1234-5678 형식)
       if(!isValidPhone(loginPhone)) {
@@ -53,7 +54,7 @@ export const AdminLogin = () => {
             </div>
             <div className="justify-start text-gray-500 text-base font-medium font-['Inter'] leading-tight">관리자 포털</div>
           </div>
-          <div className="self-stretch flex flex-col justify-start items-start gap-6">
+          <form className="self-stretch flex flex-col justify-start items-start gap-6" onSubmit={handleLogin}>
             {/* 연락처 입력 */}
             <div className="self-stretch flex flex-col justify-start items-start gap-2">
               <div className="flex justify-between w-full text-sm font-medium font-['Inter'] leading-none">
@@ -92,13 +93,13 @@ export const AdminLogin = () => {
 
             {/* 로그인 */}
             <button
+              type="submit"
               className="self-stretch h-12 bg-indigo-600 rounded-lg inline-flex justify-center items-center cursor-pointer"
-              onClick={handleLogin}
             >
               <div className="justify-start text-white text-base font-semibold font-['Inter'] leading-tight">로그인</div>
             </button>
 
-          </div>
+          </form>
         </div>
       </div>
     </Fragment>
