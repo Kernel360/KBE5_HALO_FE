@@ -4,6 +4,9 @@ import type { SearchAdminBanners as AdminBannerType } from "@/features/admin/typ
 import { isValidDateRange } from "@/shared/utils/validation";
 import { DEFAULT_PAGE_SIZE } from "@/shared/constants/constants";
 import { searchAdminBanners } from "@/features/admin/api/adminBanners";
+import { TableSection } from '../../components/TableSection';
+import { AdminTable } from '../../components/AdminTable';
+import { AdminPagination } from '../../components/AdminPagination';
 
 export const AdminBanners = () => {
   const [fadeKey, setFadeKey] = useState(0);
@@ -84,6 +87,23 @@ export const AdminBanners = () => {
 
   const totalPages = Math.max(Math.ceil(total / DEFAULT_PAGE_SIZE), 1);
 
+  const columns = [
+    { key: 'bannerId', label: '번호' },
+    { key: 'title', label: '배너 제목' },
+    { key: 'bannerStatus', label: '상태' },
+    { key: 'startAt', label: '게시 기간' },
+    { key: 'views', label: '조회수' },
+  ];
+
+  const filteredBanners = banners.map((banner) => ({
+    ...banner,
+    bannerStatus: banner.bannerStatus === "PENDING"
+      ? "대기"
+      : banner.bannerStatus === "ACTIVE"
+      ? "활성"
+      : "만료"
+  }));
+
   return (
     <Fragment>
       <div className="flex-1 self-stretch inline-flex flex-col justify-start items-start">
@@ -158,116 +178,21 @@ export const AdminBanners = () => {
             </div>
           </form>
 
-
-          <div className="self-stretch p-6 bg-white rounded-xl shadow-[0px_2px_12px_0px_rgba(0,0,0,0.04)] flex flex-col justify-start items-start">
-            <div className="self-stretch inline-flex justify-between items-center pb-4">
-              <div className="justify-start text-slate-800 text-lg font-semibold font-['Inter'] leading-snug">배너 목록</div>
-              <div className="justify-start text-slate-500 text-sm font-normal font-['Inter'] leading-none">총 {total}건</div>
+          <TableSection title="배너 정보" total={filteredBanners.length}>
+            <AdminTable
+              columns={columns}
+              data={filteredBanners}
+              rowKey={row => row.bannerId}
+              emptyMessage={"조회된 배너가 없습니다."}
+            />
+            <div className="w-full flex justify-center py-4">
+              <AdminPagination
+                page={page}
+                totalPages={totalPages}
+                onChange={setPage}
+              />
             </div>
-            <div className="self-stretch h-12 px-4 bg-slate-50 border-b border-slate-200 inline-flex justify-start items-center">
-              <div className="flex-1 flex justify-center items-center">
-                <div className="flex-1 flex justify-center items-center">
-                  <div className="flex-1 flex justify-center items-center gap-4">
-                    <div className="w-[15%] text-center text-sm font-semibold text-slate-700 font-semibold font-['Inter'] leading-none">번호</div>
-                    <div className="w-[30%] text-center text-sm font-semibold text-slate-700 font-semibold font-['Inter'] leading-none">배너 제목</div>
-                    <div className="w-[15%] text-center text-sm font-semibold text-slate-700 font-semibold font-['Inter'] leading-none">상태</div>
-                    <div className="w-[20%] text-center text-sm font-semibold text-slate-700 font-semibold font-['Inter'] leading-none">게시 기간</div>
-                    <div className="w-[20%] text-center text-sm text-slate-700 font-medium font-['Inter'] leading-none">조회수</div>
-                    {/* <div className="w-[15%] text-center text-sm font-semibold text-slate-700 font-semibold font-['Inter'] leading-none">작성일시</div> */}
-                    {/* <div className="w-[20%] text-center text-sm font-semibold text-slate-700 font-semibold font-['Inter'] leading-none">관리</div> */}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-
-            <div key={fadeKey} className="w-full fade-in">
-              { banners.length === 0 ? (
-                <div className="self-stretch h-16 px-4 border-b border-slate-200 flex items-center text-center">
-                  <div className="w-full text-sm text-slate-500">조회된 배너가 없습니다.</div>
-                </div>
-              ) : (
-                banners.map((banner) => (
-                  <Fragment>
-                      <Link 
-                        key={banner.bannerId}
-                        to={`/admin/banners/${banner.bannerId}`}
-                        className="self-stretch h-16 px-4 border-b border-slate-200 flex items-center text-center gap-4">
-                        <div className="w-[15%] text-center text-sm text-slate-700 font-medium font-['Inter'] leading-none">{banner.bannerId}</div>
-                        <div className="w-[30%] text-center text-sm text-slate-700 font-medium font-['Inter'] leading-none">{banner.title}</div>
-                        <div className="w-[15%] text-center flex justify-center">
-                          <div className={`h-7 px-3 rounded-2xl flex items-center font-medium font-['Inter'] leading-none ${
-                                  banner.bannerStatus === "PENDING"
-                                  ? "bg-yellow-100"
-                                  : banner.bannerStatus === "ACTIVE"
-                                  ? "bg-green-100"
-                                  : "bg-gray-100" // EXPIRED
-                            }`}>
-                            <div className="text-sm font-medium">
-                              { banner.bannerStatus === "PENDING"
-                                  ? "대기"
-                                  : banner.bannerStatus === "ACTIVE"
-                                  ? "활성"
-                                  : "만료"}
-                            </div>
-                          </div>
-                        </div>
-                        <div className="w-[20%] text-center text-sm text-slate-700 font-medium font-['Inter'] leading-none">{banner.startAt} ~ {banner.endAt}</div>
-                        <div className="w-[20%] text-center text-sm text-slate-700 font-medium font-['Inter'] leading-none">{banner.views}</div>
-                        {/* <div className="w-[15%] text-center text-sm text-slate-700 font-medium font-['Inter'] leading-none">{banner.createdAt}</div> */}
-                        {/* <div className="w-[20%] flex justify-center items-center gap-2 text-sm text-slate-700 font-medium font-['Inter'] leading-none">
-                          <Link 
-                            to={`/admin/banners/${banner.bannerId}/edit`}
-                            onClick={(e) => e.stopPropagation()}
-                            className="px-2 py-1 rounded border border-indigo-600 text-indigo-600 text-sm font-medium hover:bg-indigo-50 cursor-pointer"
-                          >
-                            수정
-                          </Link>
-                          <button 
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDelete(banner.bannerId);
-                            }}
-                            className="px-2 py-1 rounded border border-red-600 text-red-600 text-sm font-medium hover:bg-red-50 cursor-pointer"
-                          >
-                            삭제
-                          </button>
-                        </div> */}
-                      </Link>
-                  </Fragment>
-                ))
-              )}
-            </div>
-
-            {/* 페이징 */}
-            <div className="self-stretch flex justify-center gap-1 pt-4">
-              <div
-                className="w-8 h-8 rounded-md flex justify-center items-center cursor-pointer bg-slate-100 text-slate-500"
-                onClick={() => setPage((prev) => Math.max(prev - 1, 0))}
-              >
-                <div className="text-sm font-medium font-['Inter'] leading-none">이전</div>
-              </div>
-              {Array.from({ length: totalPages }, (_, i) => i).map((p) => (
-                <div
-                  key={p}
-                  className={`w-8 h-8 rounded-md flex justify-center items-center cursor-pointer ${
-                    page === p ? "bg-indigo-600 text-white" : "bg-slate-100 text-slate-500"
-                  }`}
-                  onClick={() => setPage(p)}
-                >
-                  <div className="text-sm font-medium font-['Inter'] leading-none">{p + 1}</div>
-                </div>
-              ))}
-              <div
-                className="w-8 h-8 rounded-md flex justify-center items-center cursor-pointer bg-slate-100 text-slate-500"
-                onClick={() => setPage((prev) => Math.min(prev + 1, totalPages - 1))}
-              >
-                <div className="text-sm font-medium font-['Inter'] leading-none">다음</div>
-              </div>
-            </div>
-          </div>
-
+          </TableSection>
         </div>
       </div>
     </Fragment>
