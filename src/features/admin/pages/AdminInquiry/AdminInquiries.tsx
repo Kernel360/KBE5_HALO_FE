@@ -5,6 +5,7 @@ import type { SearchCustomerInquiries, SearchManagerInquiries } from "@/features
 
 import { isValidDateRange } from "@/shared/utils/validation";
 import { DEFAULT_PAGE_SIZE } from "@/shared/constants/constants";
+import { TableSection } from '../../components/TableSection';
 
 // yyyy-MM-dd 또는 Date 객체를 yyyy-MM-ddTHH:mm:ss 형식으로 변환
 function toLocalDateTimeString(date: string | Date): string {
@@ -127,121 +128,94 @@ export const AdminInquiries = () => {
         
         {/* 내용 */}
         <div className="p-6 flex flex-col gap-6">
-          {/* 탭 */}
-          <div className="border-b border-gray-200 flex">
-            {[
-              { key: 'customer', label: '고객 문의사항' },
-              { key: 'manager', label: '매니저 문의사항' },
-            ].map((tab) => (
-              <div
-                key={tab.key}
-                onClick={() => handleTabChange(tab.key as typeof activeTab)}
-                className={`w-40 h-10 px-4 flex justify-center items-center cursor-pointer ${
-                  activeTab === tab.key ? 'border-b-2 border-indigo-600' : 'hover:border-b-2 hover:border-indigo-400'
-                }`}
-              >
-                <span
-                  className={`text-sm ${
-                    activeTab === tab.key
-                      ? 'text-indigo-600 font-semibold'
-                      : 'text-gray-500 font-medium hover:text-indigo-400'
+          {/* 탭 + 검색 폼 한 줄 배치 */}
+          <div className="w-full flex flex-row items-center justify-between mb-2 gap-2">
+            <div className="flex flex-row items-center gap-0">
+              {[
+                { key: 'customer', label: '고객 문의사항' },
+                { key: 'manager', label: '매니저 문의사항' },
+              ].map((tab) => (
+                <div
+                  key={tab.key}
+                  onClick={() => handleTabChange(tab.key as typeof activeTab)}
+                  className={`w-40 h-10 px-4 flex justify-center items-center cursor-pointer ${
+                    activeTab === tab.key ? 'border-b-2 border-indigo-600' : 'hover:border-b-2 hover:border-indigo-400'
                   }`}
                 >
-                  {tab.label}
-                </span>
-              </div>
-            ))}
+                  <span
+                    className={`text-sm ${
+                      activeTab === tab.key
+                        ? 'text-indigo-600 font-semibold'
+                        : 'text-gray-500 font-medium hover:text-indigo-400'
+                    }`}
+                  >
+                    {tab.label}
+                  </span>
+                </div>
+              ))}
+            </div>
+            {/* 인라인 compact 검색 폼 */}
+            <form
+              onSubmit={e => {
+                e.preventDefault();
+                handleSearch();
+              }}
+              className="flex flex-row items-center gap-2 bg-transparent p-0"
+            >
+              <input
+                type="date"
+                ref={fromDateRef}
+                value={fromCreatedAt}
+                onChange={e => setFromCreatedAt(e.target.value)}
+                className="h-8 px-2 bg-white rounded border border-gray-200 text-sm text-slate-700 min-w-[120px]"
+              />
+              <span className="text-slate-500 text-xs">~</span>
+              <input
+                type="date"
+                value={toCreatedAt}
+                onChange={e => setToCreatedAt(e.target.value)}
+                className="h-8 px-2 bg-white rounded border border-gray-200 text-sm text-slate-700 min-w-[120px]"
+              />
+              <select
+                value={replyStatus}
+                onChange={e => setReplyStatus(e.target.value)}
+                className="h-8 px-2 bg-white rounded border border-gray-200 text-sm text-slate-700 min-w-[100px]"
+              >
+                <option value="">전체</option>
+                <option value="PENDING">답변 대기</option>
+                <option value="ANSWERED">답변 완료</option>
+              </select>
+              <input
+                type="text"
+                value={titleKeyword}
+                onChange={e => setTitleKeyword(e.target.value)}
+                placeholder="제목 검색"
+                className="h-8 px-2 bg-white rounded border border-gray-200 text-sm text-slate-700 min-w-[120px]"
+              />
+              <input
+                type="text"
+                value={contentKeyword}
+                onChange={e => setContentKeyword(e.target.value)}
+                placeholder="내용 검색"
+                className="h-8 px-2 bg-white rounded border border-gray-200 text-sm text-slate-700 min-w-[120px]"
+              />
+              <button
+                type="button"
+                onClick={handleReset}
+                className="h-8 px-4 bg-slate-100 rounded text-slate-500 text-xs font-medium hover:bg-slate-200 cursor-pointer"
+              >
+                초기화
+              </button>
+              <button
+                type="submit"
+                className="h-8 px-4 bg-indigo-600 rounded text-white text-xs font-medium hover:bg-indigo-700 cursor-pointer"
+              >
+                검색
+              </button>
+            </form>
           </div>
 
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleSearch();
-            }}
-            className="self-stretch p-6 bg-white rounded-xl shadow-[0px_2px_12px_0px_rgba(0,0,0,0.04)] flex flex-col justify-start items-start gap-4"
-          >
-            <div className="self-stretch justify-start text-slate-800 text-lg font-semibold font-['Inter'] leading-snug">검색 조건</div>
-            <div className="self-stretch flex flex-col justify-start items-start gap-4">
-              <div className="self-stretch inline-flex justify-start items-start gap-4">
-                <div className="flex-1 inline-flex flex-col justify-start items-start gap-2">
-                  <div className="self-stretch justify-start text-slate-700 text-sm font-medium font-['Inter'] leading-none">등록일</div>
-                  <div className="self-stretch inline-flex justify-start items-center gap-2">
-                    <input
-                        type="date"
-                        ref={fromDateRef}
-                        value={fromCreatedAt}
-                        onChange={(e) => setFromCreatedAt(e.target.value)}
-                        className="flex-1 h-12 px-4 bg-slate-50 rounded-lg border border-slate-200 text-slate-700 text-sm placeholder:text-slate-400 focus:outline-indigo-500 "
-                      />
-                      <span className="text-slate-500 text-sm">~</span>
-                      <input
-                        type="date"
-                        value={toCreatedAt}
-                        onChange={(e) => setToCreatedAt(e.target.value)}
-                        className="flex-1 h-12 px-4 bg-slate-50 rounded-lg border border-slate-200 text-slate-700 text-sm placeholder:text-slate-400 focus:outline-indigo-500"
-                      />
-                    </div>
-                  </div>
-                <div className="flex-1 inline-flex flex-col justify-start items-start gap-2">
-                  <div className="self-stretch justify-start text-slate-700 text-sm font-medium font-['Inter'] leading-none">답변 상태</div>
-                  <select
-                    value={replyStatus}
-                    onChange={(e) => setReplyStatus(e.target.value)}
-                    className="w-full h-12 px-4 bg-slate-50 rounded-lg border border-slate-200 text-slate-700 text-sm focus:outline-indigo-500"
-                  >
-                    <option value="">전체</option>
-                    <option value="PENDING">답변 대기</option>
-                    <option value="ANSWERED">답변 완료</option>
-                  </select>
-                </div>
-              </div>
-              <div className="self-stretch inline-flex justify-start items-start gap-4">
-                <div className="flex-1 inline-flex flex-col justify-start items-start gap-2">
-                  <div className="self-stretch justify-start text-slate-700 text-sm font-medium font-['Inter'] leading-none">제목</div>
-                  <div className="self-stretch h-12 px-4 bg-slate-50 rounded-lg outline outline-1 outline-offset-[-1px] outline-slate-200 inline-flex justify-start items-center">
-                    <input
-                      value={titleKeyword}
-                      onChange={(e) => setTitleKeyword(e.target.value)}
-                      placeholder="제목 검색"
-                      className="w-full text-sm text-slate-700 placeholder:text-slate-400 bg-transparent focus:outline-none"
-                    />
-                  </div>
-                </div>
-                <div className="flex-1 inline-flex flex-col justify-start items-start gap-2">
-                  <div className="self-stretch justify-start text-slate-700 text-sm font-medium font-['Inter'] leading-none">내용</div>
-                  <div className="self-stretch h-12 px-4 bg-slate-50 rounded-lg outline outline-1 outline-offset-[-1px] outline-slate-200 inline-flex justify-start items-center">
-                    <input
-                      value={contentKeyword}
-                      onChange={(e) => setContentKeyword(e.target.value)}
-                      placeholder="내용 검색"
-                      className="w-full text-sm text-slate-700 placeholder:text-slate-400 bg-transparent focus:outline-none"
-                    />
-                  </div>
-                </div>
-              </div>
-              <div className="self-stretch inline-flex justify-end items-center gap-2">
-                <button
-                  type="button"
-                  onClick={handleReset}
-                  className="w-28 h-12 bg-slate-100 rounded-lg flex justify-center items-center text-slate-500 text-sm font-medium font-['Inter'] leading-none hover:bg-slate-200 transition cursor-pointer"
-                >
-                  초기화
-                </button>
-                <button
-                  type="submit"
-                  className="w-28 h-12 bg-indigo-600 rounded-lg flex justify-center items-center text-white text-sm font-medium font-['Inter'] leading-none hover:bg-indigo-700 transition cursor-pointer"
-                >
-                  검색
-                </button>
-              </div>
-            </div>
-          </form>
-
-          <div className="self-stretch p-6 bg-white rounded-xl shadow-[0px_2px_12px_0px_rgba(0,0,0,0.04)] flex flex-col justify-start items-start">
-            <div className="self-stretch inline-flex justify-between items-center pb-4">
-              <div className="justify-start text-slate-800 text-lg font-semibold font-['Inter'] leading-snug">문의사항 내역</div>
-              <div className="justify-start text-slate-500 text-sm font-normal font-['Inter'] leading-none">총 {total}건</div>
-            </div>
+          <TableSection title="문의사항 내역" total={inquiries.length}>
             <div className="self-stretch h-12 px-4 bg-slate-50 border-b border-slate-200 inline-flex justify-start items-center">
               <div className="flex-1 flex justify-center items-center">
                 <div className="flex-1 flex justify-center items-center">
@@ -257,7 +231,6 @@ export const AdminInquiries = () => {
                 </div>
               </div>
             </div>
-
 
             <div key={fadeKey} className="w-full fade-in">
               { inquiries.length === 0 ? (
@@ -350,7 +323,7 @@ export const AdminInquiries = () => {
                 <div className="text-sm font-medium font-['Inter'] leading-none">다음</div>
               </div>
             </div>
-          </div>
+          </TableSection>
 
         </div>
       </div>
