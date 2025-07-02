@@ -3,6 +3,9 @@ import { Fragment } from "react/jsx-runtime";
 import { useNavigate } from "react-router-dom";
 
 import api from '@/services/axios';
+import { TableSection } from '../../components/TableSection';
+import { AdminTable } from '../../components/AdminTable';
+import { AdminPagination } from '../../components/AdminPagination';
 
 
 export const AdminBoards = () => {
@@ -256,101 +259,21 @@ export const AdminBoards = () => {
           </form>
 
           {/* 목록 */}
-          <div className="self-stretch bg-white rounded-lg shadow-[0px_2px_8px_0px_rgba(0,0,0,0.04)] flex flex-col justify-start items-start">
-            <div className="self-stretch h-12 px-6 bg-gray-50 border-b border-gray-200 inline-flex justify-start items-center space-x-4">
-              <div className="w-[10%] flex justify-center items-center text-gray-700 text-sm font-semibold font-['Inter']">ID</div>
-              <div className="w-[40%] flex justify-center items-center text-gray-700 text-sm font-semibold font-['Inter']">제목</div>
-              <div className="w-[10%] flex justify-center items-center text-gray-700 text-sm font-semibold font-['Inter']">상태</div>
-              <div className="w-[20%] flex justify-center items-center text-gray-700 text-sm font-semibold font-['Inter']">등록일</div>
-              <div className="w-[20%] flex justify-center items-center text-gray-700 text-sm font-semibold font-['Inter']">관리</div>
+          <TableSection title="게시판 정보" total={boardData.length}>
+            <AdminTable
+              columns={columns}
+              data={boardData}
+              rowKey={row => row.id}
+              emptyMessage={"조회된 게시글이 없습니다."}
+            />
+            <div className="w-full flex justify-center py-4">
+              <AdminPagination
+                page={page}
+                totalPages={pageCount}
+                onChange={setPage}
+              />
             </div>
-
-            {pagedData.map((item) => (
-              <div key={item.id} className="self-stretch h-16 px-6 border-b border-gray-200 inline-flex justify-start items-center space-x-4">
-                <div className="w-[10%] flex justify-center items-center text-gray-500 text-sm font-normal font-['Inter']">{item.id}</div>
-                {editId === item.id ? (
-                  <>
-                    {/* 제목 */}
-                    <div className="w-[40%] flex justify-center items-center">
-                      <input
-                        type="text"
-                        className="h-8 px-2 rounded border border-gray-200 text-sm w-full"
-                        value={editRow?.title || ''}
-                        onChange={e => handleEditChange('title', e.target.value)}
-                      />
-                    </div>
-                    {/* 상태 */}
-                    <div className="w-[10%] flex justify-center items-center">
-                      <select
-                        className="h-8 px-2 rounded border border-gray-200 text-sm"
-                        value={editRow?.status || ''}
-                        onChange={e => handleEditChange('status', e.target.value)}
-                      >
-                        {statusOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                      </select>
-                    </div>
-                    {/* 등록일 */}
-                    <div className="w-[20%] flex justify-center items-center">
-                      <input
-                        type="date"
-                        className="h-8 px-2 rounded border border-gray-200 text-sm"
-                        value={editRow?.date || ''}
-                        onChange={e => handleEditChange('date', e.target.value)}
-                      />
-                    </div>
-                    {/* 관리: 저장/취소 */}
-                    <div className="w-[20%] flex justify-center items-center gap-2">
-                      <button className="px-2 py-1 rounded border border-indigo-600 text-indigo-600 text-sm font-medium hover:bg-indigo-50 cursor-pointer" onClick={handleEditSave}>저장</button>
-                      <button className="px-2 py-1 rounded border border-gray-400 text-gray-500 text-sm font-medium hover:bg-gray-50 cursor-pointer" onClick={handleEditCancel}>취소</button>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div className="w-[40%] flex justify-center items-center text-gray-900 text-sm font-medium font-['Inter']">{item.title}</div>
-                    <div className="w-[10%] flex justify-center items-center">
-                      <div className={`px-2 py-0.5 rounded-xl flex justify-center items-center text-xs font-medium font-['Inter'] leading-none ${
-                        item.status === "게시중" ? "bg-emerald-50 text-emerald-500" : "bg-amber-100 text-amber-600"
-                      }`}>
-                        {item.status}
-                      </div>
-                    </div>
-                    <div className="w-[20%] flex justify-center items-center text-gray-500 text-sm font-normal font-['Inter']">{item.date}</div>
-                    <div className="w-[20%] flex justify-center items-center gap-2">
-                      <button className="px-2 py-1 rounded border border-yellow-500 text-yellow-500 text-sm font-medium hover:bg-yellow-50 cursor-pointer" onClick={() => handleEdit(item)}>수정</button>
-                      <button className="px-2 py-1 rounded border border-red-500 text-red-500 text-sm font-medium hover:bg-red-50 cursor-pointer" onClick={() => handleDelete(item.id)}>삭제</button>
-                    </div>
-                  </>
-                )}
-              </div>
-            ))}
-          </div>
-
-          {/* 동적 페이지네이션 (예약 관리와 동일) */}
-          <div className="self-stretch py-4 flex justify-center items-center gap-1">
-            <button
-              className="w-9 h-9 rounded-md flex justify-center items-center bg-white outline outline-1 outline-gray-200 text-gray-500 disabled:opacity-50"
-              onClick={() => setPage((p) => Math.max(0, p - 1))}
-              disabled={page === 0}
-            >
-              &lt;
-            </button>
-            {Array.from({ length: pageCount }, (_, i) => (
-              <button
-                key={i}
-                className={`w-9 h-9 rounded-md flex justify-center items-center ${page === i ? "bg-indigo-600 text-white" : "bg-white outline outline-1 outline-gray-200 text-gray-500"}`}
-                onClick={() => setPage(i)}
-              >
-                {i + 1}
-              </button>
-            ))}
-            <button
-              className="w-9 h-9 rounded-md flex justify-center items-center bg-white outline outline-1 outline-gray-200 text-gray-500 disabled:opacity-50"
-              onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))}
-              disabled={page === pageCount - 1 || pageCount === 0}
-            >
-              &gt;
-            </button>
-          </div>
+          </TableSection>
         </div>
       </div>
     </Fragment>
