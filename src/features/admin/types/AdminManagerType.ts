@@ -5,7 +5,10 @@ export interface AdminManager {
   email: string;
   phone: string;
   userstatus: string;
+  contractStatus: string;
   averageRating: number | null;
+  reservationCount: number;
+  reviewCount: number;
 }
 
 // 매니저 상세 조회
