@@ -5,6 +5,7 @@ import { getFormattedDate, formatTimeRange, formatDateWithDay } from "@/shared/u
 import { Star, Pencil } from "lucide-react";
 import { REVIEW_PAGE_SIZE } from "@/shared/constants/constants";
 import { useNavigate } from "react-router-dom";
+import Pagination from "@/shared/components/Pagination";
 
 const pageSize = REVIEW_PAGE_SIZE;
 
@@ -118,47 +119,12 @@ export const CustomerReviewsPage = () => {
       </div>
 
       {/* 페이지네이션 */}
-      {totalReviews > 0 && (
-        <div className="flex justify-center gap-2 pt-4">
-          {/* Previous Page Button */}
-          <button
-            disabled={currentPage === 0}
-            onClick={() => setCurrentPage(currentPage - 1)}
-            className={`w-9 h-9 rounded-lg flex justify-center items-center
-              border ${currentPage === 0 ? "border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed" : "border-gray-300 bg-white text-gray-700 hover:bg-gray-100 cursor-pointer"}
-            `}
-          >
-            <span className="material-symbols-outlined text-base">chevron_left</span>
-          </button>
-
-          {/* Page Numbers */}
-          {Array.from({ length: Math.ceil(totalReviews / pageSize) }).map((_, i) => (
-            <button
-              key={i}
-              onClick={() => setCurrentPage(i)}
-              className={`w-9 h-9 rounded-lg flex justify-center items-center text-sm font-medium cursor-pointer
-                border ${currentPage === i
-                  ? "border-indigo-500 bg-indigo-50 text-indigo-700"
-                  : "border-gray-300 bg-white text-gray-700 hover:bg-gray-100"
-                }
-              `}
-            >
-              {i + 1}
-            </button>
-          ))}
-
-          {/* Next Page Button */}
-          <button
-            disabled={currentPage === Math.ceil(totalReviews / pageSize) - 1}
-            onClick={() => setCurrentPage(currentPage + 1)}
-            className={`w-9 h-9 rounded-lg flex justify-center items-center
-              border ${currentPage === Math.ceil(totalReviews / pageSize) - 1 ? "border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed" : "border-gray-300 bg-white text-gray-700 hover:bg-gray-100 cursor-pointer"}
-            `}
-          >
-            <span className="material-symbols-outlined text-base">chevron_right</span>
-          </button>
-        </div>
-      )}
+      <Pagination
+        currentPage={currentPage}
+        totalItems={totalReviews}
+        pageSize={pageSize}
+        onPageChange={setCurrentPage}
+      />
       
     </div>
   );
