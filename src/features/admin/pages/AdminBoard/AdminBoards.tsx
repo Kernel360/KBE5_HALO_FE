@@ -6,16 +6,21 @@ import api from '@/services/axios';
 import { TableSection } from '../../components/TableSection';
 import { AdminTable } from '../../components/AdminTable';
 import { AdminPagination } from '../../components/AdminPagination';
+import Toast from "@/shared/components/ui/toast/Toast";
+import ErrorToast from "@/shared/components/ui/toast/ErrorToast";
+import SuccessToast from "@/shared/components/ui/toast/SuccessToast";
 
 
 export const AdminBoards = () => {
   const [activeTab, setActiveTab] = useState<"notice" | "event">("notice");
   const [page, setPage] = useState(0);
   const navigate = useNavigate();
-  const [editId, setEditId] = useState<string | null>(null);
-  const [editRow, setEditRow] = useState<any>(null);
   const [notices, setNotices] = useState<any[]>([]);
   const [events, setEvents] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const [errorToastMsg, setErrorToastMsg] = useState<string | null>(null);
+  const [successToastMsg, setSuccessToastMsg] = useState<string | null>(null);
 
   const [searchState, setSearchState] = useState({
     title: '',
@@ -38,31 +43,6 @@ export const AdminBoards = () => {
     } else {
       navigate("/boards/events/new");
     }
-  };
-
-  const handleEdit = (item: any) => {
-    setEditId(item.id);
-    setEditRow({ ...item });
-  };
-
-  const handleEditChange = (field: string, value: string) => {
-    setEditRow((prev: any) => ({ ...prev, [field]: value }));
-  };
-
-  const handleEditSave = () => {
-    if (!editRow) return;
-    if (activeTab === "notice") {
-      // Implement edit save logic for notice
-    } else {
-      // Implement edit save logic for event
-    }
-    setEditId(null);
-    setEditRow(null);
-  };
-
-  const handleEditCancel = () => {
-    setEditId(null);
-    setEditRow(null);
   };
 
   const handleDelete = async (id: string) => {
@@ -96,12 +76,12 @@ export const AdminBoards = () => {
 
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
       try {
         if (activeTab === 'notice') {
           const res = await api.get('/admin/notices', {
             params: {
               type: 'NOTICE',
-
               title: searchState.title,
               content: searchState.content,
               startDate: searchState.startDate,
@@ -125,7 +105,6 @@ export const AdminBoards = () => {
           const res = await api.get('/admin/events', {
             params: {
               type: 'EVENT',
-
               title: searchState.title,
               content: searchState.content,
               startDate: searchState.startDate,
@@ -147,15 +126,42 @@ export const AdminBoards = () => {
           setEvents(mapped);
         }
       } catch (e: any) {
-        console.error('목록을 불러오지 못했습니다.', e);
-
+        const backendMsg = e?.response?.data?.message;
+        setErrorToastMsg(backendMsg || '목록을 불러오지 못했습니다.');
+      } finally {
+        setLoading(false);
       }
     };
     fetchData();
   }, [activeTab, searchState, page]);
 
+  // 컬럼 정의
+  const columns = [
+    { key: 'id', header: '번호' },
+    { key: 'title', header: '제목' },
+    { key: 'status', header: '상태' },
+    { key: 'date', header: '등록일' },
+    { key: 'views', header: '조회수' },
+    { key: 'author', header: '작성자' },
+    {
+      key: 'action',
+      header: '관리',
+      render: (row: any) => (
+        <button
+          className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-xs"
+          onClick={() => handleDelete(row.id)}
+        >
+          삭제
+        </button>
+      ),
+    },
+  ];
+
   return (
     <Fragment>
+      <SuccessToast open={!!successToastMsg} message={successToastMsg || ""} onClose={() => setSuccessToastMsg(null)} />
+      <ErrorToast open={!!errorToastMsg} message={errorToastMsg || ""} onClose={() => setErrorToastMsg(null)} />
+      <Toast open={!!toastMsg} message={toastMsg || ""} onClose={() => setToastMsg(null)} />
       <div className="w-full self-stretch inline-flex flex-col justify-start items-start">
         {/* 상단 헤더 */}
         <div className="self-stretch h-16 px-6 bg-white border-b border-gray-200 inline-flex justify-between items-center">
@@ -260,18 +266,51 @@ export const AdminBoards = () => {
 
           {/* 목록 */}
           <TableSection title="게시판 정보" total={boardData.length}>
-            <AdminTable
-              columns={columns}
-              data={boardData}
-              rowKey={row => row.id}
-              emptyMessage={"조회된 게시글이 없습니다."}
-            />
-            <div className="w-full flex justify-center py-4">
-              <AdminPagination
-                page={page}
-                totalPages={pageCount}
-                onChange={setPage}
+            {/* 데스크탑: 테이블 */}
+            <div className="hidden md:block">
+              <AdminTable
+                loading={loading}
+                columns={columns}
+                data={pagedData}
+                rowKey={row => row.id}
+                emptyMessage={"조회된 게시글이 없습니다."}
               />
+              <div className="w-full flex justify-center py-4">
+                <AdminPagination
+                  page={page}
+                  totalPages={pageCount}
+                  onChange={setPage}
+                />
+              </div>
+            </div>
+            {/* 모바일: 카드형 리스트 */}
+            <div className="block md:hidden">
+              {pagedData.length === 0 ? (
+                <div className="text-center text-gray-400 py-8">조회된 게시글이 없습니다.</div>
+              ) : (
+                <div className="flex flex-col gap-3">
+                  {pagedData.map(row => (
+                    <div
+                      key={row.id}
+                      className="border rounded-lg p-4 bg-white shadow-sm flex flex-col gap-2 cursor-pointer"
+                      // onClick 등 필요시 추가
+                    >
+                      <div className="font-semibold text-base text-gray-900">{row.title}</div>
+                      <div className="text-sm text-gray-700 break-all">ID: {row.id}</div>
+                      <div className="text-sm text-gray-700 break-all">상태: {row.status}</div>
+                      <div className="text-sm text-gray-700 break-all">등록일: {row.createdAt}</div>
+                      {/* 필요시 더 많은 필드 추가 */}
+                    </div>
+                  ))}
+                </div>
+              )}
+              <div className="w-full flex justify-center py-4">
+                <AdminPagination
+                  page={page}
+                  totalPages={pageCount}
+                  onChange={setPage}
+                />
+              </div>
             </div>
           </TableSection>
         </div>
