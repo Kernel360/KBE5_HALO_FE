@@ -1,5 +1,5 @@
 import React from "react";
-import StatusBadge from "./StatusBadge";
+import { ContractStatusBadge } from "@/shared/components/ui/ContractStatusBadge";
 import type { AdminManagerDetail } from "@/features/admin/types/AdminManagerType";
 
 interface ManagerProfileCardProps {
@@ -13,7 +13,7 @@ const ManagerProfileCard: React.FC<ManagerProfileCardProps> = ({ manager }) => {
         <div className="text-slate-800 text-2xl font-bold">{manager.userName}</div>
         <div className="text-slate-500 text-base">{manager.bio}</div>
         <div className="text-slate-700 text-base font-medium flex items-center gap-2">
-          계약 상태: <StatusBadge status={manager.status} />
+          계약 상태: <ContractStatusBadge status={manager.status} />
         </div>
         <div className="text-slate-700 text-base font-medium">평점: {manager.averageRating != null ? Number(manager.averageRating).toFixed(1) : '-'}</div>
       </div>

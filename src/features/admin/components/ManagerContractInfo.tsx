@@ -1,5 +1,5 @@
 import React from "react";
-import StatusBadge from "./StatusBadge";
+import { ContractStatusBadge } from "@/shared/components/ui/ContractStatusBadge";
 import type { AdminManagerDetail } from "@/features/admin/types/AdminManagerType";
 
 interface ManagerContractInfoProps {
@@ -20,7 +20,7 @@ const ManagerContractInfo: React.FC<ManagerContractInfoProps> = ({ manager, onAp
       <div className="inline-flex justify-start items-center gap-2">
         <div className="w-40 text-slate-500 text-sm font-medium">계약 상태</div>
         <div className="h-7 px-3 flex justify-center items-center">
-          <StatusBadge status={manager.status} />
+          <ContractStatusBadge status={manager.status} />
         </div>
       </div>
       {manager.status === 'TERMINATED' && manager.terminatedAt && manager.terminationReason && (
