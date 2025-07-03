@@ -1,7 +1,7 @@
 import React from 'react';
 import { useLocation, Navigate } from 'react-router-dom';
 import ReservationStepTwo from '@/features/customer/pages/reservation/ReservationStepTwo';
-import type { ReservationMatchedRspType } from '@/features/customer/types/reservation/ReservationMatchedRspType';
+import type { ReservationMatchedRspType } from '@/features/customer/types/CustomerReservationType';
 
 const ReservationStepTwoGuard: React.FC = () => {
   const location = useLocation();

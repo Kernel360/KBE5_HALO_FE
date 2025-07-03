@@ -29,8 +29,6 @@ const ReservationStepFinal: React.FC = () => {
   const [dataLoaded, setDataLoaded] = useState(false);
 
   useEffect(() => {
-    // 넘어온 데이터 확인 (디버깅 용도)
-    console.log('Final Reservation Data:', finalReservationData);
 
     // Guard에서 이미 검증했으므로 데이터가 있다고 가정
     if (finalReservationData) {
@@ -185,7 +183,7 @@ const ReservationStepFinal: React.FC = () => {
         {/* 하단 버튼 */}
         <div className="w-full flex justify-center gap-3 mt-4">
           <button
-            onClick={() => navigate('/my-page/reservations')} // 마이페이지 예약 내역으로 이동
+            onClick={() => navigate(`/my/reservations/${finalReservationData.reservationId}`)} // 마이페이지 예약 내역으로 이동
             className="w-48 h-12 bg-gray-200 rounded-lg flex justify-center items-center text-gray-700 text-base font-semibold hover:bg-gray-300"
           >
             예약 내역 확인

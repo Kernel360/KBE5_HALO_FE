@@ -1,7 +1,6 @@
 // CustomerReservation.ts (API 호출)
 import api from "@/services/axios";
-import type { ReservationReqType, ReservationConfirmReqType } from '@/features/customer/types/CustomerReservationType';
-import type { PreCancelReqType, CustomerReservationCancelReqType, ReservationStatus } from '@/features/customer/types/CustomerReservationType';
+import type { ReservationConfirmReqType, ReservationReqType, PreCancelReqType, CustomerReservationCancelReqType, ReservationStatus } from '@/features/customer/types/CustomerReservationType';
 
 
 // 서비스 카테고리 조회

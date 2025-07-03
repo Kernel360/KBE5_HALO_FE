@@ -1,6 +1,6 @@
 import React from 'react';
 import { useLocation, Navigate } from 'react-router-dom';
-import ReservationStepFinal2 from '@/features/customer/pages/reservation/ReservationStepFinal2';
+import ReservationStepFinal from '@/features/customer/pages/reservation/ReservationStepFinal';
 import type { ReservationConfirmRspType } from '@/features/customer/types/CustomerReservationType';
 
 const ReservationStepFinalGuard: React.FC = () => {
@@ -22,7 +22,7 @@ const ReservationStepFinalGuard: React.FC = () => {
     return <Navigate to="/reservations/new" replace />;
   }
 
-  return <ReservationStepFinal2 />;
+  return <ReservationStepFinal />;
 };
 
 export default ReservationStepFinalGuard;

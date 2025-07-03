@@ -1,8 +1,7 @@
 // ReservationStepOne.tsx
 import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { ServiceCategoryTreeType } from '@/features/customer/types/reservation/ServiceCategoryTreeType';
-import type { ReservationReqType } from '@/features/customer/types/reservation/ReservationReqType';
+import type { ReservationReqType, ServiceCategoryTreeType } from '@/features/customer/types/CustomerReservationType';
 import type { CustomerInfoType } from '@/features/customer/types/CustomerInfoType';
 import { getServiceCategories, createReservation, getCustomerInfo } from '@/features/customer/api/CustomerReservation';
 import { formatPhoneNumber } from '@/shared/utils/format';

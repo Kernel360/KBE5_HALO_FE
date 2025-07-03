@@ -77,8 +77,8 @@ export interface ManagerMatchingRspType {
     managerName: string;
     averageRating: number;
     reviewCount: number;
-    profileImageId: number;
     reservationCount : number;
+    profileImageId: number;
     bio: string;
     feedbackType: 'GOOD' | 'BAD' | null; // enum 값에 맞게 조정
     recentReservationDate: string; // ISO 날짜 문자열
@@ -111,28 +111,23 @@ export interface CustomerReservationListRspType {
     reviewId?: number;
 }
 
-// 매니저 통계 정보 타입
-export interface ManagerStatisticType {
+
+// 추가서비스
+export interface ExtraService {
+  extraServiceId: number;
+  extraServiceName: string;
+  extraServicePrice: number;
+  extraServiceTime: number;
+}
+
+// 매니저 통계
+export interface ManagerStatistic {
   reviewCount: number;
   reservationCount: number;
   averageRating: number;
 }
 
-// 예약 취소 정보 타입
-export interface ReservationCancelType {
-  cancelReason: string;
-  cancelDate: string;
-}
-
-// 리뷰 정보 타입
-export interface ReviewType {
-  reviewId: number;
-  reviewContent: string;
-  reviewRating: number;
-  reviewDate: string;
-}
-
-// 예약 상세 조회 (API 응답 구조에 맞게 수정)
+// 예약 상세 타입
 export interface CustomerReservationDetailRspType {
   reservationId: number;
   serviceCategoryId: number;
@@ -144,20 +139,29 @@ export interface CustomerReservationDetailRspType {
   serviceTime: number;
   roadAddress: string;
   detailAddress: string;
-  requestDate: string;
-  startTime: string;
+  requestDate: string; // YYYY-MM-DD
+  startTime: string;   // HH:mm:ss
   turnaround: number;
-  extraServices: {
-    extraServiceId: number;
-    extraServiceName: string;
-    extraServicePrice: number;
-    extraServiceTime: number;
-  }[];
-  managerName: string | null;
-  bio: string | null;
-  mangerStatistic: ManagerStatisticType; // API 응답의 오타 그대로 유지
-  reservationCancel: ReservationCancelType | null;
-  review: ReviewType | null;
+  extraServices: ExtraService[];
+  managerName: string;
+  bio: string;
+  mangerStatistic: ManagerStatistic;
+  reservationCancel: ReservationCancel | null;
+  review: Review | null;
+}
+
+//예약 취소
+export interface ReservationCancel {
+  cancelReason: string;
+  cancelDate: string; // 'YYYY-MM-DDTHH:mm:ss'
+}
+
+// 리뷰
+export interface Review {
+  reviewId: number;
+  content: string;
+  rating: number;
+  reviewDate: string; // ISO 형식
 }
 
 

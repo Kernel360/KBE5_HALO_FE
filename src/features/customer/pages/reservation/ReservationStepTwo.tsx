@@ -1,8 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { formatDateWithDay } from '@/shared/utils/dateUtils';
 import { useLocation, useNavigate, useBlocker } from 'react-router-dom';
-import type { ReservationMatchedRspType, ManagerMatchingRspType } from '@/features/customer/types/CustomerReservationType';
-import type { ReservationConfirmReqType } from '@/features/customer/types/reservation/ReservationConfirmReqType';
+import type { ReservationMatchedRspType, ManagerMatchingRspType, ReservationConfirmReqType } from '@/features/customer/types/CustomerReservationType';
 import { AlertCircle, Check, UserRound } from 'lucide-react';
 import { ReservationStepIndicator } from '@/features/customer/components/ReservationStepIndicator';
 import HalfStar from '@/shared/components/HalfStar'; 
