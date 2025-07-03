@@ -99,7 +99,7 @@ export interface CustomerReservationCancelReqType{
 export interface CustomerReservationListRspType {
     reservationId: number;
     managerName?: string;
-    status: string;
+    reservationStatus: string;
     serviceCategoryId: number;
     serviceName: string;
     requestDate: string;
