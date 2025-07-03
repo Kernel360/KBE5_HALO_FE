@@ -1,5 +1,3 @@
-import React from "react";
-
 interface AdminPaginationProps {
   page: number; // 0-based index
   totalPages: number;
