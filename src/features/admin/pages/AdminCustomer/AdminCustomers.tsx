@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 import { Fragment } from "react/jsx-runtime";
 import api from '@/services/axios';
@@ -6,10 +6,13 @@ import { AdminSearchForm } from "../../components/AdminSearchForm";
 import { AdminPageHeader } from "../../components/AdminPageHeader";
 import { AdminTable } from "../../components/AdminTable";
 import type { AdminTableColumn } from "../../components/AdminTable";
-import { StatusBadge } from "../../components/StatusBadge";
+import AccountStatusBadge from "@/shared/components/ui/AccountStatusBadge";
 import { AdminPagination } from "../../components/AdminPagination";
 import { AdminTabs } from "../../components/AdminTabs";
 import { TableSection } from '../../components/TableSection';
+import Toast from "@/shared/components/ui/toast/Toast";
+import ErrorToast from "@/shared/components/ui/toast/ErrorToast";
+import SuccessToast from "@/shared/components/ui/toast/SuccessToast";
 
 type Customer = {
   id: string;
@@ -35,51 +38,43 @@ export const AdminCustomers = () => {
   const [phoneKeyword, setPhoneKeyword] = useState('');
   const [emailKeyword, setEmailKeyword] = useState('');
   const [page, setPage] = useState(0);
-  const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
+  const [sortOrder, setSortOrder] = useState<'desc' | 'asc' | null>('desc');
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [totalPages, setTotalPages] = useState(1);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [editCustomer, setEditCustomer] = useState<Customer | null>(null);
   const [showDetail, setShowDetail] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
-  const [statusFilter, setStatusFilter] = useState("ALL");
+  const [statusFilter, setStatusFilter] = useState<string[]>(['활성']);
+  const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
+  const statusDropdownRef = useRef<HTMLDivElement>(null);
+  const [loading, setLoading] = useState(false);
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const [errorToastMsg, setErrorToastMsg] = useState<string | null>(null);
+  const [successToastMsg, setSuccessToastMsg] = useState<string | null>(null);
 
   // Spring API에서 고객 목록 불러오기
   useEffect(() => {
     const fetchCustomers = async () => {
+      setLoading(true);
       try {
         const res = await api.get('/admin/customers', {
           params: {
-            tab: activeTab,
             name: nameKeyword,
             phone: phoneKeyword,
             email: emailKeyword,
-            page: page + 1,
+            page,
             size: 10,
-            sort: sortOrder,
+            sort: sortOrder || undefined,
           },
         });
-        const mapped = (res.data.items || []).map((item: any) => ({
-          id: item.customerId,
-          name: item.userName,
-          phone: item.phone,
-          email: item.email,
-          status: item.accountStatus === 'REPORTED' ? '신고됨' : '활성',
-          count: item.count,
-          gender: item.gender,
-          birthDate: item.birthDate,
-          roadAddress: item.roadAddress,
-          detailAddress: item.detailAddress,
-          latitude: item.latitude,
-          longitude: item.longitude,
-          point: item.point,
-          createdAt: item.createdAt,
-          updatedAt: item.updatedAt,
-        }));
-        setCustomers(mapped);
+        setCustomers(res.data.content || []);
         setTotalPages(res.data.totalPages || 1);
       } catch (e: any) {
-        console.error('고객 목록을 불러오지 못했습니다.', e);
+        const backendMsg = e?.response?.data?.message;
+        setErrorToastMsg(backendMsg || '고객 목록을 불러오지 못했습니다.');
+      } finally {
+        setLoading(false);
       }
     };
     fetchCustomers();
@@ -96,8 +91,6 @@ export const AdminCustomers = () => {
       alert('삭제에 실패했습니다.');
     }
   };
-
-  const reportedCount = customers.filter(c => c.status === '신고됨').length;
 
   // 상세 조회
   const handleDetail = async (id: string) => {
@@ -188,28 +181,48 @@ export const AdminCustomers = () => {
     {
       key: "status",
       header: (
-        <div className="flex items-center justify-center gap-2">
-          <span>상태</span>
-          <select
-            className="text-xs border rounded px-1 py-0.5"
-            value={statusFilter}
-            onChange={e => setStatusFilter(e.target.value)}
+        <div className="relative select-none">
+          <div
+            className={`flex items-center justify-center gap-1 cursor-pointer text-sm font-semibold ${statusFilter.length > 0 ? 'text-indigo-600' : 'text-gray-700'}`}
+            onClick={() => setStatusDropdownOpen(open => !open)}
           >
-            <option value="ALL">전체</option>
-            <option value="ACTIVE">활성</option>
-            <option value="REPORTED">신고</option>
-          </select>
+            상태
+            <span className="ml-1 text-xs">▼</span>
+          </div>
+          {statusDropdownOpen && (
+            <div ref={statusDropdownRef} className="absolute z-10 bg-white border rounded shadow-md mt-2 left-1/2 -translate-x-1/2 min-w-[100px] p-2">
+              {[{ value: "활성", label: "활성" }, { value: "비활성", label: "비활성" }].map(opt => (
+                <label key={opt.value} className="flex items-center gap-2 py-1 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={statusFilter.includes(opt.value)}
+                    onChange={() => {
+                      setStatusFilter(prev =>
+                        prev.includes(opt.value)
+                          ? prev.filter(v => v !== opt.value)
+                          : [...prev, opt.value]
+                      );
+                    }}
+                  />
+                  <span>{opt.label}</span>
+                </label>
+              ))}
+            </div>
+          )}
         </div>
       ),
       className: "w-[15%] text-center",
-      render: (row) => <StatusBadge status={row.status === '신고됨' ? 'REPORTED' : 'ACTIVE'} />,
+      render: (row) => <AccountStatusBadge status={row.status === '활성' ? 'ACTIVE' : row.status === '비활성' ? 'SUSPENDED' : row.status} />,
     },
     {
       key: "count",
       header: (
-        <div className="flex justify-center items-center cursor-pointer select-none" onClick={() => setSortOrder(o => o === 'desc' ? 'asc' : 'desc')}>
+        <div className="flex items-center justify-center gap-1 cursor-pointer select-none" onClick={() => setSortOrder(o => o === 'desc' ? 'asc' : o === 'asc' ? null : 'desc')}>
           예약 건수
-          <span className="ml-1">{sortOrder === 'desc' ? '▼' : '▲'}</span>
+          <span className="text-xs flex flex-col ml-1">
+            <span style={{ color: sortOrder === 'desc' ? '#6366f1' : '#cbd5e1', fontWeight: sortOrder === 'desc' ? 'bold' : 'normal', lineHeight: '0.9' }}>▲</span>
+            <span style={{ color: sortOrder === 'asc' ? '#6366f1' : '#cbd5e1', fontWeight: sortOrder === 'asc' ? 'bold' : 'normal', lineHeight: '0.9' }}>▼</span>
+          </span>
         </div>
       ),
       className: "w-[10%] text-center",
@@ -235,15 +248,28 @@ export const AdminCustomers = () => {
   ];
 
   const filteredCustomers =
-    statusFilter === "ALL"
-      ? customers
-      : customers.filter(c =>
-          (statusFilter === "REPORTED" && c.status === "신고됨") ||
-          (statusFilter === "ACTIVE" && c.status !== "신고됨")
-        );
+    customers.filter(c => statusFilter.length === 0 || statusFilter.includes(c.status));
+
+  // 상태 드롭다운 외부 클릭 시 닫힘 처리
+  useEffect(() => {
+    if (!statusDropdownOpen) return;
+    const handleClick = (e: MouseEvent) => {
+      if (
+        statusDropdownRef.current &&
+        !statusDropdownRef.current.contains(e.target as Node)
+      ) {
+        setStatusDropdownOpen(false);
+      }
+    };
+    document.addEventListener("click", handleClick, true);
+    return () => document.removeEventListener("click", handleClick, true);
+  }, [statusDropdownOpen]);
 
   return (
     <Fragment>
+      <SuccessToast open={!!successToastMsg} message={successToastMsg || ""} onClose={() => setSuccessToastMsg(null)} />
+      <ErrorToast open={!!errorToastMsg} message={errorToastMsg || ""} onClose={() => setErrorToastMsg(null)} />
+      <Toast open={!!toastMsg} message={toastMsg || ""} onClose={() => setToastMsg(null)} />
       <div className="w-full self-stretch inline-flex flex-col justify-start items-start">
         <AdminPageHeader title="고객 정보 관리" />
         <div className="self-stretch flex-1 p-6 flex flex-col justify-start items-start gap-6">
@@ -283,18 +309,64 @@ export const AdminCustomers = () => {
 
           {/* 목록 테이블 + 페이지네이션을 하나의 영역(Card)으로 묶음 */}
           <TableSection title="고객 정보" total={filteredCustomers.length}>
-            <AdminTable
-              columns={columns}
-              data={filteredCustomers}
-              rowKey={row => row.id}
-              emptyMessage={"조회된 고객이 없습니다."}
-            />
-            <div className="w-full flex justify-center py-4">
-              <AdminPagination
-                page={page}
-                totalPages={totalPages}
-                onChange={setPage}
+            {/* 데스크탑: 테이블 */}
+            <div className="hidden md:block">
+              <AdminTable
+                loading={loading}
+                columns={columns}
+                data={filteredCustomers}
+                rowKey={row => row.id}
+                emptyMessage={"조회된 고객이 없습니다."}
               />
+              <div className="w-full flex justify-center py-4">
+                <AdminPagination
+                  page={page}
+                  totalPages={totalPages}
+                  onChange={setPage}
+                />
+              </div>
+            </div>
+            {/* 모바일: 카드형 리스트 */}
+            <div className="block md:hidden">
+              {filteredCustomers.length === 0 ? (
+                <div className="text-center text-gray-400 py-8">조회된 고객이 없습니다.</div>
+              ) : (
+                <div className="flex flex-col gap-3">
+                  {filteredCustomers.map(row => (
+                    <div
+                      key={row.id}
+                      className="border rounded-lg p-4 bg-white shadow-sm flex flex-col gap-2 cursor-pointer"
+                      // onClick 등 필요시 추가
+                    >
+                      <div className="flex justify-between items-center">
+                        <div className="font-semibold text-base text-gray-900">{row.name}</div>
+                        <AccountStatusBadge status={row.status === '활성' ? 'ACTIVE' : row.status === '비활성' ? 'SUSPENDED' : row.status} />
+                      </div>
+                      <div className="text-sm text-gray-700 break-all">연락처: {row.phone}</div>
+                      <div className="text-sm text-gray-700 break-all">이메일: {row.email}</div>
+                      <div className="text-sm text-gray-700 break-all">예약 건수: {row.count}</div>
+                      <div className="flex gap-2 mt-2">
+                        <button className="px-2 py-1 rounded border border-indigo-600 text-indigo-600 text-xs font-medium hover:bg-indigo-50 cursor-pointer" onClick={() => handleDetail(row.id)}>
+                          상세
+                        </button>
+                        <button className="px-2 py-1 rounded border border-yellow-500 text-yellow-500 text-xs font-medium hover:bg-yellow-50 cursor-pointer" onClick={() => handleEdit(row.id)}>
+                          수정
+                        </button>
+                        <button className="px-2 py-1 rounded border border-red-500 text-red-500 text-xs font-medium hover:bg-red-50 cursor-pointer" onClick={() => handleDelete(row.id)}>
+                          삭제
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <div className="w-full flex justify-center py-4">
+                <AdminPagination
+                  page={page}
+                  totalPages={totalPages}
+                  onChange={setPage}
+                />
+              </div>
             </div>
           </TableSection>
         </div>
