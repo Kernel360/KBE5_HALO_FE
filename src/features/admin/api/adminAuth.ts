@@ -1,5 +1,6 @@
 import api from '@/services/axios';
 import type { createAdminSignup } from '../types/AdminAuthType';
+import qs from 'qs';
 
 // 관리자 로그인
 export const loginAdmin = async (phone: string, password: string) => {
@@ -47,14 +48,18 @@ export const fetchAdminAccounts = async (params?: {
   name?: string;
   phone?: string;
   email?: string;
-  status?: string;
+  status?: string | string[];
   page?: number;
   size?: number;
 }) => {
   const cleanedParams = Object.fromEntries(
     Object.entries(params || {}).filter(([, value]) => value !== undefined && value !== "")
   );
-  const res = await api.get('/admin/auth', { params: cleanedParams });
+  const res = await api.get('/admin/auth', {
+    params: cleanedParams,
+    paramsSerializer: params => qs.stringify(params, { arrayFormat: 'repeat' })
+  });
+  console.log(res.data.body);
   if (!res.data.success) throw new Error(res.data.message || '관리자 계정 목록 조회에 실패했습니다.');
   return res.data.body;
 };
