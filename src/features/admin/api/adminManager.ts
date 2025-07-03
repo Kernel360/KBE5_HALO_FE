@@ -20,7 +20,6 @@ export const fetchAdminManagers = async (params?: {
     params: cleanedParams,
     paramsSerializer: params => qs.stringify(params, { arrayFormat: 'repeat' }),
   });
-  console.log(res.data.body);
   if (!res.data.success) throw new Error(res.data.message || '매니저 목록 조회에 실패했습니다.');
   return res.data.body;
 };
@@ -28,7 +27,6 @@ export const fetchAdminManagers = async (params?: {
 // 단일 매니저 상세 조회
 export const fetchAdminManagerById = async (managerId: string | number) => {
   const res = await api.get(`/admin/managers/${managerId}`);
-  console.log(res.data.body);
   if (!res.data.success) throw new Error(res.data.message || '매니저 상세 조회에 실패했습니다.');
   return res.data.body;
 };
