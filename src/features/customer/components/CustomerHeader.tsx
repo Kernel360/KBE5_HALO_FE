@@ -49,7 +49,7 @@ export const CustomerHeader = () => {
             </NavLink>            
           ))}
         </div>
-       
+      
         {/* 우측 메뉴 */}
         {isLoggedIn ? (
           <div className="inline-flex justify-end items-center gap-4">

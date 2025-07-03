@@ -9,8 +9,6 @@ export const CustomerLayout = () => {
   // 사이드바를 보여주고 싶은 경로 배열
   const showSidebar = pathname.startsWith("/my");
 
-  // 프로필 보여주고 싶은 경로
-
   return (
     <Fragment>
       <div className="w-full min-h-screen bg-white inline-flex flex-col">
