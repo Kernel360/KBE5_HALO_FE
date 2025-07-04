@@ -8,7 +8,7 @@ import { formatPhoneNumber } from '@/shared/utils/format';
 import AddressSearch from '@/shared/components/AddressSearch';
 import { useAddressStore } from '@/store/useAddressStore';
 import { ReservationStepIndicator } from '@/features/customer/components/ReservationStepIndicator';
-import { MapPin, Phone, Sparkles, StickyNote, CalendarClock } from 'lucide-react';
+import { MapPin, Phone, Sparkles, StickyNote, CalendarClock, Edit } from 'lucide-react';
 
 export const ReservationStepOne: React.FC = () => {
   const navigate = useNavigate();
@@ -66,6 +66,10 @@ export const ReservationStepOne: React.FC = () => {
         setForm(prev => ({
           ...prev,
           phone: customer.phone ?? '',
+          roadAddress: customer.roadAddress ?? '',
+          detailAddress: customer.detailAddress ?? '',
+          latitude: customer.latitude ?? 0,
+          longitude: customer.longitude ?? 0,
         }));
         setAddress(
           customer.roadAddress ?? '',
@@ -170,12 +174,11 @@ export const ReservationStepOne: React.FC = () => {
         });
 
       } else {
-        console.error('reservationId not found in response');
-        alert('예약 생성은 완료되었지만 예약 ID를 찾을 수 없습니다.');
+        alert('예약 요청 중 오류가 발생했습니다.');
       }
-    } catch (e) {
-      alert('예약 요청 중 오류가 발생했습니다.');
-      console.error(e);
+    } catch (e: any) {
+      const errorMessage = e?.response?.data?.message || '예약 요청 중 오류가 발생했습니다.';
+      alert(errorMessage);
     }
   };
 
@@ -207,7 +210,7 @@ export const ReservationStepOne: React.FC = () => {
           <div className="bg-white p-6 rounded-xl border border-gray-200 flex flex-col gap-5">
             <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
               <MapPin size={18} className="text-indigo-600" />
-              서비스 주소
+              서비스 주소<Edit size={16} className="text-gray-400 ml-1" />
             </h2>
             <AddressSearch
               roadAddress={roadAddress}
@@ -221,7 +224,7 @@ export const ReservationStepOne: React.FC = () => {
           <div className="bg-white p-6 rounded-xl border border-gray-200 flex flex-col gap-5">
             <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
               <Phone size={18} className="text-indigo-600" />
-              연락처
+              연락처 <Edit size={16} className="text-gray-400 ml-1" /> 
             </h2>
             <input
               id="phone"

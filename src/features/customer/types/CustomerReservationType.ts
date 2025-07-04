@@ -43,25 +43,28 @@ export interface ServiceCategoryTreeType {
   // 예약 확정 응답 타입
   export interface ReservationConfirmRspType {
     reservationId: number;
-    managerName: string;
-    reservationStatus: string;
-    serviceName: string;
+    serviceCategoryId: number;
     requestDate: string;
     startTime: string;
     turnaround: number;
     roadAddress: string;
     detailAddress: string;
+    managerName: string;
+    serviceName: string;
+
+    reservationStatus: string;
+
     extraServices : ServiceCategoryTreeType
     price: number;
 }
   
   // 예약 확정 요청 타입
 export interface ReservationConfirmReqType {
-    selectedManagerId: number;
     payReqDTO: {
       paymentMethod: "POINT",
       amount: number;
     }
+    selectedManagerId: number;
   }
 
 // 예약 매칭 응답 타입
@@ -91,7 +94,6 @@ export interface PreCancelReqType {
 
 // 예약 확정 후 취소 요청 타입
 export interface CustomerReservationCancelReqType{
-    reservationId: number;
     cancelReason: string;
 }
 

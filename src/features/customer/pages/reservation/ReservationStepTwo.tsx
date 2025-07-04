@@ -318,7 +318,9 @@ const ReservationStepTwo: React.FC<Props> = () => {
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">메인 서비스</span>
                   <span className="text-gray-900 font-medium">
-                    {reservationData.requestCategory?.serviceName || '-'} {reservationData.requestCategory?.serviceTime}시간 {reservationData.requestCategory?.price?.toLocaleString() || 0}원
+                    {reservationData.requestCategory?.serviceName || '-'}{' '}
+                    <span className="text-gray-500">{reservationData.requestCategory.serviceTime}시간 </span>
+                    {reservationData.requestCategory?.price?.toLocaleString() || 0}원
                   </span>
                 </div>
                 {/* 추가 서비스 (데이터가 있을 경우에만 렌더링) */}
@@ -327,7 +329,6 @@ const ReservationStepTwo: React.FC<Props> = () => {
                     {/* "추가 서비스" 라벨은 한 번만 표시 */}
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-500">추가 서비스</span>
-                      {/* 이 줄의 오른쪽은 비워둡니다. */}
                       <span></span>
                     </div>
                     {/* 각 추가 서비스 내역은 새로운 줄에 표시, 왼쪽 라벨 없음 */}
@@ -336,7 +337,11 @@ const ReservationStepTwo: React.FC<Props> = () => {
                         {/* 왼쪽에는 아무것도 표시하지 않습니다 */}
                         <span></span>
                         <span className="text-gray-900 font-medium">
-                          {childService.serviceName || '-'} {childService.serviceTime}시간 {childService.price?.toLocaleString() || 0}원
+                          {childService.serviceName || '-'}{' '}
+                          {childService.serviceTime!=0 && (
+                            <span className="text-gray-500">{childService.serviceTime}시간 </span>
+                          )}
+                          {childService.price?.toLocaleString() || 0}원
                         </span>
                       </div>
                     ))}

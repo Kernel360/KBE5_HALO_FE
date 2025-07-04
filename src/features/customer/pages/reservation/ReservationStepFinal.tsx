@@ -65,10 +65,8 @@ const ReservationStepFinal: React.FC = () => {
   }
 
   return (
-    <div className="w-full px-16 py-10 flex flex-col items-center">
-      <div className="self-stretch text-center text-gray-900 text-3xl font-bold leading-loose">서비스 예약</div>
-
-      <div className="max-w-[800px] w-full flex flex-col items-center gap-8 bg-white p-8 rounded-xl ">
+    <div className="w-full px-16 flex flex-col items-center">
+      <div className="max-w-[800px] w-full flex flex-col items-center gap-3 bg-white p-8 rounded-xl ">
       <CheckCircleIcon colorClass="text-indigo-400" /> 
         <h2 className="text-2xl font-bold text-gray-900 text-center mb-2">예약이 완료되었습니다</h2>
         <p className="text-base text-gray-600 text-center mb-6">
@@ -115,9 +113,16 @@ const ReservationStepFinal: React.FC = () => {
             <div className="flex flex-col items-center justify-center p-4 bg-gray-50 rounded-lg shadow-sm">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">담당 매니저</h3>
               <div className="w-20 h-20 bg-gray-100 rounded-full flex justify-center items-center mb-2">
-              <div className="w-28 h-28 rounded-[60px] flex flex-col justify-center items-center">
-                    <UserRound className="w-10 h-10 text-gray-400" />
-                  </div>              </div>
+                {(finalReservationData as any).profileImagePath ? (
+                  <img 
+                    src={(finalReservationData as any).profileImagePath} 
+                    alt="매니저 프로필"
+                    className="w-20 h-20 rounded-full object-cover"
+                  />
+                ) : (
+                  <UserRound className="w-10 h-10 text-gray-400" />
+                )}
+              </div>
               <div className="text-gray-900 text-base font-semibold">{finalReservationData.managerName} 매니저</div>
             </div>
           </div>
@@ -134,37 +139,55 @@ const ReservationStepFinal: React.FC = () => {
             <span />
             </div>
               <div className="flex justify-between text-sm pl-4">
-                <span className="text-gray-500">{finalReservationData.serviceName} </span>
-                <span className="text-gray-900 font-medium">{finalReservationData.extraServices?.serviceTime}시간 {finalReservationData.extraServices?.price.toLocaleString()}원</span>
+                <span className="text-gray-500">
+                  {finalReservationData.serviceName}
+                  <span className="text-gray-500"> {finalReservationData.turnaround}시간</span>
+                </span>
+                <span className="text-gray-900 font-medium">
+                  {finalReservationData.price.toLocaleString()}원
+                </span>
               </div>
 
             {/* 추가 서비스 */}
-            {finalReservationData.extraServices?.children?.length > 0 && (
+            {(finalReservationData as any).extraServiceList?.length > 0 && (
               <>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600 font-semibold">추가 서비스</span>
                   <span />
                 </div>
-                {finalReservationData.extraServices.children.map((child, index) => (
+                {(finalReservationData as any).extraServiceList.map((service: any, index: number) => (
                   <div key={index} className="flex justify-between text-sm pl-4">
-                    <span className="text-gray-500">{child.serviceName}</span>
+                    <span className="text-gray-500">
+                      {service.extraServiceName}
+                      {service.extraServiceTime > 0 && (
+                        <span className="text-gray-500"> {service.extraServiceTime}시간</span>
+                      )}
+                    </span>
                     <span className="text-gray-900 font-medium">
-                      {child.serviceTime}시간 {child.price?.toLocaleString()}원
+                      {service.extraServicePrice?.toLocaleString()}원
                     </span>
                   </div>
                 ))}
               </>
             )}
 
-  {/* 총 결제 금액 */}
-  <div className="border-t border-gray-200 my-3" />
-  <div className="flex justify-between text-base font-semibold">
-    <span className="text-gray-900">총 결제 금액</span>
-    <span className="text-indigo-600 text-lg font-bold">
-      {finalReservationData.price?.toLocaleString() || 0}원
-    </span>
-  </div>
-</div>
+
+        {/* 총 결제 금액 */}
+        <div className="border-t border-gray-200 my-3" />
+          <div className="flex justify-between text-base font-semibold">
+            <span className="text-gray-900">총 결제 금액</span>
+            <span className="text-indigo-600 text-lg font-bold">
+              {finalReservationData.price?.toLocaleString() || 0}원
+            </span>
+          </div>
+          {/* 결제 방법 */}
+          <div className="flex justify-between text-sm">
+            <span className="text-gray-500">결제 수단</span>
+            <span className="text-gray-900 font-medium">
+              {(finalReservationData as any).paymentMethod === 'POINT' ? '포인트' : (finalReservationData as any).paymentMethod || '-'}
+            </span>
+          </div>
+      </div>
 
 
           <div className="border-t border-gray-200 mt-4 pt-4" />
