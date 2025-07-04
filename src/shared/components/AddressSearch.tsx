@@ -77,9 +77,10 @@ const AddressSearch = ({
         <input
           ref={inputRef}
           type="text"
-          defaultValue={roadAddress}
+          value={roadAddress}
           placeholder="도로명주소"
           className="w-full bg-transparent text-slate-700 text-sm font-normal outline-none"
+          onChange={(e) => setRoadAddress(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === 'Enter') {
               e.preventDefault(); // Enter로 submit 막기
@@ -94,7 +95,7 @@ const AddressSearch = ({
         <input
           type="text"
           placeholder="상세주소"
-          defaultValue={detailAddress}
+          value={detailAddress}
           onChange={(e) => {
             setDetailAddress(e.target.value);
           }}
