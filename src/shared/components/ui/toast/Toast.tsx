@@ -7,7 +7,12 @@ interface ToastProps {
   duration?: number;
 }
 
-const Toast: React.FC<ToastProps> = ({ open, message, onClose, duration = 2500 }) => {
+const Toast: React.FC<ToastProps> = ({
+  open,
+  message,
+  onClose,
+  duration = 2500,
+}) => {
   const [progress, setProgress] = React.useState(100);
 
   React.useEffect(() => {
@@ -33,10 +38,13 @@ const Toast: React.FC<ToastProps> = ({ open, message, onClose, duration = 2500 }
     <div className="fixed z-[9999] top-8 right-8 flex flex-col items-end space-y-2">
       <div className="bg-gray-900 text-white px-6 py-3 rounded-xl shadow-lg text-base font-semibold mb-2 animate-fade-in-up min-w-[200px] text-center relative overflow-hidden">
         {message}
-        <div className="absolute left-0 bottom-0 h-1 bg-blue-400 transition-all" style={{ width: `${progress}%` }} />
+        <div
+          className="absolute left-0 bottom-0 h-1 bg-blue-400 transition-all"
+          style={{ width: `${progress}%` }}
+        />
       </div>
     </div>
   );
 };
 
-export default Toast; 
+export default Toast;

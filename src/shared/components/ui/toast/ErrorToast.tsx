@@ -7,7 +7,12 @@ interface ErrorToastProps {
   duration?: number;
 }
 
-const ErrorToast: React.FC<ErrorToastProps> = ({ open, message, onClose, duration = 3000 }) => {
+const ErrorToast: React.FC<ErrorToastProps> = ({
+  open,
+  message,
+  onClose,
+  duration = 3000,
+}) => {
   const [progress, setProgress] = React.useState(100);
 
   React.useEffect(() => {
@@ -34,10 +39,13 @@ const ErrorToast: React.FC<ErrorToastProps> = ({ open, message, onClose, duratio
       <div className="bg-red-600 text-white px-6 py-3 rounded-xl shadow-lg text-base font-semibold mb-2 animate-fade-in-up min-w-[220px] text-center flex items-center justify-center gap-2 relative overflow-hidden">
         <span className="text-xl mr-1">⚠️</span>
         <span>{message}</span>
-        <div className="absolute left-0 bottom-0 h-1 bg-red-300 transition-all" style={{ width: `${progress}%` }} />
+        <div
+          className="absolute left-0 bottom-0 h-1 bg-red-300 transition-all"
+          style={{ width: `${progress}%` }}
+        />
       </div>
     </div>
   );
 };
 
-export default ErrorToast; 
+export default ErrorToast;

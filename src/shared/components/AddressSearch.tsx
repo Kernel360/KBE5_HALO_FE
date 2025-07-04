@@ -1,6 +1,7 @@
-import { useEffect, useRef } from 'react';
-import { useLoadScript } from '@react-google-maps/api';
-import { useAddressStore } from '@/store/useAddressStore';
+import { useEffect, useRef } from "react";
+import { useLoadScript } from "@react-google-maps/api";
+import { useAddressStore } from "@/store/useAddressStore";
+import Loading from "@/shared/components/ui/Loading";
 
 interface AddressSearchProps {
   roadAddress: string;
@@ -10,33 +11,35 @@ interface AddressSearchProps {
   setDetailAddress: (val: string) => void;
 }
 
-const GOOGLE_MAP_LIBRARIES = ['places'] as ["places"];
+const GOOGLE_MAP_LIBRARIES = ["places"] as ["places"];
 
 const AddressSearch = ({
-    roadAddress,
-    detailAddress,
-    errors,
-    setRoadAddress,
-    setDetailAddress,
-  }: AddressSearchProps) => {
-    const inputRef = useRef<HTMLInputElement>(null);
-    const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
-    const { setAddress } = useAddressStore();
-    const { isLoaded } = useLoadScript({
-      googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
-      libraries: GOOGLE_MAP_LIBRARIES,
-    });
+  roadAddress,
+  detailAddress,
+  errors,
+  setRoadAddress,
+  setDetailAddress,
+}: AddressSearchProps) => {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
+  const { setAddress } = useAddressStore();
+  const { isLoaded } = useLoadScript({
+    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
+    libraries: GOOGLE_MAP_LIBRARIES,
+  });
 
   // 도로명주소 자동완성 초기화
   useEffect(() => {
     if (isLoaded && inputRef.current && !autocompleteRef.current) {
-      autocompleteRef.current = new window.google.maps.places.Autocomplete(inputRef.current);
+      autocompleteRef.current = new window.google.maps.places.Autocomplete(
+        inputRef.current,
+      );
 
-      autocompleteRef.current.addListener('place_changed', () => {
+      autocompleteRef.current.addListener("place_changed", () => {
         const place = autocompleteRef.current!.getPlace();
 
         if (!place.geometry || !place.formatted_address) {
-          alert('자동완성 목록에서 주소를 선택해주세요.');
+          alert("자동완성 목록에서 주소를 선택해주세요.");
           return;
         }
 
@@ -59,7 +62,9 @@ const AddressSearch = ({
 
   return isLoaded ? (
     <div className="self-stretch flex flex-col justify-start items-start gap-2">
-      <div className="self-stretch justify-start text-slate-700 text-sm font-medium font-['Inter'] leading-none">주소 *</div>
+      <div className="self-stretch justify-start text-slate-700 text-sm font-medium font-['Inter'] leading-none">
+        주소 *
+      </div>
 
       {/* 도로명주소 자동완성 입력창 */}
       <div className="self-stretch h-12 px-4 bg-slate-50 rounded-lg outline outline-1 outline-offset-[-1px] outline-slate-200 inline-flex justify-start items-center">
@@ -70,7 +75,7 @@ const AddressSearch = ({
           placeholder="도로명주소"
           className="w-full bg-transparent text-slate-700 text-sm font-normal outline-none"
           onKeyDown={(e) => {
-            if (e.key === 'Enter') {
+            if (e.key === "Enter") {
               e.preventDefault(); // Enter로 submit 막기
               e.stopPropagation();
             }
@@ -96,9 +101,11 @@ const AddressSearch = ({
       )}
     </div>
   ) : (
-    <div className="w-full h-screen flex justify-center items-center">
-      <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-indigo-500"></div>
-    </div>
+    <Loading
+      message="주소 검색 기능을 로딩 중..."
+      size="lg"
+      className="h-screen"
+    />
   );
 };
 

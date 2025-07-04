@@ -10,12 +10,19 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
   ({ children, className = "", variant = "default", ...rest }, ref) => {
     let variantClass = "";
     if (variant === "login") {
-      variantClass = "bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden";
+      variantClass =
+        "bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden";
     }
     return (
-      <div ref={ref} className={variantClass + (className ? ` ${className}` : "")} {...rest}>{children}</div>
+      <div
+        ref={ref}
+        className={variantClass + (className ? ` ${className}` : "")}
+        {...rest}
+      >
+        {children}
+      </div>
     );
-  }
+  },
 );
 
-export default Card; 
+export default Card;

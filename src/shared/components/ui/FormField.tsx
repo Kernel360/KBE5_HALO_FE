@@ -1,8 +1,9 @@
-import { Input } from './Input';
-import { Label } from './Label';
-import React from 'react';
+import { Input } from "./Input";
+import { Label } from "./Label";
+import React from "react";
 
-export interface FormFieldProps extends React.InputHTMLAttributes<HTMLInputElement> {
+export interface FormFieldProps
+  extends React.InputHTMLAttributes<HTMLInputElement> {
   label: string;
   error?: string;
   required?: boolean;
@@ -14,9 +15,9 @@ export const FormField = ({
   label,
   error,
   required,
-  containerClassName = '',
-  labelClassName = '',
-  className = '',
+  containerClassName = "",
+  labelClassName = "",
+  className = "",
   ...inputProps
 }: FormFieldProps) => (
   <div className={`mb-4 ${containerClassName}`}>
@@ -27,11 +28,12 @@ export const FormField = ({
       className={
         `appearance-none focus:outline-none invalid:shadow-none invalid:outline-none ` +
         `w-full h-11 px-4 rounded-md border bg-gray-50 text-gray-900 text-sm transition ` +
-        (inputProps.disabled ? 'bg-gray-100 text-gray-300 cursor-not-allowed ' : '') +
+        (inputProps.disabled
+          ? "bg-gray-100 text-gray-300 cursor-not-allowed "
+          : "") +
         (error
-          ? 'border-red-400 focus:border-red-500 ring-1 ring-red-100'
-          : 'border-gray-200 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-200'
-        ) +
+          ? "border-red-400 focus:border-red-500 ring-1 ring-red-100"
+          : "border-gray-200 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-200") +
         ` ${className}`
       }
       {...inputProps}
@@ -47,4 +49,4 @@ export const FormField = ({
   </div>
 );
 
-export default FormField; 
+export default FormField;

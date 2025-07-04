@@ -7,7 +7,12 @@ interface SuccessToastProps {
   duration?: number;
 }
 
-const SuccessToast: React.FC<SuccessToastProps> = ({ open, message, onClose, duration = 2500 }) => {
+const SuccessToast: React.FC<SuccessToastProps> = ({
+  open,
+  message,
+  onClose,
+  duration = 2500,
+}) => {
   const [progress, setProgress] = React.useState(100);
 
   React.useEffect(() => {
@@ -32,12 +37,17 @@ const SuccessToast: React.FC<SuccessToastProps> = ({ open, message, onClose, dur
   return (
     <div className="fixed z-[9999] top-8 right-8 flex flex-col items-end space-y-2">
       <div className="bg-green-600 border border-green-700 text-white px-6 py-3 rounded-xl shadow-lg text-base font-semibold animate-fade-in-up min-w-[220px] text-center flex items-center gap-2 relative overflow-hidden">
-        <span className="material-symbols-outlined text-green-200 text-2xl">check_circle</span>
+        <span className="material-symbols-outlined text-green-200 text-2xl">
+          check_circle
+        </span>
         {message}
-        <div className="absolute left-0 bottom-0 h-1 bg-green-300 transition-all" style={{ width: `${progress}%` }} />
+        <div
+          className="absolute left-0 bottom-0 h-1 bg-green-300 transition-all"
+          style={{ width: `${progress}%` }}
+        />
       </div>
     </div>
   );
 };
 
-export default SuccessToast; 
+export default SuccessToast;

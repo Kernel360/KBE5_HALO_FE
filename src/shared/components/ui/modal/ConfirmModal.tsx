@@ -1,5 +1,5 @@
-import React from 'react';
-import Modal from './Modal';
+import React from "react";
+import Modal from "./Modal";
 
 interface ConfirmModalProps {
   open: boolean;
@@ -15,12 +15,14 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
   message,
   onConfirm,
   onCancel,
-  confirmLabel = '확인',
-  cancelLabel = '취소',
+  confirmLabel = "확인",
+  cancelLabel = "취소",
 }) => {
   return (
     <Modal open={open} onClose={onCancel}>
-      <div className="text-gray-800 text-base mb-6 text-center whitespace-pre-line">{message}</div>
+      <div className="text-gray-800 text-base mb-6 text-center whitespace-pre-line">
+        {message}
+      </div>
       <div className="flex justify-center gap-4 w-full">
         <button
           className="px-6 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
@@ -39,4 +41,4 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
   );
 };
 
-export default ConfirmModal; 
+export default ConfirmModal;

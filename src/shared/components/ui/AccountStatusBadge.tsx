@@ -11,11 +11,21 @@ const accountStatusMap: Record<string, { label: string; color: string }> = {
   // 필요시 추가
 };
 
-const AccountStatusBadge = ({ status, className = "" }: AccountStatusBadgeProps) => {
-  const { label, color } = accountStatusMap[status] || { label: status, color: "bg-gray-100 text-gray-500" };
+const AccountStatusBadge = ({
+  status,
+  className = "",
+}: AccountStatusBadgeProps) => {
+  const { label, color } = accountStatusMap[status] || {
+    label: status,
+    color: "bg-gray-100 text-gray-500",
+  };
   return (
-    <div className={`px-2 py-0.5 rounded-xl text-xs font-medium inline-block ${color} ${className}`}>{label}</div>
+    <div
+      className={`px-2 py-0.5 rounded-xl text-xs font-medium inline-block ${color} ${className}`}
+    >
+      {label}
+    </div>
   );
 };
 
-export default AccountStatusBadge; 
+export default AccountStatusBadge;
