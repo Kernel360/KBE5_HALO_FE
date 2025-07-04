@@ -1,13 +1,31 @@
-import { useEffect, useState, useMemo } from "react";
-import { useParams } from "react-router-dom";
-import { fetchAdminManagerById, approveManager, rejectManager, approveTerminateManager } from "@/features/admin/api/adminManager";
+import { useEffect, useState, useMemo, useRef } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import {
+  fetchAdminManagerById,
+  approveManager,
+  rejectManager,
+  approveTerminateManager,
+} from "@/features/admin/api/adminManager";
 import type { AdminManagerDetail as AdminManagerDetailType } from "@/features/admin/types/AdminManagerType";
+import { AlertModal } from "@/shared/components/ui/modal";
+import ManagerDetailInfo from "@/features/admin/components/ManagerDetailInfo";
+import ManagerContractInfo from "@/features/admin/components/ManagerContractInfo";
+import ManagerProfileSummaryCard from "@/features/admin/components/ManagerProfileSummaryCard";
+import ManagerActivityChartCard from "@/features/admin/components/ManagerActivityChartCard";
+import ManagerTimelineCard from "@/features/admin/components/ManagerTimelineCard";
+import ManagerRecentItemsCard from "@/features/admin/components/ManagerRecentItemsCard";
+import ManagerAdminMemoCard from "@/features/admin/components/ManagerAdminMemoCard";
+import Card from "@/shared/components/ui/Card";
+import Loading from "@/shared/components/ui/Loading";
 
 export const AdminManagerDetail = () => {
   const { managerId } = useParams<{ managerId: string }>();
   const [manager, setManager] = useState<AdminManagerDetailType | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [adminMemo, setAdminMemo] = useState("");
+  const navigate = useNavigate();
+  const memoRef = useRef<HTMLTextAreaElement>(null);
 
   const weekDays = [
     { label: "월요일", key: "MONDAY" },
@@ -17,6 +35,28 @@ export const AdminManagerDetail = () => {
     { label: "금요일", key: "FRIDAY" },
     { label: "토요일", key: "SATURDAY" },
     { label: "일요일", key: "SUNDAY" },
+  ];
+
+  // 예시: 월별 활동 데이터 (실제 데이터 연동 전)
+  const activityData = [
+    { month: "2월", count: 3 },
+    { month: "3월", count: 5 },
+    { month: "4월", count: 2 },
+    { month: "5월", count: 7 },
+    { month: "6월", count: 4 },
+  ];
+
+  // 예시: 타임라인 데이터
+  const timeline = [
+    { date: "2024-06-01", event: "계약 승인" },
+    { date: "2024-05-20", event: "가입" },
+  ];
+
+  // 예시: 최근 문의/리뷰
+  const recentItems = [
+    { type: "문의", content: "서비스 일정 변경 문의", date: "2024-06-02" },
+    { type: "리뷰", content: "매우 친절하고 꼼꼼해요!", date: "2024-05-30" },
+    { type: "문의", content: "결제 관련 문의", date: "2024-05-28" },
   ];
 
   const groupedTimes = useMemo(() => {
@@ -39,9 +79,10 @@ export const AdminManagerDetail = () => {
       try {
         const res = await fetchAdminManagerById(managerId!);
         setManager(res || null);
-        if (!res) setError('매니저 정보를 찾을 수 없습니다.');
+        if (!res) setError("매니저 정보를 찾을 수 없습니다.");
       } catch (err: any) {
-        setError(err.message || '매니저 정보 조회 실패');
+        const backendMsg = err?.response?.data?.message;
+        setError(backendMsg || "매니저 정보 조회 실패");
       } finally {
         setLoading(false);
       }
@@ -49,8 +90,24 @@ export const AdminManagerDetail = () => {
     fetchData();
   }, [managerId]);
 
-  if (loading) return <div className="p-8">로딩 중...</div>;
-  if (error) return <div className="p-8 text-red-500">{error}</div>;
+  if (loading)
+    return (
+      <Loading
+        message="매니저 정보를 불러오는 중..."
+        size="lg"
+        className="h-screen"
+      />
+    );
+  if (error) {
+    return (
+      <AlertModal
+        open={true}
+        message={error}
+        onClose={() => navigate("/admin/managers")}
+        confirmLabel="목록으로"
+      />
+    );
+  }
   if (!manager) return null;
 
   // 승인/거절 핸들러
@@ -58,20 +115,20 @@ export const AdminManagerDetail = () => {
     if (!manager) return;
     try {
       await approveManager(manager.managerId);
-      alert('승인되었습니다.');
+      alert("승인되었습니다.");
       window.location.reload();
     } catch (err: any) {
-      alert(err.message || '승인 실패');
+      alert(err.message || "승인 실패");
     }
   };
   const handleReject = async () => {
     if (!manager) return;
     try {
       await rejectManager(manager.managerId);
-      alert('거절되었습니다.');
+      alert("거절되었습니다.");
       window.location.reload();
     } catch (err: any) {
-      alert(err.message || '거절 실패');
+      alert(err.message || "거절 실패");
     }
   };
   // 계약해지대기 승인 핸들러
@@ -79,221 +136,68 @@ export const AdminManagerDetail = () => {
     if (!manager) return;
     try {
       await approveTerminateManager(manager.managerId);
-      alert('계약해지 승인되었습니다.');
+      alert("계약해지 승인되었습니다.");
       window.location.reload();
     } catch (err: any) {
-      alert(err.message || '계약해지 승인 실패');
+      alert(err.message || "계약해지 승인 실패");
     }
   };
+
+  // KPI 카드용 데이터
+  const kpiList = [
+    { label: "누적 서비스", value: manager.reservationCount ?? "-" },
+    {
+      label: "평균 평점",
+      value:
+        manager.averageRating != null
+          ? Number(manager.averageRating).toFixed(1)
+          : "-",
+    },
+    { label: "리뷰 수", value: manager.reviewCount ?? "-" },
+    { label: "계약 상태", value: manager.status },
+  ];
 
   return (
     <div className="w-full flex flex-col">
       <div className="w-full h-16 px-6 bg-white border-b border-gray-200 flex justify-between items-center">
         <div className="text-gray-900 text-xl font-bold">매니저 상세 정보</div>
       </div>
-      <div className="w-full flex-1 p-6 flex flex-col gap-6 max-w-4xl mx-auto px-4">
-        <div className="w-full p-8 bg-white rounded-xl shadow flex gap-8">
-          <div className="flex-1 flex flex-col gap-6 pl-15">
-            <div className="flex flex-col gap-4">
-              <div className="text-slate-800 text-2xl font-bold">{manager.userName}</div>
-              <div className="text-slate-500 text-base">{manager.bio}</div>
-              <div className="text-slate-700 text-base font-medium">
-                계약 상태: {(() => {
-                  let label = '';
-                  let color = '';
-                  switch (manager.status) {
-                    case 'ACTIVE':
-                      label = '활성';
-                      color = 'bg-emerald-50 text-emerald-500';
-                      break;
-                    case 'PENDING':
-                      label = '승인대기';
-                      color = 'bg-yellow-50 text-yellow-600';
-                      break;
-                    case 'TERMINATION_PENDING':
-                      label = '계약해지대기';
-                      color = 'bg-yellow-50 text-yellow-600';
-                      break;
-                    case 'SUSPENDED':
-                      label = '정지';
-                      color = 'bg-red-50 text-red-500';
-                      break;
-                    case 'DELETED':
-                      label = '탈퇴';
-                      color = 'bg-red-50 text-red-500';
-                      break;
-                    case 'REJECTED':
-                      label = '승인거절';
-                      color = 'bg-red-50 text-red-500';
-                      break;
-                    case 'TERMINATED':
-                      label = '계약해지';
-                      color = 'bg-red-50 text-red-500';
-                      break;
-                    default:
-                      label = manager.status;
-                      color = 'bg-gray-100 text-gray-500';
-                  }
-                  return (
-                    <div className={`px-2 py-0.5 rounded-xl text-xs font-medium inline-block ${color}`}>{label}</div>
-                  );
-                })()}
-              </div>
-              <div className="text-slate-700 text-base font-medium">평점: {manager.averageRating != null ? Number(manager.averageRating).toFixed(1) : '-'}</div>
-            </div>
-            <div className="flex flex-col gap-2">
-              <div className="inline-flex justify-start items-center gap-2">
-                <div className="w-28 text-slate-500 text-sm font-medium">이메일</div>
-                <div className="flex-1 text-slate-700 text-sm font-medium">{manager.email}</div>
-              </div>
-              <div className="inline-flex justify-start items-center gap-2">
-                <div className="w-28 text-slate-500 text-sm font-medium">연락처</div>
-                <div className="flex-1 text-slate-700 text-sm font-medium">{manager.phone}</div>
-              </div>
-              <div className="inline-flex justify-start items-center gap-2">
-                <div className="w-28 text-slate-500 text-sm font-medium">생년월일</div>
-                <div className="flex-1 text-slate-700 text-sm font-medium">{manager.birthDate}</div>
-              </div>
-              <div className="inline-flex justify-start items-center gap-2">
-                <div className="w-28 text-slate-500 text-sm font-medium">성별</div>
-                <div className="flex-1 text-slate-700 text-sm font-medium">{manager.gender === 'MALE' ? '남' : manager.gender === 'FEMALE' ? '여' : '-'}</div>
-              </div>
-            </div>
-          </div>
-          <div className="w-40 h-40 bg-slate-100 rounded-full flex justify-center items-center">
-            <div className="text-slate-400 text-5xl font-bold">{manager.userName?.[0] || '?'}</div>
-          </div>
+      <div className="w-full flex-1 p-8 flex flex-col gap-8 max-w-7xl mx-auto">
+        {/* 상단 2단 그리드 */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <ManagerProfileSummaryCard
+            userName={manager.userName}
+            bio={manager.bio}
+            kpiList={kpiList}
+          />
+          <ManagerActivityChartCard activityData={activityData} />
         </div>
-        <div className="w-full p-8 bg-white rounded-xl shadow flex flex-col gap-6">
-          <div className="text-slate-800 text-lg font-semibold">상세 정보</div>
-          <div className="flex flex-col gap-2">
-            <div className="text-slate-500 text-base font-medium">주소</div>
-            <div className="p-4 bg-slate-50 rounded-lg flex flex-col gap-1">
-              <div className="text-slate-700 text-sm font-medium">주소: {manager.roadAddress}</div>
-              <div className="text-slate-700 text-sm font-medium">상세주소: {manager.detailAddress}</div>
-            </div>
-          </div>
-          <div className="flex flex-col gap-2">
-            <div className="text-slate-500 text-base font-medium">업무 가능 지역</div>
-            <div className="p-4 bg-slate-50 rounded-lg flex flex-col">
-              <div className="text-slate-700 text-sm font-medium">서울시 강남구, 서초구, 송파구</div>
-            </div>
-          </div>
-          <div className="flex flex-col gap-2">
-            <div className="text-slate-500 text-base font-medium">업무 가능 시간</div>
-            <div className="p-4 bg-slate-50 rounded-lg flex flex-col gap-2">
-              {weekDays.map(({ label, key }) => {
-                const times = groupedTimes[key];
-                const displayText = times?.length ? times.join(', ') : '휴무';
-                return (
-                  <div key={key} className="inline-flex justify-start items-center">
-                    <div className="w-28 text-slate-700 text-sm font-medium">{label}</div>
-                    <div className="flex-1 text-slate-700 text-sm font-medium">{displayText}</div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-          <div className="flex flex-col gap-3">
-            <div className="text-slate-500 text-base font-medium">첨부파일</div>
-            <div className="h-11 relative bg-gray-50 rounded-md outline outline-1 outline-offset-[-1px] outline-gray-200 flex items-center pl-4 gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M7 7V3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v4m-8 0h8m-8 0v14a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V7m-8 0h8" />
-              </svg>
-              <div className="text-gray-900 text-sm font-normal">{manager.fileId ?? '-'}</div>
-            </div>
-          </div>
+        {/* 중단 2단 그리드 */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <ManagerTimelineCard timeline={timeline} />
+          <ManagerRecentItemsCard recentItems={recentItems} />
         </div>
-        <div className="w-full p-8 bg-white rounded-xl shadow flex flex-col gap-4">
-          <div className="text-slate-800 text-lg font-semibold">계약 정보</div>
-          <div className="inline-flex justify-start items-center gap-2">
-            <div className="w-40 text-slate-500 text-sm font-medium">계약 시작일</div>
-            <div className="flex-1 text-slate-700 text-sm font-medium">{manager.contractAt || '-'}</div>
-          </div>
-          <div className="inline-flex justify-start items-center gap-2">
-            <div className="w-40 text-slate-500 text-sm font-medium">계약 상태</div>
-            <div className="h-7 px-3 flex justify-center items-center">
-            {(() => {
-                  let label = '';
-                  let color = '';
-                  switch (manager.status) {
-                    case 'ACTIVE':
-                      label = '활성';
-                      color = 'bg-emerald-50 text-emerald-500';
-                      break;
-                    case 'PENDING':
-                      label = '승인대기';
-                      color = 'bg-yellow-50 text-yellow-600';
-                      break;
-                    case 'TERMINATION_PENDING':
-                      label = '계약해지대기';
-                      color = 'bg-yellow-50 text-yellow-600';
-                      break;
-                    case 'SUSPENDED':
-                      label = '정지';
-                      color = 'bg-red-50 text-red-500';
-                      break;
-                    case 'DELETED':
-                      label = '탈퇴';
-                      color = 'bg-red-50 text-red-500';
-                      break;
-                    case 'REJECTED':
-                      label = '승인거절';
-                      color = 'bg-red-50 text-red-500';
-                      break;
-                    case 'TERMINATED':
-                      label = '계약해지';
-                      color = 'bg-red-50 text-red-500';
-                      break;
-                    default:
-                      label = manager.status;
-                      color = 'bg-gray-100 text-gray-500';
-                  }
-                  return (
-                    <div className={`px-2 py-0.5 rounded-xl text-xs font-medium inline-block ${color}`}>{label}</div>
-                  );
-              })()}
-            </div>
-          </div>
-          {manager.status === 'TERMINATED' && manager.terminatedAt && manager.terminationReason && (
-            <>
-              <div className="inline-flex justify-start items-center gap-2">
-                <div className="w-40 text-slate-500 text-sm font-medium">계약 해지일</div>
-                <div className="flex-1 text-slate-700 text-sm font-medium">{manager.terminatedAt}</div>
-              </div>
-              <div className="inline-flex justify-start items-center gap-2">
-                <div className="w-40 text-slate-500 text-sm font-medium">계약 해지 사유</div>
-                <div className="flex-1 text-slate-700 text-sm font-medium">{manager.terminationReason}</div>
-              </div>
-            </>
-          )}
-          {manager.status === 'PENDING' && (
-            <div className="flex gap-2 mt-4 justify-end">
-              <button
-                className="px-4 py-2 border border-indigo-600 text-indigo-600 rounded bg-white hover:bg-indigo-600 hover:text-white transition-colors"
-                onClick={handleApprove}
-              >
-                승인
-              </button>
-              <button
-                className="px-4 py-2 border border-red-500 text-red-500 rounded bg-white hover:bg-red-500 hover:text-white transition-colors"
-                onClick={handleReject}
-              >
-                거절
-              </button>
-            </div>
-          )}
-          {manager.status === 'TERMINATION_PENDING' && (
-            <div className="flex gap-2 mt-4 justify-end">
-              <button
-                className="px-4 py-2 border border-indigo-600 text-indigo-600 rounded bg-white hover:bg-indigo-600 hover:text-white transition-colors"
-                onClick={handleTerminateApprove}
-              >
-                계약해지 승인
-              </button>
-            </div>
-          )}
-        </div>
+        {/* 하단 단일(세로) */}
+        <ManagerAdminMemoCard
+          adminMemo={adminMemo}
+          setAdminMemo={setAdminMemo}
+          memoRef={memoRef}
+        />
+        <Card className="w-full">
+          <ManagerDetailInfo
+            manager={manager}
+            weekDays={weekDays}
+            groupedTimes={groupedTimes}
+          />
+        </Card>
+        <Card className="w-full">
+          <ManagerContractInfo
+            manager={manager}
+            onApprove={handleApprove}
+            onReject={handleReject}
+            onTerminateApprove={handleTerminateApprove}
+          />
+        </Card>
       </div>
     </div>
   );

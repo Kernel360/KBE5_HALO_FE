@@ -1,237 +1,378 @@
-import { Fragment, useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import { fetchAdminAccounts, deleteAdminAccount } from "@/features/admin/api/adminAuth";
+import { Fragment, useState, useEffect, useRef } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import {
+  fetchAdminAccounts,
+  deleteAdminAccount,
+} from "@/features/admin/api/adminAuth";
+import { TableSection } from "../../components/TableSection";
+import { AdminTable } from "../../components/AdminTable";
+import { AdminPagination } from "../../components/AdminPagination";
+import Toast from "@/shared/components/ui/toast/Toast";
+import Card from "@/shared/components/ui/Card";
+import CardContent from "@/shared/components/ui/CardContent";
+import Button from "@/shared/components/ui/Button";
+import AdminSearchForm from "../../components/AdminSearchForm";
+import AccountStatusBadge from "@/shared/components/ui/AccountStatusBadge";
+import { ConfirmModal } from "@/shared/components/ui/modal";
+import { useUserStore } from "@/store/useUserStore";
+import ErrorToast from "@/shared/components/ui/toast/ErrorToast";
+import SuccessToast from "@/shared/components/ui/toast/SuccessToast";
 
 export const AdminAccounts = () => {
-  const [nameKeyword, setNameKeyword] = useState('');
-  const [phoneKeyword, setPhoneKeyword] = useState('');
-  const [emailKeyword, setEmailKeyword] = useState('');
-  const [statusKeyword, setStatusKeyword] = useState('');
+  // 검색 조건을 하나의 키워드와 타입으로 관리
+  const [searchType, setSearchType] = useState("name");
+  const [searchKeyword, setSearchKeyword] = useState("");
+  const [statusKeyword, setStatusKeyword] = useState<string[]>(["활성"]);
   const [page, setPage] = useState(0);
   const [adminData, setAdminData] = useState<any[]>([]);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const [errorToastMsg, setErrorToastMsg] = useState<string | null>(null);
+  const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
+  const statusDropdownRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [targetAdminId, setTargetAdminId] = useState<string | number | null>(
+    null,
+  );
+  const [targetAdminName, setTargetAdminName] = useState<string>("");
+  const myPhone = useUserStore((state) => state.email);
+  const [successToastMsg, setSuccessToastMsg] = useState<string | null>(null);
 
-  const fetchData = async (params?: { name?: string; phone?: string; email?: string; status?: string; page?: number }) => {
+  const STATUS_OPTIONS = [
+    { value: "활성", label: "활성" },
+    { value: "비활성", label: "비활성" },
+  ];
+
+  // 검색 조건을 fetch에 맞게 변환
+  const getSearchParams = () => {
+    return {
+      name: searchType === "name" ? searchKeyword : "",
+      phone: searchType === "phone" ? searchKeyword : "",
+      email: searchType === "email" ? searchKeyword : "",
+      status: statusKeyword,
+      page,
+    };
+  };
+
+  const fetchData = async (
+    paramsOverride?: Partial<ReturnType<typeof getSearchParams>>,
+  ) => {
     setLoading(true);
-    setError(null);
     try {
+      const params = { ...getSearchParams(), ...paramsOverride };
       const res = await fetchAdminAccounts({
-        name: params?.name,
-        phone: params?.phone,
-        email: params?.email,
-        status: params?.status,
-        page: params?.page ?? 0,
+        ...params,
         size: 10,
       });
       setAdminData(res.content || []);
       setTotalPages(res.totalPages || 1);
     } catch (err: any) {
-      setError(err.message || '관리자 계정 목록 조회 실패');
+      const backendMsg = err?.response?.data?.message;
+      setErrorToastMsg(backendMsg || "관리자 계정 목록 조회 실패");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchData({ name: nameKeyword, phone: phoneKeyword, email: emailKeyword, status: statusKeyword, page });
+    fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page]);
+  }, [page, statusKeyword]);
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
+  // AdminSearchForm에서 검색
+  const handleSearch = (values: Record<string, string>) => {
+    const { type = "", keyword = "" } = values;
+    setSearchType(type);
+    setSearchKeyword(keyword);
     setPage(0);
-    fetchData({ name: nameKeyword, phone: phoneKeyword, email: emailKeyword, status: statusKeyword, page: 0 });
+    fetchData({
+      name: type === "name" ? keyword : "",
+      phone: type === "phone" ? keyword : "",
+      email: type === "email" ? keyword : "",
+      page: 0,
+    });
   };
 
-  const handleReset = () => {
-    setNameKeyword('');
-    setPhoneKeyword('');
-    setEmailKeyword('');
-    setStatusKeyword('');
+  // 상태 체크박스 핸들러 (다중 선택)
+  const handleStatusCheckbox = (value: string) => {
+    setStatusKeyword((prev) =>
+      prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value],
+    );
     setPage(0);
-    fetchData({ name: '', phone: '', email: '', status: '', page: 0 });
   };
 
-  // 삭제 핸들러
-  const handleDelete = async (adminId: string | number) => {
-    if (!window.confirm("정말로 삭제하시겠습니까?")) return;
+  // 삭제 핸들러 (ConfirmModal 연동)
+  const handleDeleteClick = (adminId: string | number) => {
+    const admin = adminData.find((a) => a.adminId === adminId);
+    setTargetAdminId(adminId);
+    setTargetAdminName(admin?.userName || "");
+    setConfirmOpen(true);
+  };
+  const handleConfirmDelete = async () => {
+    if (!targetAdminId) return;
     try {
-      await deleteAdminAccount(adminId);
-      alert("삭제되었습니다.");
-      // 삭제 후 목록 새로고침
-      fetchData({ name: nameKeyword, phone: phoneKeyword, email: emailKeyword, status: statusKeyword, page });
+      await deleteAdminAccount(targetAdminId);
+      setSuccessToastMsg("삭제되었습니다.");
+      setConfirmOpen(false);
+      setTargetAdminId(null);
+      setTargetAdminName("");
+      fetchData();
     } catch (err: any) {
-      alert(err.message || "삭제 실패");
+      const backendMsg = err?.response?.data?.message;
+      setErrorToastMsg(backendMsg || "삭제 실패");
+      setConfirmOpen(false);
+      setTargetAdminId(null);
+      setTargetAdminName("");
     }
   };
+  const handleCancelDelete = () => {
+    setConfirmOpen(false);
+    setTargetAdminId(null);
+    setTargetAdminName("");
+  };
+
+  // columns 정의 (handleDelete 접근 가능)
+  const columns = [
+    {
+      key: "name",
+      header: "이름",
+      render: (row: any) => <span>{row.userName}</span>,
+    },
+    {
+      key: "email",
+      header: "이메일",
+      render: (row: any) => <span>{row.email}</span>,
+    },
+    {
+      key: "phone",
+      header: "연락처",
+      render: (row: any) => <span>{row.phone}</span>,
+    },
+    {
+      key: "status",
+      header: (
+        <div className="relative select-none">
+          <div
+            className={`flex items-center justify-center gap-1 cursor-pointer text-sm font-semibold ${statusKeyword.length > 0 ? "text-indigo-600" : "text-gray-700"}`}
+            onClick={() => setStatusDropdownOpen((open) => !open)}
+          >
+            상태
+            <span className="ml-1 text-xs">▼</span>
+          </div>
+          {statusDropdownOpen && (
+            <div
+              ref={statusDropdownRef}
+              className="absolute z-10 bg-white border rounded shadow-md mt-2 left-1/2 -translate-x-1/2 min-w-[100px] p-2"
+            >
+              {STATUS_OPTIONS.map((opt) => (
+                <label
+                  key={opt.value}
+                  className="flex items-center gap-2 py-1 cursor-pointer"
+                >
+                  <input
+                    type="checkbox"
+                    checked={statusKeyword.includes(opt.value)}
+                    onChange={() => handleStatusCheckbox(opt.value)}
+                  />
+                  <span>{opt.label}</span>
+                </label>
+              ))}
+            </div>
+          )}
+        </div>
+      ),
+      render: (row: any) => (
+        <AccountStatusBadge
+          status={
+            row.status === "활성"
+              ? "ACTIVE"
+              : row.status === "비활성"
+                ? "SUSPENDED"
+                : row.status
+          }
+        />
+      ),
+    },
+    {
+      key: "action",
+      header: "삭제",
+      render: (row: any) => (
+        <Button
+          className="h-8 px-5 bg-red-500 text-white rounded-xl hover:bg-red-600 text-sm font-semibold disabled:bg-gray-300 disabled:text-gray-400 disabled:cursor-not-allowed shadow"
+          disabled={row.phone === myPhone}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (row.phone === myPhone) {
+              setErrorToastMsg("본인 계정은 삭제할 수 없습니다.");
+              return;
+            }
+            handleDeleteClick(row.adminId);
+          }}
+        >
+          삭제
+        </Button>
+      ),
+    },
+  ];
 
   return (
     <Fragment>
+      <ConfirmModal
+        open={confirmOpen}
+        message={`관리자: ${targetAdminName}을 삭제하시겠습니까?`}
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCancelDelete}
+        confirmLabel="삭제"
+        cancelLabel="취소"
+      />
+      <SuccessToast
+        open={!!successToastMsg}
+        message={successToastMsg || ""}
+        onClose={() => setSuccessToastMsg(null)}
+      />
+      <ErrorToast
+        open={!!errorToastMsg}
+        message={errorToastMsg || ""}
+        onClose={() => setErrorToastMsg(null)}
+      />
+      <Toast
+        open={!!toastMsg}
+        message={toastMsg || ""}
+        onClose={() => setToastMsg(null)}
+      />
       <div className="w-full self-stretch flex flex-col">
         <div className="h-16 px-6 bg-white border-b border-gray-200 flex justify-between items-center">
-          <div className="text-gray-900 text-xl font-bold">관리자 계정 관리</div>
-          <Link
-            to="/admin/accounts/new"
-            className="h-10 px-4 bg-indigo-600 rounded-md flex justify-center items-center gap-2 cursor-pointer hover:bg-indigo-700 transition"
-          >
-            <span className="material-symbols-outlined text-white">add</span>
-            <span className="text-white text-sm font-semibold font-['Inter'] leading-none">관리자 계정 추가</span>
+          <div className="text-gray-900 text-xl font-bold">
+            관리자 계정 관리
+          </div>
+          <Link to="/admin/accounts/new">
+            <Button className="h-10 px-4 bg-indigo-600 rounded-md flex justify-center items-center gap-2 hover:bg-indigo-700 transition">
+              <span className="material-symbols-outlined text-white">add</span>
+              <span className="text-white text-sm font-semibold font-['Inter'] leading-none">
+                관리자 계정 추가
+              </span>
+            </Button>
           </Link>
         </div>
-
         <div className="p-6 flex flex-col gap-6">
           {/* 검색 폼 */}
-          <form
-            onSubmit={handleSearch}
-            className="w-full p-6 bg-white rounded-xl shadow flex flex-col gap-4"
-          >
-            <div className="text-slate-800 text-lg font-semibold">검색 조건</div>
-            <div className="flex flex-col gap-2 w-full items-center">
-              <div className="grid grid-cols-2 gap-4 w-full">
-                <div className="flex flex-col gap-2 w-full">
-                  <label className="text-slate-700 text-sm font-medium">이름</label>
-                  <div className="h-12 px-4 bg-slate-50 rounded-lg outline outline-1 outline-slate-200 flex items-center">
-                    <input
-                      type="text"
-                      placeholder="이름 입력"
-                      value={nameKeyword}
-                      onChange={(e) => setNameKeyword(e.target.value)}
-                      className="w-full bg-transparent outline-none text-sm placeholder:text-slate-400"
-                    />
-                  </div>
-                </div>
-                <div className="flex flex-col gap-2 w-full">
-                  <label className="text-slate-700 text-sm font-medium">연락처</label>
-                  <div className="h-12 px-4 bg-slate-50 rounded-lg outline outline-1 outline-slate-200 flex items-center">
-                    <input
-                      type="text"
-                      placeholder="연락처 입력"
-                      value={phoneKeyword}
-                      onChange={(e) => setPhoneKeyword(e.target.value)}
-                      className="w-full bg-transparent outline-none text-sm placeholder:text-slate-400"
-                    />
-                  </div>
-                </div>
-                <div className="flex flex-col gap-2 w-full">
-                  <label className="text-slate-700 text-sm font-medium">이메일</label>
-                  <div className="h-12 px-4 bg-slate-50 rounded-lg outline outline-1 outline-slate-200 flex items-center">
-                    <input
-                      type="text"
-                      placeholder="이메일 입력"
-                      value={emailKeyword}
-                      onChange={(e) => setEmailKeyword(e.target.value)}
-                      className="w-full bg-transparent outline-none text-sm placeholder:text-slate-400"
-                    />
-                  </div>
-                </div>
-                <div className="flex flex-col gap-2 w-full">
-                  <label className="text-slate-700 text-sm font-medium">상태</label>
-                  <div className="h-12 px-4 bg-slate-50 rounded-lg outline outline-1 outline-slate-200 flex items-center">
-                    <select
-                      value={statusKeyword}
-                      onChange={(e) => setStatusKeyword(e.target.value)}
-                      className="w-full bg-transparent outline-none text-sm text-slate-700"
-                    >
-                      <option value="">전체</option>
-                      <option value="활성">활성</option>
-                      <option value="비활성">비활성</option>
-                    </select>
-                  </div>
-                </div>
+          <Card className="w-full">
+            <CardContent className="flex flex-row items-center gap-4 justify-between">
+              <div className="flex-1 min-w-0">
+                <AdminSearchForm
+                  fields={[
+                    {
+                      type: "select",
+                      name: "type",
+                      options: [
+                        { value: "name", label: "이름" },
+                        { value: "phone", label: "연락처" },
+                        { value: "email", label: "이메일" },
+                      ],
+                    },
+                    {
+                      type: "text",
+                      name: "keyword",
+                      placeholder: "검색어 입력",
+                    },
+                  ]}
+                  initialValues={{ type: searchType, keyword: searchKeyword }}
+                  onSearch={handleSearch}
+                />
               </div>
-            </div>
-            <div className="flex justify-end gap-2">
-              <button
-                type="button"
-                className="w-28 h-12 bg-slate-100 rounded-lg text-slate-500 text-sm font-medium hover:bg-slate-200 cursor-pointer"
-                onClick={handleReset}
-              >
-                초기화
-              </button>
-              <button
-                type="submit"
-                className="w-28 h-12 bg-indigo-600 rounded-lg text-white text-sm font-medium hover:bg-indigo-700 cursor-pointer"
-              >
-                검색
-              </button>
-            </div>
-          </form>
-
+            </CardContent>
+          </Card>
           {/* 테이블 */}
-          <div className="w-full bg-white rounded-lg shadow">
-            <div className="w-full px-6 h-12 bg-gray-50 border-b border-gray-200 flex items-center text-sm font-semibold text-gray-700 space-x-4">
-              <div className="w-[10%] flex justify-center">이름</div>
-              <div className="w-[25%] flex justify-center">연락처</div>
-              <div className="w-[25%] flex justify-center">이메일</div>
-              <div className="w-[10%] flex justify-center">상태</div>
-              <div className="w-[15%] flex justify-center">생성일</div>
-              <div className="w-[15%] flex justify-center">관리</div>
-            </div>
-
-            {loading ? (
-              <div className="w-full h-32 flex items-center justify-center text-gray-400">로딩 중...</div>
-            ) : error ? (
-              <div className="w-full h-32 flex items-center justify-center text-red-400">{error}</div>
-            ) : adminData.length === 0 ? (
-              <div className="w-full h-32 flex items-center justify-center text-gray-400">등록된 관리자가 없습니다.</div>
-            ) : (
-              adminData.map((admin, index) => (
-                <div key={admin.adminId || index} className="w-full px-6 h-16 border-b border-gray-200 flex items-center text-sm space-x-4">
-                  <div className="w-[10%] text-gray-900 font-medium flex justify-center">{admin.userName}</div>
-                  <div className="w-[25%] text-gray-500 flex justify-center">{admin.phone}</div>
-                  <div className="w-[25%] text-gray-500 flex justify-center">{admin.email}</div>
-                  <div className="w-[10%] flex justify-center">
-                    <div className={`px-2 py-0.5 rounded-xl text-xs font-medium inline-block ${admin.status === '활성' ? 'bg-emerald-50 text-emerald-500' : 'bg-red-50 text-red-500'}`}>{admin.status}</div>
-                  </div>
-                  <div className="w-[15%] text-gray-500 flex justify-center">{admin.createdAt || admin.date}</div>
-                  <div className="w-[15%] flex justify-center gap-2">
-                    <Link 
-                      key={admin.adminId || index}
-                      to={`/admin/accounts/${admin.adminId || index}/edit`}
-                      state={admin}
-                      className="px-2 py-1 rounded border border-indigo-600 text-indigo-600 text-sm font-medium hover:bg-indigo-50 cursor-pointer">
-                      수정
-                    </Link>
-                    <button
-                      className="px-2 py-1 rounded border border-red-500 text-red-500 text-sm font-medium hover:bg-red-50 cursor-pointer"
-                      onClick={() => handleDelete(admin.adminId)}
-                    >
-                      삭제
-                    </button>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-
-          {/* 페이지네이션 - ManagerInquiries에 있는거 가져다가 쓰기... 묘하게 다르네요... */}
-          <div className="self-stretch flex justify-center gap-1 pt-4">
-            <div
-              className="w-8 h-8 rounded-md flex justify-center items-center cursor-pointer bg-slate-100 text-slate-500"
-              onClick={() => setPage((prev) => Math.max(prev - 1, 0))}
-            >
-              <div className="text-sm font-medium leading-none">이전</div>
-            </div>
-            {Array.from({ length: totalPages }, (_, i) => i).map((p) => (
-              <div
-                key={p}
-                className={`w-8 h-8 rounded-md flex justify-center items-center cursor-pointer ${
-                  page === p ? "bg-indigo-600 text-white" : "bg-slate-100 text-slate-500"
-                }`}
-                onClick={() => setPage(p)}
-              >
-                <div className="text-sm font-medium leading-none">{p + 1}</div>
+          <TableSection title="계정 정보" total={adminData.length}>
+            {/* 데스크탑: 테이블 */}
+            <div className="hidden md:block">
+              <AdminTable
+                loading={loading}
+                columns={columns}
+                data={adminData}
+                rowKey={(row) => row.adminId}
+                emptyMessage={"등록된 관리자가 없습니다."}
+                onRowClick={(row) =>
+                  navigate(`/admin/accounts/${row.adminId}/edit`)
+                }
+              />
+              <div className="w-full flex justify-center py-4">
+                <AdminPagination
+                  page={page}
+                  totalPages={totalPages}
+                  onChange={setPage}
+                />
               </div>
-            ))}
-            <div
-              className="w-8 h-8 rounded-md flex justify-center items-center cursor-pointer bg-slate-100 text-slate-500"
-              onClick={() => setPage((prev) => Math.min(prev + 1, totalPages - 1))}
-            >
-              <div className="text-sm font-medium leading-none">다음</div>
             </div>
-          </div>
+            {/* 모바일: 카드형 리스트 */}
+            <div className="block md:hidden">
+              {adminData.length === 0 ? (
+                <div className="text-center text-gray-400 py-8">
+                  등록된 관리자가 없습니다.
+                </div>
+              ) : (
+                <div className="flex flex-col gap-3">
+                  {adminData.map((row) => (
+                    <div
+                      key={row.adminId}
+                      className="border rounded-lg p-4 bg-white shadow-sm flex flex-col gap-2 cursor-pointer"
+                      onClick={() =>
+                        navigate(`/admin/accounts/${row.adminId}/edit`)
+                      }
+                    >
+                      <div className="flex justify-between items-center">
+                        <div className="font-semibold text-base text-gray-900">
+                          {row.userName}
+                        </div>
+                        <AccountStatusBadge
+                          status={
+                            row.status === "활성"
+                              ? "ACTIVE"
+                              : row.status === "비활성"
+                                ? "SUSPENDED"
+                                : row.status
+                          }
+                        />
+                      </div>
+                      <div className="text-sm text-gray-700 break-all">
+                        이메일: {row.email}
+                      </div>
+                      <div className="text-sm text-gray-700 break-all">
+                        연락처: {row.phone}
+                      </div>
+                      <div className="flex justify-end mt-2">
+                        <Button
+                          className="h-8 px-4 bg-red-500 text-white rounded-xl hover:bg-red-600 text-xs font-semibold disabled:bg-gray-300 disabled:text-gray-400 disabled:cursor-not-allowed shadow"
+                          disabled={row.phone === myPhone}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (row.phone === myPhone) {
+                              setErrorToastMsg(
+                                "본인 계정은 삭제할 수 없습니다.",
+                              );
+                              return;
+                            }
+                            handleDeleteClick(row.adminId);
+                          }}
+                        >
+                          삭제
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <div className="w-full flex justify-center py-4">
+                <AdminPagination
+                  page={page}
+                  totalPages={totalPages}
+                  onChange={setPage}
+                />
+              </div>
+            </div>
+          </TableSection>
         </div>
       </div>
     </Fragment>

@@ -1,381 +1,431 @@
-import { useState, useEffect } from "react";
-
+import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { Fragment } from "react/jsx-runtime";
-import api from '@/services/axios';
-
-type Customer = {
-  id: string;
-  name: string;
-  phone: string;
-  email: string;
-  status: string;
-  count: number;
-  gender: string;
-  birthDate: string;
-  roadAddress: string;
-  detailAddress: string;
-  latitude: number;
-  longitude: number;
-  point: number;
-  createdAt: string;
-  updatedAt: string;
-};
+import { fetchAdminCustomers } from "../../api/adminCustomer";
+import type { AdminCustomer } from "../../types/AdminCustomerType";
+import { AdminSearchForm } from "../../components/AdminSearchForm";
+import { AdminPageHeader } from "../../components/AdminPageHeader";
+import { AdminTable } from "../../components/AdminTable";
+import type { AdminTableColumn } from "../../components/AdminTable";
+import AccountStatusBadge from "@/shared/components/ui/AccountStatusBadge";
+import { AdminPagination } from "../../components/AdminPagination";
+import { AdminTabs } from "../../components/AdminTabs";
+import { TableSection } from "../../components/TableSection";
+import Toast from "@/shared/components/ui/toast/Toast";
+import ErrorToast from "@/shared/components/ui/toast/ErrorToast";
+import SuccessToast from "@/shared/components/ui/toast/SuccessToast";
 
 export const AdminCustomers = () => {
-  const [activeTab, setActiveTab] = useState<'all' | 'active' | 'reported'>('all');
-  const [nameKeyword, setNameKeyword] = useState('');
-  const [phoneKeyword, setPhoneKeyword] = useState('');
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState<"all" | "active" | "reported">(
+    "all",
+  );
+  const [nameKeyword, setNameKeyword] = useState("");
+  const [phoneKeyword, setPhoneKeyword] = useState("");
+  const [emailKeyword, setEmailKeyword] = useState("");
   const [page, setPage] = useState(0);
-  const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
-  const [customers, setCustomers] = useState<Customer[]>([]);
-  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
-  const [editCustomer, setEditCustomer] = useState<Customer | null>(null);
-  const [showDetail, setShowDetail] = useState(false);
-  const [showEdit, setShowEdit] = useState(false);
+  const [sortOrder, setSortOrder] = useState<"desc" | "asc" | null>(null);
+  const [searchTrigger, setSearchTrigger] = useState(0);
+  const [customers, setCustomers] = useState<AdminCustomer[]>([]);
+  const [totalPages, setTotalPages] = useState(1);
+  const [statusFilter, setStatusFilter] = useState<string[]>(["활성"]);
+  const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
+  const statusDropdownRef = useRef<HTMLDivElement>(null);
+  const [loading, setLoading] = useState(false);
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const [errorToastMsg, setErrorToastMsg] = useState<string | null>(null);
+  const [successToastMsg, setSuccessToastMsg] = useState<string | null>(null);
 
   // Spring API에서 고객 목록 불러오기
   useEffect(() => {
     const fetchCustomers = async () => {
+      setLoading(true);
       try {
-        const res = await api.get('/admin/customers', {
+        // 탭에 따른 상태 필터 설정
+        let currentStatusFilter = statusFilter;
+        if (activeTab === "reported") {
+          currentStatusFilter = ["SUSPENDED"];
+        }
 
-          params: {
-            tab: activeTab,
-            name: nameKeyword,
-            phone: phoneKeyword,
-            page: page + 1,
-            size: 10,
-            sort: sortOrder,
-          },
+        const searchParams = {
+          userName: nameKeyword || undefined,
+          phone: phoneKeyword || undefined,
+          email: emailKeyword || undefined,
+          status: currentStatusFilter.length > 0 ? currentStatusFilter : undefined,
+          page,
+          size: 10,
+          sort: sortOrder ? `point,${sortOrder}` : undefined,
+        };
+        console.log("API 호출 파라미터:", searchParams);
+        console.log("현재 검색어 상태:", {
+          nameKeyword,
+          phoneKeyword,
+          emailKeyword,
         });
-        const mapped = (res.data.items || []).map((item: any) => ({
-          id: item.customerId,
-          name: item.userName,
-          phone: item.phone,
-          email: item.email,
-          status: item.accountStatus === 'REPORTED' ? '신고됨' : '활성',
-          count: item.count,
-          gender: item.gender,
-          birthDate: item.birthDate,
-          roadAddress: item.roadAddress,
-          detailAddress: item.detailAddress,
-          latitude: item.latitude,
-          longitude: item.longitude,
-          point: item.point,
-          createdAt: item.createdAt,
-          updatedAt: item.updatedAt,
-        }));
-        setCustomers(mapped);
-      } catch (e: any) {
-        console.error('고객 목록을 불러오지 못했습니다.', e);
 
+        const data = await fetchAdminCustomers(searchParams);
+        console.log("고객 목록 응답 데이터:", data);
+        // API 응답 데이터를 AdminCustomer 타입에 맞게 매핑
+        const mappedCustomers: AdminCustomer[] = (data.content || []).map(
+          (customer) => ({
+            id: customer.customerId,
+            name: customer.userName,
+            phone: customer.phone,
+            email: customer.email,
+            status:
+              customer.accountStatus === "ACTIVE"
+                ? "활성"
+                : customer.accountStatus === "DELETED"
+                  ? "비활성"
+                  : customer.accountStatus === "REPORTED"
+                    ? "신고됨"
+                    : "활성",
+            count: customer.count,
+            gender: customer.gender,
+            birthDate: customer.birthDate,
+            roadAddress: customer.roadAddress,
+            detailAddress: customer.detailAddress,
+            latitude: customer.latitude,
+            longitude: customer.longitude,
+            point: customer.point,
+            createdAt: customer.createdAt,
+            updatedAt: customer.updatedAt,
+          }),
+        );
+        setCustomers(mappedCustomers);
+        setTotalPages(data.totalPages || 1);
+      } catch (error: unknown) {
+        const backendMsg =
+          error && typeof error === "object" && "response" in error
+            ? (
+                error as {
+                  response?: { data?: { message?: string } };
+                  message?: string;
+                }
+              )?.response?.data?.message ||
+              (error as { message?: string })?.message
+            : error && typeof error === "object" && "message" in error
+              ? (error as { message?: string })?.message
+              : null;
+        setErrorToastMsg(backendMsg || "고객 목록을 불러오지 못했습니다.");
+      } finally {
+        setLoading(false);
       }
     };
     fetchCustomers();
-  }, [activeTab, nameKeyword, phoneKeyword, page, sortOrder]);
+  }, [
+    activeTab,
+    nameKeyword,
+    phoneKeyword,
+    emailKeyword,
+    page,
+    sortOrder,
+    statusFilter,
+    searchTrigger,
+  ]);
 
-  // 삭제
-  const handleDelete = async (id: string) => {
-    if (!window.confirm('정말 삭제하시겠습니까?')) return;
-    try {
-      await api.delete(`admin/customers/${id}`);
-
-      setCustomers((prev: any) => prev.filter((c: any) => c.id !== id));
-    } catch (e) {
-      alert('삭제에 실패했습니다.');
-    }
+  // 상세 페이지로 이동
+  const handleRowClick = (customer: AdminCustomer) => {
+    navigate(`/admin/customers/${customer.id}`);
   };
 
-  const reportedCount = customers.filter(c => c.status === '신고됨').length;
+  // 테이블 컬럼 정의
+  const columns: AdminTableColumn<AdminCustomer>[] = [
+    { key: "name", header: "고객명", className: "w-[20%] text-center" },
+    { key: "phone", header: "연락처", className: "w-[25%] text-center" },
+    { key: "email", header: "이메일", className: "w-[25%] text-center" },
+    {
+      key: "status",
+      header: (
+        <div className="relative select-none">
+          <div
+            className={`flex items-center justify-center gap-1 ${
+              activeTab === "reported"
+                ? "cursor-default text-gray-700"
+                : "cursor-pointer " +
+                  (statusFilter.length > 0
+                    ? "text-indigo-600"
+                    : "text-gray-700")
+            } text-sm font-semibold`}
+            onClick={() => {
+              if (activeTab !== "reported") {
+                setStatusDropdownOpen((open) => !open);
+              }
+            }}
+          >
+            상태
+            {activeTab !== "reported" && (
+              <span className="ml-1 text-xs">▼</span>
+            )}
+          </div>
+          {statusDropdownOpen && activeTab !== "reported" && (
+            <div
+              ref={statusDropdownRef}
+              className="absolute z-10 bg-white border rounded shadow-md mt-2 left-1/2 -translate-x-1/2 min-w-[100px] p-2"
+            >
+              {[
+                { value: "활성", label: "활성" },
+                { value: "비활성", label: "비활성" },
+              ].map((opt) => (
+                <label
+                  key={opt.value}
+                  className="flex items-center gap-2 py-1 cursor-pointer"
+                >
+                  <input
+                    type="checkbox"
+                    checked={statusFilter.includes(opt.value)}
+                    onChange={() => {
+                      setStatusFilter((prev) =>
+                        prev.includes(opt.value)
+                          ? prev.filter((v) => v !== opt.value)
+                          : [...prev, opt.value],
+                      );
+                      setPage(0); // 상태 필터 변경 시 첫 페이지로 리셋
+                      setSearchTrigger((prev) => prev + 1); // 검색 실행 트리거
+                    }}
+                  />
+                  <span>{opt.label}</span>
+                </label>
+              ))}
+            </div>
+          )}
+        </div>
+      ),
+      className: "w-[15%] text-center",
+      render: (row) => (
+        <AccountStatusBadge
+          status={
+            row.status === "활성"
+              ? "ACTIVE"
+              : row.status === "비활성"
+                ? "SUSPENDED"
+                : row.status
+          }
+        />
+      ),
+    },
+    {
+      key: "point",
+      header: (
+        <div
+          className="flex items-center justify-center gap-1 cursor-pointer select-none"
+          onClick={() =>
+            setSortOrder((o) =>
+              o === "desc" ? "asc" : o === "asc" ? null : "desc",
+            )
+          }
+        >
+          포인트
+          <span className="text-xs flex flex-col ml-1">
+            <span
+              style={{
+                color: sortOrder === "desc" ? "#6366f1" : "#cbd5e1",
+                fontWeight: sortOrder === "desc" ? "bold" : "normal",
+                lineHeight: "0.9",
+              }}
+            >
+              ▲
+            </span>
+            <span
+              style={{
+                color: sortOrder === "asc" ? "#6366f1" : "#cbd5e1",
+                fontWeight: sortOrder === "asc" ? "bold" : "normal",
+                lineHeight: "0.9",
+              }}
+            >
+              ▼
+            </span>
+          </span>
+        </div>
+      ),
+      className: "w-[15%] text-center",
+    },
+  ];
 
-  // 상세 조회
-  const handleDetail = async (id: string) => {
-    try {
-      const res = await api.get(`/admin/customers/${id}`);
+  // 백엔드에서 이미 필터링된 데이터를 받으므로 추가 필터링 불필요
+  const filteredCustomers = customers;
 
-      setSelectedCustomer({
-        id: res.data.customerId,
-        name: res.data.userName,
-        phone: res.data.phone,
-        email: res.data.email,
-        status: res.data.accountStatus === 'REPORTED' ? '신고됨' : '활성',
-        count: res.data.count,
-        gender: res.data.gender,
-        birthDate: res.data.birthDate,
-        roadAddress: res.data.roadAddress,
-        detailAddress: res.data.detailAddress,
-        latitude: res.data.latitude,
-        longitude: res.data.longitude,
-        point: res.data.point,
-        createdAt: res.data.createdAt,
-        updatedAt: res.data.updatedAt,
-      });
-      setShowDetail(true);
-    } catch (e) {
-      alert('상세 정보를 불러오지 못했습니다.');
-    }
-  };
-
-  // 수정 모드 진입
-  const handleEdit = async (id: string) => {
-    try {
-      const res = await api.get(`/admin/customers/${id}`);
-
-      setEditCustomer({
-        id: res.data.customerId,
-        name: res.data.userName,
-        phone: res.data.phone,
-        email: res.data.email,
-        status: res.data.accountStatus === 'REPORTED' ? '신고됨' : '활성',
-        count: res.data.count,
-        gender: res.data.gender,
-        birthDate: res.data.birthDate,
-        roadAddress: res.data.roadAddress,
-        detailAddress: res.data.detailAddress,
-        latitude: res.data.latitude,
-        longitude: res.data.longitude,
-        point: res.data.point,
-        createdAt: res.data.createdAt,
-        updatedAt: res.data.updatedAt,
-      });
-      setShowEdit(true);
-    } catch (e) {
-      alert('수정 정보를 불러오지 못했습니다.');
-    }
-  };
-
-  // 수정 저장
-  const handleEditSave = async () => {
-    if (!editCustomer) return;
-    try {
-      await api.put(`/admin/customers/${editCustomer.id}`, {
-
-        userName: editCustomer.name,
-        phone: editCustomer.phone,
-        email: editCustomer.email,
-        gender: editCustomer.gender,
-        birthDate: editCustomer.birthDate,
-        roadAddress: editCustomer.roadAddress,
-        detailAddress: editCustomer.detailAddress,
-        latitude: editCustomer.latitude,
-        longitude: editCustomer.longitude,
-        point: editCustomer.point,
-        accountStatus: editCustomer.status === '신고됨' ? 'REPORTED' : 'ACTIVE',
-      });
-      setShowEdit(false);
-      setEditCustomer(null);
-      setPage(0); // 목록 새로고침
-    } catch (e) {
-      alert('수정에 실패했습니다.');
-    }
-  };
+  // 상태 드롭다운 외부 클릭 시 닫힘 처리
+  useEffect(() => {
+    if (!statusDropdownOpen) return;
+    const handleClick = (e: MouseEvent) => {
+      if (
+        statusDropdownRef.current &&
+        !statusDropdownRef.current.contains(e.target as Node)
+      ) {
+        setStatusDropdownOpen(false);
+      }
+    };
+    document.addEventListener("click", handleClick, true);
+    return () => document.removeEventListener("click", handleClick, true);
+  }, [statusDropdownOpen]);
 
   return (
     <Fragment>
+      <SuccessToast
+        open={!!successToastMsg}
+        message={successToastMsg || ""}
+        onClose={() => setSuccessToastMsg(null)}
+      />
+      <ErrorToast
+        open={!!errorToastMsg}
+        message={errorToastMsg || ""}
+        onClose={() => setErrorToastMsg(null)}
+      />
+      <Toast
+        open={!!toastMsg}
+        message={toastMsg || ""}
+        onClose={() => setToastMsg(null)}
+      />
       <div className="w-full self-stretch inline-flex flex-col justify-start items-start">
-        <div className="self-stretch h-16 px-6 bg-white border-b border-gray-200 inline-flex justify-between items-center">
-          <div className="justify-start text-gray-900 text-xl font-bold font-['Inter'] leading-normal">고객 정보 관리</div>
-        </div>
+        <AdminPageHeader title="고객 정보 관리" />
         <div className="self-stretch flex-1 p-6 flex flex-col justify-start items-start gap-6">
-          {/* 통계 카드 */}
-          <div className="self-stretch inline-flex justify-start items-start gap-4">
-            {/* 카드 1: 총 고객 수 */}
-            <div className="flex-1 h-24 p-4 bg-white rounded-lg shadow-[0px_2px_8px_0px_rgba(0,0,0,0.04)] inline-flex flex-col justify-center gap-2">
-              <div className="text-gray-500 text-sm font-medium">총 고객 수</div>
-              <div className="text-gray-900 text-2xl font-bold">{customers.length}</div>
-              <div className="text-emerald-500 text-xs font-medium">▲12% 증가</div>
+          {/* 탭 + 검색 폼: 한 줄에 배치 */}
+          <div className="w-full flex flex-row items-center justify-between mb-2 gap-2">
+            <div className="flex-1 min-w-0">
+              <AdminTabs
+                tabs={[
+                  { key: "all", label: "전체 고객" },
+                  { key: "reported", label: "신고 고객" },
+                ]}
+                activeKey={activeTab}
+                onTabChange={(key) => {
+                  setActiveTab(key as typeof activeTab);
+                  // 탭 변경 시 상태 필터 자동 조정
+                  if (key === "reported") {
+                    setStatusFilter(["SUSPENDED"]);
+                  } else {
+                    setStatusFilter(["활성"]);
+                  }
+                  setPage(0);
+                  setSearchTrigger((prev) => prev + 1);
+                }}
+                className="w-fit min-w-0"
+              />
             </div>
-            {/* 카드 2: 이번주 신규 고객 수 */}
-            <div className="flex-1 h-24 p-4 bg-white rounded-lg shadow-[0px_2px_8px_0px_rgba(0,0,0,0.04)] inline-flex flex-col justify-center gap-2">
-              <div className="text-gray-500 text-sm font-medium">이번주 신규 고객 수</div>
-              <div className="text-emerald-500 text-2xl font-bold">24</div>
-              <div className="text-emerald-500 text-xs font-medium">▲12% 증가</div>
-            </div>
-            {/* 카드 3: 신고된 고객 수 */}
-            <div className="flex-1 h-24 p-4 bg-white rounded-lg shadow-[0px_2px_8px_0px_rgba(0,0,0,0.04)] inline-flex flex-col justify-center gap-2">
-              <div className="text-gray-500 text-sm font-medium">신고된 고객 수</div>
-              <div className="text-red-500 text-2xl font-bold">{reportedCount}</div>
-              <div className="text-red-500 text-xs font-medium">▼</div>
+            <div className="flex-shrink-0">
+              <AdminSearchForm
+                fields={[
+                  {
+                    type: "select",
+                    name: "type",
+                    options: [
+                      { value: "name", label: "이름" },
+                      { value: "phone", label: "연락처" },
+                      { value: "email", label: "이메일" },
+                    ],
+                  },
+                  { type: "text", name: "keyword", placeholder: "검색어 입력" },
+                ]}
+                initialValues={{ type: "name", keyword: "" }}
+                onSearch={({ type, keyword }) => {
+                  console.log("검색 실행:", { type, keyword });
+
+                  // 모든 검색어 초기화
+                  setNameKeyword("");
+                  setPhoneKeyword("");
+                  setEmailKeyword("");
+
+                  // 선택한 타입에 따라 검색어 설정
+                  if (keyword.trim()) {
+                    if (type === "name") {
+                      setNameKeyword(keyword.trim());
+                    } else if (type === "phone") {
+                      setPhoneKeyword(keyword.trim());
+                    } else if (type === "email") {
+                      setEmailKeyword(keyword.trim());
+                    }
+                  }
+
+                  // 탭에 따른 상태 필터 설정
+                  if (activeTab === "reported") {
+                    setStatusFilter(["SUSPENDED"]);
+                  } else {
+                    // 전체 고객 탭일 때는 기본적으로 활성 상태만 보여주거나 현재 필터 유지
+                    if (statusFilter.length === 0) {
+                      setStatusFilter(["활성"]);
+                    }
+                  }
+
+                  setPage(0);
+                  setSearchTrigger((prev) => prev + 1); // 검색 실행 트리거
+                }}
+              />
             </div>
           </div>
 
-          {/* 탭 필터 */}
-          <div className="w-full border-b border-gray-200 mb-2 flex">
-            {[
-              { key: 'all', label: '전체 고객' },
-              { key: 'active', label: '활성된 고객' },
-              { key: 'reported', label: '신고된 고객' },
-            ].map((tab) => (
-              <div
-                key={tab.key}
-                onClick={() => setActiveTab(tab.key as typeof activeTab)}
-                className={`w-40 h-10 px-4 flex justify-center items-center cursor-pointer ${activeTab === tab.key ? 'border-b-2 border-indigo-600' : ''}`}
-              >
-                <span className={`text-sm ${activeTab === tab.key ? 'text-indigo-600 font-semibold' : 'text-gray-500 font-medium'}`}>{tab.label}</span>
-              </div>
-            ))}
-          </div>
-
-          {/* 검색 폼 */}
-          <form
-            onSubmit={(e) => e.preventDefault()}
-            className="w-full p-6 bg-white rounded-xl shadow flex flex-col gap-4"
-          >
-            <div className="text-slate-800 text-lg font-semibold">검색 조건</div>
-            <div className="flex gap-4">
-              <div className="flex-1 flex flex-col gap-2">
-                <label className="text-slate-700 text-sm font-medium">이름</label>
-                <div className="h-12 px-4 bg-slate-50 rounded-lg outline outline-1 outline-slate-200 flex items-center">
-                  <input
-                    type="text"
-                    placeholder="이름 입력"
-                    value={nameKeyword}
-                    onChange={(e) => setNameKeyword(e.target.value)}
-                    className="w-full bg-transparent outline-none text-sm placeholder:text-slate-400"
-                  />
-                </div>
-              </div>
-              <div className="flex-1 flex flex-col gap-2">
-                <label className="text-slate-700 text-sm font-medium">연락처</label>
-                <div className="h-12 px-4 bg-slate-50 rounded-lg outline outline-1 outline-slate-200 flex items-center">
-                  <input
-                    type="text"
-                    placeholder="연락처 입력"
-                    value={phoneKeyword}
-                    onChange={(e) => setPhoneKeyword(e.target.value)}
-                    className="w-full bg-transparent outline-none text-sm placeholder:text-slate-400"
-                  />
-                </div>
+          {/* 목록 테이블 + 페이지네이션을 하나의 영역(Card)으로 묶음 */}
+          <TableSection title="고객 정보" total={filteredCustomers.length}>
+            {/* 데스크탑: 테이블 */}
+            <div className="hidden md:block">
+              <AdminTable
+                loading={loading}
+                columns={columns}
+                data={filteredCustomers}
+                rowKey={(row) => row.id}
+                onRowClick={handleRowClick}
+                emptyMessage={"조회된 고객이 없습니다."}
+              />
+              <div className="w-full flex justify-center py-4">
+                <AdminPagination
+                  page={page}
+                  totalPages={totalPages}
+                  onChange={setPage}
+                />
               </div>
             </div>
-            <div className="flex justify-end gap-2">
-              <button
-                type="button"
-                className="w-28 h-12 bg-slate-100 rounded-lg text-slate-500 text-sm font-medium hover:bg-slate-200 cursor-pointer"
-              >
-                초기화
-              </button>
-              <button
-                type="submit"
-                className="w-28 h-12 bg-indigo-600 rounded-lg text-white text-sm font-medium hover:bg-indigo-700 cursor-pointer"
-              >
-                검색
-              </button>
-            </div>
-          </form>
-
-          {/* 목록 테이블 */}
-          <div className="self-stretch bg-white rounded-lg shadow flex flex-col">
-            <div className="h-12 px-6 bg-gray-50 border-b border-gray-200 flex items-center text-gray-700 text-sm font-semibold space-x-4">
-              <div className="w-[15%] flex justify-center">고객명</div>
-              <div className="w-[20%] flex justify-center">연락처</div>
-              <div className="w-[20%] flex justify-center">이메일</div>
-              <div className="w-[15%] flex justify-center">상태</div>
-              <div className="w-[10%] flex justify-center cursor-pointer select-none" onClick={() => setSortOrder(o => o === 'desc' ? 'asc' : 'desc')}>
-                예약 건수
-                <span className="ml-1">{sortOrder === 'desc' ? '▼' : '▲'}</span>
-              </div>
-              <div className="w-[20%] flex justify-center">관리</div>
-            </div>
-            {customers.map((c: any, idx: number) => (
-              <div key={c.id || idx} className="h-16 px-6 border-b border-gray-200 flex items-center text-sm text-center space-x-4">
-                <div className="w-[15%] flex justify-center items-center text-gray-900 font-medium">{c.name}</div>
-                <div className="w-[20%] flex justify-center items-center text-gray-500">{c.phone}</div>
-                <div className="w-[20%] flex justify-center items-center text-gray-500">{c.email}</div>
-                <div className="w-[15%] flex justify-center items-center">
-                  <div className={`px-2 py-0.5 rounded-xl text-xs font-medium flex justify-center items-center ${c.status === '신고됨' ? 'bg-red-50 text-red-500' : 'bg-emerald-50 text-emerald-500'}`}>{c.status}</div>
+            {/* 모바일: 카드형 리스트 */}
+            <div className="block md:hidden">
+              {filteredCustomers.length === 0 ? (
+                <div className="text-center text-gray-400 py-8">
+                  조회된 고객이 없습니다.
                 </div>
-                <div className="w-[10%] flex justify-center items-center text-gray-900 font-medium">{c.count}</div>
-                <div className="w-[20%] flex justify-center items-center gap-2">
-                  <button className="px-2 py-1 rounded border border-indigo-600 text-indigo-600 text-sm font-medium hover:bg-indigo-50 cursor-pointer" onClick={() => handleDetail(c.id)}>
-                    상세
-                  </button>
-                  <button className="px-2 py-1 rounded border border-yellow-500 text-yellow-500 text-sm font-medium hover:bg-yellow-50 cursor-pointer" onClick={() => handleEdit(c.id)}>
-                    수정
-                  </button>
-                  <button className="px-2 py-1 rounded border border-red-500 text-red-500 text-sm font-medium hover:bg-red-50 cursor-pointer" onClick={() => handleDelete(c.id)}>
-                    삭제
-                  </button>
+              ) : (
+                <div className="flex flex-col gap-3">
+                  {filteredCustomers.map((row) => (
+                    <div
+                      key={row.id}
+                      className="border rounded-lg p-4 bg-white shadow-sm flex flex-col gap-2 cursor-pointer hover:bg-gray-50 transition-colors"
+                      onClick={() => handleRowClick(row)}
+                    >
+                      <div className="flex justify-between items-center">
+                        <div className="font-semibold text-base text-gray-900">
+                          {row.name}
+                        </div>
+                        <AccountStatusBadge
+                          status={
+                            row.status === "활성"
+                              ? "ACTIVE"
+                              : row.status === "비활성"
+                                ? "SUSPENDED"
+                                : row.status
+                          }
+                        />
+                      </div>
+                      <div className="text-sm text-gray-700 break-all">
+                        연락처: {row.phone}
+                      </div>
+                      <div className="text-sm text-gray-700 break-all">
+                        이메일: {row.email}
+                      </div>
+                      <div className="text-sm text-gray-700 break-all">
+                        포인트: {row.point}
+                      </div>
+                    </div>
+                  ))}
                 </div>
+              )}
+              <div className="w-full flex justify-center py-4">
+                <AdminPagination
+                  page={page}
+                  totalPages={totalPages}
+                  onChange={setPage}
+                />
               </div>
-            ))}
-          </div>
-
-          {/* 페이지네이션 - 공지/이벤트, 예약 관리와 동일하게 */}
-          <div className="self-stretch py-4 flex justify-center items-center gap-1">
-            <button
-              className="w-9 h-9 rounded-md flex justify-center items-center bg-white outline outline-1 outline-gray-200 text-gray-500 disabled:opacity-50"
-              onClick={() => setPage((p) => Math.max(0, p - 1))}
-              disabled={page === 0}
-            >
-              &lt;
-            </button>
-            {Array.from({ length: 5 }, (_, i) => (
-              <button
-                key={i}
-                className={`w-9 h-9 rounded-md flex justify-center items-center ${page === i ? "bg-indigo-600 text-white" : "bg-white outline outline-1 outline-gray-200 text-gray-500"}`}
-                onClick={() => setPage(i)}
-              >
-                {i + 1}
-              </button>
-            ))}
-            <button
-              className="w-9 h-9 rounded-md flex justify-center items-center bg-white outline outline-1 outline-gray-200 text-gray-500 disabled:opacity-50"
-              onClick={() => setPage((p) => Math.min(4, p + 1))}
-              disabled={page === 4}
-            >
-              &gt;
-            </button>
-          </div>
+            </div>
+          </TableSection>
         </div>
       </div>
-
-      {showDetail && selectedCustomer && (
-        <div className="fixed inset-0 bg-black/30 flex justify-center items-center z-50">
-          <div className="bg-white p-8 rounded-lg w-[500px]">
-            <div className="text-lg font-bold mb-4">고객 상세 정보</div>
-            <div>이름: {selectedCustomer.name}</div>
-            <div>연락처: {selectedCustomer.phone}</div>
-            <div>이메일: {selectedCustomer.email}</div>
-            <div>성별: {selectedCustomer.gender}</div>
-            <div>생년월일: {selectedCustomer.birthDate}</div>
-            <div>주소: {selectedCustomer.roadAddress} {selectedCustomer.detailAddress}</div>
-            <div>위도/경도: {selectedCustomer.latitude}, {selectedCustomer.longitude}</div>
-            <div>포인트: {selectedCustomer.point}</div>
-            <div>상태: {selectedCustomer.status}</div>
-            <div>등록일: {selectedCustomer.createdAt}</div>
-            <div>수정일: {selectedCustomer.updatedAt}</div>
-            <button className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded" onClick={() => setShowDetail(false)}>닫기</button>
-          </div>
-        </div>
-      )}
-      {showEdit && editCustomer && (
-        <div className="fixed inset-0 bg-black/30 flex justify-center items-center z-50">
-          <div className="bg-white p-8 rounded-lg w-[500px]">
-            <div className="text-lg font-bold mb-4">고객 정보 수정</div>
-            <div className="flex flex-col gap-2">
-              <input className="border p-2 rounded" value={editCustomer.name} onChange={e => setEditCustomer({ ...editCustomer, name: e.target.value })} placeholder="이름" />
-              <input className="border p-2 rounded" value={editCustomer.phone} onChange={e => setEditCustomer({ ...editCustomer, phone: e.target.value })} placeholder="연락처" />
-              <input className="border p-2 rounded" value={editCustomer.email} onChange={e => setEditCustomer({ ...editCustomer, email: e.target.value })} placeholder="이메일" />
-              <input className="border p-2 rounded" value={editCustomer.gender} onChange={e => setEditCustomer({ ...editCustomer, gender: e.target.value })} placeholder="성별" />
-              <input className="border p-2 rounded" value={editCustomer.birthDate} onChange={e => setEditCustomer({ ...editCustomer, birthDate: e.target.value })} placeholder="생년월일" />
-              <input className="border p-2 rounded" value={editCustomer.roadAddress} onChange={e => setEditCustomer({ ...editCustomer, roadAddress: e.target.value })} placeholder="도로명 주소" />
-              <input className="border p-2 rounded" value={editCustomer.detailAddress} onChange={e => setEditCustomer({ ...editCustomer, detailAddress: e.target.value })} placeholder="상세 주소" />
-              <input className="border p-2 rounded" value={editCustomer.latitude} onChange={e => setEditCustomer({ ...editCustomer, latitude: Number(e.target.value) })} placeholder="위도" />
-              <input className="border p-2 rounded" value={editCustomer.longitude} onChange={e => setEditCustomer({ ...editCustomer, longitude: Number(e.target.value) })} placeholder="경도" />
-              <input className="border p-2 rounded" value={editCustomer.point} onChange={e => setEditCustomer({ ...editCustomer, point: Number(e.target.value) })} placeholder="포인트" />
-              <select className="border p-2 rounded" value={editCustomer.status} onChange={e => setEditCustomer({ ...editCustomer, status: e.target.value })}>
-                <option value="활성">활성</option>
-                <option value="신고됨">신고됨</option>
-              </select>
-            </div>
-            <div className="flex gap-2 mt-4">
-              <button className="px-4 py-2 bg-indigo-600 text-white rounded" onClick={handleEditSave}>저장</button>
-              <button className="px-4 py-2 bg-slate-200 text-slate-700 rounded" onClick={() => setShowEdit(false)}>취소</button>
-            </div>
-          </div>
-        </div>
-      )}
     </Fragment>
   );
 };
