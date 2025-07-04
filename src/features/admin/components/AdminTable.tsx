@@ -17,9 +17,19 @@ interface AdminTableProps<T> {
   loading?: boolean;
 }
 
-export function AdminTable<T>({ columns, data, rowKey, onRowClick, emptyMessage = "데이터가 없습니다.", className = "", loading = false }: AdminTableProps<T>) {
+export function AdminTable<T>({
+  columns,
+  data,
+  rowKey,
+  onRowClick,
+  emptyMessage = "데이터가 없습니다.",
+  className = "",
+  loading = false,
+}: AdminTableProps<T>) {
   return (
-    <div className={`w-full bg-white rounded-lg shadow flex flex-col min-h-[50vh] ${className}`}>
+    <div
+      className={`w-full bg-white rounded-lg shadow flex flex-col min-h-[50vh] ${className}`}
+    >
       <style>{`
         .halo-spinner {
           border: 4px solid #e5e7eb;
@@ -38,14 +48,19 @@ export function AdminTable<T>({ columns, data, rowKey, onRowClick, emptyMessage 
         <thead>
           <tr className="h-12 bg-gray-50 border-b border-gray-200 text-sm font-semibold text-gray-700">
             {columns.map((col) => (
-              <th key={col.key} className={col.className || "text-center"}>{col.header}</th>
+              <th key={col.key} className={col.className || "text-center"}>
+                {col.header}
+              </th>
             ))}
           </tr>
         </thead>
         <tbody>
           {loading ? (
             <tr>
-              <td colSpan={columns.length} className="w-full h-[40vh] text-center align-middle p-0">
+              <td
+                colSpan={columns.length}
+                className="w-full h-[40vh] text-center align-middle p-0"
+              >
                 <div className="flex flex-col justify-center items-center h-[40vh] text-indigo-500 text-base">
                   <div className="halo-spinner mb-4" />
                   로딩 중...
@@ -54,7 +69,10 @@ export function AdminTable<T>({ columns, data, rowKey, onRowClick, emptyMessage 
             </tr>
           ) : data.length === 0 ? (
             <tr>
-              <td colSpan={columns.length} className="w-full h-[40vh] text-center align-middle p-0">
+              <td
+                colSpan={columns.length}
+                className="w-full h-[40vh] text-center align-middle p-0"
+              >
                 <div className="flex flex-col justify-center items-center h-[40vh] text-gray-400 text-base">
                   {emptyMessage}
                 </div>
@@ -81,4 +99,4 @@ export function AdminTable<T>({ columns, data, rowKey, onRowClick, emptyMessage 
   );
 }
 
-export default AdminTable; 
+export default AdminTable;

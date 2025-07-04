@@ -8,8 +8,16 @@ interface TableSectionProps {
   className?: string;
 }
 
-export const TableSection = ({ title, total, children, actions, className = "" }: TableSectionProps) => (
-  <section className={`w-full bg-white rounded-xl shadow flex flex-col p-6 ${className}`}>
+export const TableSection = ({
+  title,
+  total,
+  children,
+  actions,
+  className = "",
+}: TableSectionProps) => (
+  <section
+    className={`w-full bg-white rounded-xl shadow flex flex-col p-6 ${className}`}
+  >
     <div className="w-full flex justify-between items-center pb-4">
       <div className="text-slate-800 text-lg font-semibold">{title}</div>
       <div className="text-slate-500 text-sm">총 {total}건</div>
@@ -19,4 +27,4 @@ export const TableSection = ({ title, total, children, actions, className = "" }
   </section>
 );
 
-export default TableSection; 
+export default TableSection;

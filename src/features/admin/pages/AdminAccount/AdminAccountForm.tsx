@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
-import { signupAdmin, updateAdminAccount } from "@/features/admin/api/adminAuth";
+import {
+  signupAdmin,
+  updateAdminAccount,
+} from "@/features/admin/api/adminAuth";
 import type { createAdminSignup } from "@/features/admin/types/AdminAuthType";
 import { Button } from "@/shared/components/ui/Button";
 import { Card } from "@/shared/components/ui/Card";
@@ -40,7 +43,8 @@ export const AdminAccountForm = () => {
 
   const validate = () => {
     const newErrors: { [key: string]: string } = {};
-    if (!isEditMode && !form.userName.trim()) newErrors.userName = "이름을 입력하세요.";
+    if (!isEditMode && !form.userName.trim())
+      newErrors.userName = "이름을 입력하세요.";
     if (!form.email.trim()) {
       newErrors.email = "이메일을 입력하세요.";
     } else {
@@ -50,13 +54,17 @@ export const AdminAccountForm = () => {
         newErrors.email = "유효한 이메일 주소를 입력하세요.";
       }
     }
-    if (!isEditMode && !(form.password ?? "").trim()) newErrors.password = "비밀번호를 입력하세요.";
+    if (!isEditMode && !(form.password ?? "").trim())
+      newErrors.password = "비밀번호를 입력하세요.";
     if (!isEditMode && !form.phone.trim()) {
       newErrors.phone = "전화번호를 입력하세요.";
     } else if (!isEditMode && form.phone) {
       // 전화번호 유효성 검사 (010-1234-5678 또는 01012345678)
       const phoneRegex = /^01[016789]-?\d{3,4}-?\d{4}$/;
-      if (!phoneRegex.test(form.phone.replace(/-/g, "")) && !phoneRegex.test(form.phone)) {
+      if (
+        !phoneRegex.test(form.phone.replace(/-/g, "")) &&
+        !phoneRegex.test(form.phone)
+      ) {
         newErrors.phone = "유효한 전화번호를 입력하세요. (예: 010-1234-5678)";
       }
     }
@@ -98,7 +106,11 @@ export const AdminAccountForm = () => {
       }
       setTimeout(() => navigate("/admin/accounts"), 1200);
     } catch (err: any) {
-      setToastMsg(err?.message || err?.toString() || (isEditMode ? "관리자 수정 실패" : "관리자 등록 실패"));
+      setToastMsg(
+        err?.message ||
+          err?.toString() ||
+          (isEditMode ? "관리자 수정 실패" : "관리자 등록 실패"),
+      );
     } finally {
       setLoading(false);
     }
@@ -106,26 +118,45 @@ export const AdminAccountForm = () => {
 
   return (
     <div className="min-h-screen w-full max-w-none flex flex-col md:flex-row md:items-center md:justify-center items-center justify-center bg-gray-50 px-2 md:px-16 gap-8">
-      <Toast open={!!toastMsg} message={toastMsg || ""} onClose={() => setToastMsg(null)} />
-      <SuccessToast open={!!successToastMsg} message={successToastMsg || ""} onClose={() => setSuccessToastMsg(null)} />
+      <Toast
+        open={!!toastMsg}
+        message={toastMsg || ""}
+        onClose={() => setToastMsg(null)}
+      />
+      <SuccessToast
+        open={!!successToastMsg}
+        message={successToastMsg || ""}
+        onClose={() => setSuccessToastMsg(null)}
+      />
       {/* 안내/주의사항 카드 */}
       <Card className="w-full max-w-md mb-8 md:mb-0 p-8" variant="login">
         <h3 className="text-lg font-bold text-indigo-700 mb-4 flex items-center gap-2">
-          <span className="material-symbols-outlined text-indigo-500">info</span>
-          {isEditMode ? '관리자 계정 수정 안내' : '관리자 계정 등록 안내'}
+          <span className="material-symbols-outlined text-indigo-500">
+            info
+          </span>
+          {isEditMode ? "관리자 계정 수정 안내" : "관리자 계정 등록 안내"}
         </h3>
         {isEditMode ? (
           <ul className="text-sm text-gray-700 list-disc pl-4 space-y-2">
-            <li>관리자 계정의 <b>이메일만 수정</b>할 수 있습니다.</li>
+            <li>
+              관리자 계정의 <b>이메일만 수정</b>할 수 있습니다.
+            </li>
             <li>이름, 전화번호는 수정이 제한됩니다.</li>
-            <li>비밀번호 변경이 필요할 경우, 별도의 절차를 통해 진행해 주세요.</li>
+            <li>
+              비밀번호 변경이 필요할 경우, 별도의 절차를 통해 진행해 주세요.
+            </li>
             <li>수정 후 반드시 변경된 정보를 확인해 주세요.</li>
           </ul>
         ) : (
           <ul className="text-sm text-gray-700 list-disc pl-4 space-y-2">
-            <li>관리자 계정은 서비스 운영 및 관리 권한을 가지므로 신중히 등록해 주세요.</li>
+            <li>
+              관리자 계정은 서비스 운영 및 관리 권한을 가지므로 신중히 등록해
+              주세요.
+            </li>
             <li>이메일은 로그인 ID로 사용되며, 중복 등록이 불가합니다.</li>
-            <li>비밀번호는 8자 이상, 영문/숫자/특수문자를 조합해 설정해 주세요.</li>
+            <li>
+              비밀번호는 8자 이상, 영문/숫자/특수문자를 조합해 설정해 주세요.
+            </li>
             <li>전화번호는 정확히 입력해 주세요. (예: 010-1234-5678)</li>
             <li>계정 정보는 등록 후 수정이 제한될 수 있습니다.</li>
             <li>권한이 없는 사용자의 계정 등록을 방지해 주세요.</li>
@@ -135,10 +166,14 @@ export const AdminAccountForm = () => {
       {/* 등록/수정 폼 카드 */}
       <Card className="w-full max-w-md p-8" variant="login">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">{isEditMode ? "관리자 계정 수정" : "관리자 계정 등록"}</h2>
+          <h2 className="text-2xl font-bold text-gray-900">
+            {isEditMode ? "관리자 계정 수정" : "관리자 계정 등록"}
+          </h2>
         </div>
         {!isEditMode && (
-          <p className="text-sm text-gray-500 mb-6">필수 정보를 입력해 주세요.</p>
+          <p className="text-sm text-gray-500 mb-6">
+            필수 정보를 입력해 주세요.
+          </p>
         )}
         <form onSubmit={handleSubmit} autoComplete="off">
           {!isEditMode && (
@@ -180,7 +215,11 @@ export const AdminAccountForm = () => {
             type="password"
             value={form.password}
             onChange={handleChange}
-            placeholder={isEditMode ? "비밀번호를 변경하려면 입력하세요" : "비밀번호를 입력하세요"}
+            placeholder={
+              isEditMode
+                ? "비밀번호를 변경하려면 입력하세요"
+                : "비밀번호를 입력하세요"
+            }
             autoComplete="new-password"
             disabled={isEditMode}
             error={errors.password}
@@ -190,22 +229,40 @@ export const AdminAccountForm = () => {
             <Button
               type="button"
               className="w-1/2 h-12 border border-gray-300 text-gray-600 bg-white hover:bg-gray-100 font-semibold rounded-xl shadow transition text-base active:scale-95"
-              onClick={() => navigate('/admin/accounts')}
+              onClick={() => navigate("/admin/accounts")}
             >
               취소
             </Button>
             <Button
               type="submit"
-              className={`w-1/2 h-12 bg-indigo-600 text-white font-semibold rounded-xl shadow-lg hover:bg-indigo-700 transition flex justify-center items-center gap-2 text-base active:scale-95 ${loading ? 'opacity-60 cursor-not-allowed' : ''}`}
+              className={`w-1/2 h-12 bg-indigo-600 text-white font-semibold rounded-xl shadow-lg hover:bg-indigo-700 transition flex justify-center items-center gap-2 text-base active:scale-95 ${loading ? "opacity-60 cursor-not-allowed" : ""}`}
               disabled={loading}
             >
               {loading ? (
-                <svg className="animate-spin h-5 w-5 mr-2 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                <svg
+                  className="animate-spin h-5 w-5 mr-2 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                  ></path>
                 </svg>
               ) : (
-                <span className="material-symbols-outlined text-white">{isEditMode ? "edit" : "add"}</span>
+                <span className="material-symbols-outlined text-white">
+                  {isEditMode ? "edit" : "add"}
+                </span>
               )}
               <span className="text-white text-base font-semibold">
                 {isEditMode ? "관리자 수정하기" : "관리자 등록하기"}

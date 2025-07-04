@@ -5,7 +5,12 @@ interface AdminPaginationProps {
   className?: string;
 }
 
-export const AdminPagination = ({ page, totalPages, onChange, className = "" }: AdminPaginationProps) => {
+export const AdminPagination = ({
+  page,
+  totalPages,
+  onChange,
+  className = "",
+}: AdminPaginationProps) => {
   // 최소 1페이지는 항상 표시
   const safeTotalPages = Math.max(1, totalPages);
 
@@ -30,7 +35,7 @@ export const AdminPagination = ({ page, totalPages, onChange, className = "" }: 
       {/* 이전 그룹 */}
       <button
         className={`w-8 h-8 rounded-md flex justify-center items-center text-sm font-medium transition-colors
-          ${hasPrevGroup ? 'bg-slate-100 text-slate-500 cursor-pointer hover:bg-slate-200' : 'bg-slate-50 text-slate-300 cursor-not-allowed'}`}
+          ${hasPrevGroup ? "bg-slate-100 text-slate-500 cursor-pointer hover:bg-slate-200" : "bg-slate-50 text-slate-300 cursor-not-allowed"}`}
         onClick={() => hasPrevGroup && onChange(groupStart - 1)}
         disabled={!hasPrevGroup}
       >
@@ -51,7 +56,7 @@ export const AdminPagination = ({ page, totalPages, onChange, className = "" }: 
       {/* 다음 그룹 */}
       <button
         className={`w-8 h-8 rounded-md flex justify-center items-center text-sm font-medium transition-colors
-          ${hasNextGroup ? 'bg-slate-100 text-slate-500 cursor-pointer hover:bg-slate-200' : 'bg-slate-50 text-slate-300 cursor-not-allowed'}`}
+          ${hasNextGroup ? "bg-slate-100 text-slate-500 cursor-pointer hover:bg-slate-200" : "bg-slate-50 text-slate-300 cursor-not-allowed"}`}
         onClick={() => hasNextGroup && onChange(groupEnd)}
         disabled={!hasNextGroup}
       >
@@ -61,4 +66,4 @@ export const AdminPagination = ({ page, totalPages, onChange, className = "" }: 
   );
 };
 
-export default AdminPagination; 
+export default AdminPagination;

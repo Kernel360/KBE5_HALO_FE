@@ -1,5 +1,9 @@
-import api from '@/services/axios';
-import type { AdminBannerDetail, CreateAdminBannerRequest, UpdateAdminBannerRequest } from '@/features/admin/types/AdminBannerType';
+import api from "@/services/axios";
+import type {
+  AdminBannerDetail,
+  CreateAdminBannerRequest,
+  UpdateAdminBannerRequest,
+} from "@/features/admin/types/AdminBannerType";
 
 // 배너 목록 조회
 export const searchAdminBanners = async (params: {
@@ -12,8 +16,8 @@ export const searchAdminBanners = async (params: {
   // 불필요한 빈 문자열 제거
   const cleanedParams = Object.fromEntries(
     Object.entries(params).filter(
-      ([, value]) => value !== undefined && value !== ""
-    )
+      ([, value]) => value !== undefined && value !== "",
+    ),
   );
 
   const res = await api.get("/admin/banner", { params: cleanedParams });
@@ -43,7 +47,7 @@ export const creatAdminBanner = async (data: CreateAdminBannerRequest) => {
 // 배너 수정
 export const updateAdminBanner = async (
   bannerId: number,
-  data: UpdateAdminBannerRequest
+  data: UpdateAdminBannerRequest,
 ) => {
   const res = await api.patch(`/admin/banner/${bannerId}`, data);
 
@@ -56,7 +60,9 @@ export const updateAdminBanner = async (
 };
 
 // 배너 상세 조회
-export const getAdminBanner = async (bannerId: number): Promise<AdminBannerDetail> => {
+export const getAdminBanner = async (
+  bannerId: number,
+): Promise<AdminBannerDetail> => {
   const res = await api.get(`/admin/banner/${bannerId}`);
 
   if (!res.data.success) {
@@ -69,7 +75,7 @@ export const getAdminBanner = async (bannerId: number): Promise<AdminBannerDetai
 };
 
 // 배너 삭제
-export const deleteAdminBanner = async(bannerId: number) => {
+export const deleteAdminBanner = async (bannerId: number) => {
   const res = await api.delete(`/admin/banner/${bannerId}`);
 
   if (!res.data.success) {
