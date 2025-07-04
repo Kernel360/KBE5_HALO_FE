@@ -86,7 +86,6 @@ export const CustomerMyReservationDetail = () => {
 
     try {
       const payload: CustomerReservationCancelReqType = {
-        reservationId: Number(reservationId),
         cancelReason: reason.trim()
       };
       await cancelReservationByCustomer(Number(reservationId), payload);
@@ -361,6 +360,15 @@ export const CustomerMyReservationDetail = () => {
             예약 취소
           </button>
         )}
+         {/* {reservation.reservationStatus === 'COMPLETED' &&
+          new Date(reservation.requestDate) <= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) && (
+            <button
+              onClick={handleRefundRequest}
+              className="px-3 py-2 rounded-2xl bg-blue-50 text-blue-600 text-sm font-base hover:bg-blue-100 transition"
+            >
+              환불 신청
+            </button>
+        )}*/}
       </div>
     </div>
   );
