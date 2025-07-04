@@ -2,6 +2,7 @@ import { useRef, useState, Fragment } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { login } from "@/shared/utils/login";
 import { isValidPhone, isValidPassword } from "@/shared/utils/validation";
+import { Eye, EyeOff } from 'lucide-react';
 import { formatPhoneNumber } from "@/shared/utils/format";
 
 export const CustomerLogin = () => {
@@ -15,6 +16,8 @@ export const CustomerLogin = () => {
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setPhone(formatPhoneNumber(e.target.value));
   };
+
+  const [showPassword, setShowPassword] = useState(false);
 
   // 수요자 로그인
   const handleLogin = async () => {
@@ -64,7 +67,7 @@ export const CustomerLogin = () => {
                 <input
                   type="tel"
                   ref={phoneRef}
-                  className="w-full justify-start text-gray-400 text-sm font-normal font-['Inter'] leading-none"
+                  className="w-full justify-start text-gray-400 text-sm font-normal font-['Inter'] leading-none focus:outline-none"
                   placeholder="숫자만 입력하세요 (예: 01012345678)"
                   value={loginPhone}
                   onChange={handlePhoneChange}
@@ -73,25 +76,34 @@ export const CustomerLogin = () => {
             </div>
 
             {/* 비밀번호 입력 */}
-            <div className="self-stretch flex flex-col justify-start items-start gap-2">
+            <div className="self-stretch flex flex-col justify-start items-start gap-2 relative">
               <div className="flex justify-between w-full text-sm font-medium font-['Inter'] leading-none">
                 <span className="text-gray-700">비밀번호</span>
                 <p className="text-xs text-gray-400">※ 8~20자, 대/소문자·숫자·특수문자 중 3가지 이상 포함</p>
               </div>
               <div className="self-stretch h-11 px-4 bg-gray-50 rounded-lg outline outline-1 outline-offset-[-1px] outline-gray-200 inline-flex justify-start items-center">
                 <input
-                  type="password"
                   ref={passwordRef}
-                  className="w-full justify-start text-gray-400 text-sm font-normal font-['Inter'] leading-none"
+                  className="w-full justify-start text-gray-400 text-sm font-normal font-['Inter'] leading-none focus:outline-none"
                   placeholder="비밀번호를 입력하세요"
+                  type={showPassword ? 'text' : 'password'}
                   value={loginPassword}
                   onChange={(e) => setPassword(e.target.value)}
+                  onKeyDown={(e) => { // 이 부분을 추가합니다.
+                    if (e.key === 'Enter') {
+                      handleLogin();
+                    }
+                  }}
                 />
+                <button type="button" onClick={() => setShowPassword(prev => !prev)} className="absolute right-3 top-9">
+            {showPassword ? <EyeOff className="w-5 h-5 text-gray-500" /> : <Eye className="w-5 h-5 text-gray-500" />}
+          </button>
               </div>
             </div>
 
+
             {/* 아이디 찾기, 비밀번호 찾기 */}
-            <div className="w-full flex justify-center gap-2 text-sm font-medium">
+            {/*<div className="w-full flex justify-center gap-2 text-sm font-medium">
               <Link to="/auth/recovery-id" className="text-indigo-600 hover:underline">
                 아이디 찾기
               </Link>
@@ -100,7 +112,7 @@ export const CustomerLogin = () => {
                 비밀번호 찾기
               </Link>
             </div>
-
+*/}
             {/* 로그인 */}
             <button
               className="self-stretch h-12 bg-indigo-600 rounded-lg flex flex-col justify-center items-center cursor-pointer"
