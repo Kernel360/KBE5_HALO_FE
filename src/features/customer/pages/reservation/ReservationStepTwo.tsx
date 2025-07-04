@@ -1,9 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { formatDateWithDay } from '@/shared/utils/dateUtils';
 import { useLocation, useNavigate, useBlocker } from 'react-router-dom';
-import type { ReservationMatchedRspType } from '@/features/customer/types/reservation/ReservationMatchedRspType';
-import type { ManagerMatchingRspType } from '@/features/customer/types/reservation/ManagerMatchingRspType';
-import type { ReservationConfirmReqType } from '@/features/customer/types/reservation/ReservationConfirmReqType';
+import type { ReservationMatchedRspType, ManagerMatchingRspType, ReservationConfirmReqType } from '@/features/customer/types/CustomerReservationType';
 import { AlertCircle, Check, UserRound } from 'lucide-react';
 import { ReservationStepIndicator } from '@/features/customer/components/ReservationStepIndicator';
 import HalfStar from '@/shared/components/HalfStar'; 
@@ -91,7 +89,10 @@ const ReservationStepTwo: React.FC<Props> = () => {
       // 예약 확정 요청 데이터 구성
       const confirmRequest: ReservationConfirmReqType = {
         selectedManagerId: selectedManager.managerId,
-        matchedManagerIds: managers.map(manager => manager.managerId)
+        payReqDTO: {
+          paymentMethod: "POINT",
+          amount: reservationData.reservation?.price ?? 0
+        }
       };
 
       // API 호출
@@ -242,30 +243,29 @@ const ReservationStepTwo: React.FC<Props> = () => {
                         <div className="self-stretch justify-start text-gray-900 text-sm font-normal font-['Inter'] leading-none">{manager.bio}</div>
                     </div>
 
-                    {/* Recent Reviews */}
+                    {/* Recent Reviews 
                     <div className="self-stretch flex flex-col justify-start items-start gap-3">
                         <div className="self-stretch justify-start text-gray-500 text-sm font-medium font-['Inter'] leading-none">최근 후기</div>
-                        {/* 이** 고객님 후기 */}
                         <div className="self-stretch p-3 bg-gray-50 rounded-lg flex flex-col justify-start items-start gap-2">
                             <div className="self-stretch inline-flex justify-between items-center">
                                 <div className="justify-start text-gray-900 text-sm font-medium font-['Inter'] leading-none">이** 고객님</div>
                                 <div className="flex justify-center items-center gap-1">
-                                    {renderStars(5.0)} {/* 예시: 5점 */}
+                                    {renderStars(5.0)} 
                                 </div>
                             </div>
                             <div className="self-stretch justify-start text-gray-700 text-sm font-normal font-['Inter'] leading-none">정말 꼼꼼하게 청소해주셨어요. 특히 욕실 청소가 정말 깔끔했습니다. 다음에도 김청소 매니저님 지정해서 예약할게요!</div>
                         </div>
-                        {/* 박** 고객님 후기 */}
                         <div className="self-stretch p-3 bg-gray-50 rounded-lg flex flex-col justify-start items-start gap-2">
                             <div className="self-stretch inline-flex justify-between items-center">
                                 <div className="justify-start text-gray-900 text-sm font-medium font-['Inter'] leading-none">박** 고객님</div>
                                 <div className="flex justify-center items-center gap-1">
-                                    {renderStars(4.0)} {/* 예시: 4점 */}
+                                    {renderStars(4.0)}
                                 </div>
                             </div>
                             <div className="self-stretch justify-start text-gray-700 text-sm font-normal font-['Inter'] leading-none">친절하고 시간 약속도 잘 지켜주셨어요. 청소도 만족스럽게 잘 해주셨습니다.</div>
                         </div>
                     </div>
+                    */}
                 </div>
               </div>
             ))}
@@ -318,7 +318,9 @@ const ReservationStepTwo: React.FC<Props> = () => {
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">메인 서비스</span>
                   <span className="text-gray-900 font-medium">
-                    {reservationData.requestCategory?.serviceName || '-'} {reservationData.requestCategory?.serviceTime}시간 {reservationData.requestCategory?.price?.toLocaleString() || 0}원
+                    {reservationData.requestCategory?.serviceName || '-'}{' '}
+                    <span className="text-gray-500">{reservationData.requestCategory.serviceTime}시간 </span>
+                    {reservationData.requestCategory?.price?.toLocaleString() || 0}원
                   </span>
                 </div>
                 {/* 추가 서비스 (데이터가 있을 경우에만 렌더링) */}
@@ -327,7 +329,6 @@ const ReservationStepTwo: React.FC<Props> = () => {
                     {/* "추가 서비스" 라벨은 한 번만 표시 */}
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-500">추가 서비스</span>
-                      {/* 이 줄의 오른쪽은 비워둡니다. */}
                       <span></span>
                     </div>
                     {/* 각 추가 서비스 내역은 새로운 줄에 표시, 왼쪽 라벨 없음 */}
@@ -336,7 +337,11 @@ const ReservationStepTwo: React.FC<Props> = () => {
                         {/* 왼쪽에는 아무것도 표시하지 않습니다 */}
                         <span></span>
                         <span className="text-gray-900 font-medium">
-                          {childService.serviceName || '-'} {childService.serviceTime}시간 {childService.price?.toLocaleString() || 0}원
+                          {childService.serviceName || '-'}{' '}
+                          {childService.serviceTime!=0 && (
+                            <span className="text-gray-500">{childService.serviceTime}시간 </span>
+                          )}
+                          {childService.price?.toLocaleString() || 0}원
                         </span>
                       </div>
                     ))}

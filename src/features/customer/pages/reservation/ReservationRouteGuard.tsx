@@ -1,7 +1,7 @@
 import React from 'react';
 import { useLocation, Navigate } from 'react-router-dom';
 import ReservationStepTwo from '@/features/customer/pages/reservation/ReservationStepTwo';
-import type { ReservationMatchedRspType } from '@/features/customer/types/reservation/ReservationMatchedRspType';
+import type { ReservationMatchedRspType } from '@/features/customer/types/CustomerReservationType';
 
 const ReservationStepTwoGuard: React.FC = () => {
   const location = useLocation();
@@ -13,7 +13,6 @@ const ReservationStepTwoGuard: React.FC = () => {
   }
   if (!reservationData.matchedManagers || reservationData.matchedManagers.length === 0) {
     alert('요청하신 일정에 가능한 매니저가 없습니다.');
-    return <Navigate to="/reservations/new" replace />;
   }
 
   const handleNext = (data: any) => {

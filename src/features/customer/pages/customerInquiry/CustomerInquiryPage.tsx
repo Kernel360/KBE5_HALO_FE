@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { DEFAULT_PAGE_SIZE } from "@/shared/constants/constants";
 import { searchCustomerInquiries } from "@/features/customer/api/CustomerInquiries";
 import type { SearchCustomerInquiries as CustomerInquiryType } from "@/features/customer/types/CustomerInquiryType";
+import Pagination from "@/shared/components/Pagination";
 
 export const CustomerInquiryPage: React.FC = () => {
   const [fadeKey, setFadeKey] = useState(0);
@@ -169,8 +170,6 @@ export const CustomerInquiryPage: React.FC = () => {
     }));
   };
 
-  // Calculate total pages
-  const totalPages = Math.max(Math.ceil(total / searchParams.size), 1);
 
   // Helper to update specific search parameter
   const updateSearchParam = (key: string, value: any) => {
@@ -182,22 +181,6 @@ export const CustomerInquiryPage: React.FC = () => {
     updateSearchParam("page", pageNumber);
   };
 
-  // Determine the range of page numbers to display
-  const renderPaginationNumbers = () => {
-    const pagesToShow = 5;
-    let startPage = Math.max(0, searchParams.page - Math.floor(pagesToShow / 2));
-    let endPage = Math.min(totalPages - 1, startPage + pagesToShow - 1);
-
-    if (endPage - startPage + 1 < pagesToShow) {
-      startPage = Math.max(0, endPage - pagesToShow + 1);
-    }
-
-    const pages = [];
-    for (let i = startPage; i <= endPage; i++) {
-      pages.push(i);
-    }
-    return pages;
-  };
 
   return (
     <Fragment>
@@ -312,45 +295,12 @@ export const CustomerInquiryPage: React.FC = () => {
               </div>
 
               {/* Pagination */}
-              <div className="flex justify-center gap-2 pt-4">
-                {/* Previous Page Button */}
-                <button
-                  disabled={searchParams.page === 0}
-                  onClick={() => handlePageChange(searchParams.page - 1)}
-                  className={`w-9 h-9 rounded-lg flex justify-center items-center 
-                    border ${searchParams.page === 0 ? "border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed" : "border-gray-300 bg-white text-gray-700 hover:bg-gray-100 cursor-pointer"}
-                  `}
-                >
-                  <span className="material-symbols-outlined text-base">chevron_left</span>
-                </button>
-
-                {/* Page Numbers */}
-                {renderPaginationNumbers().map((p) => (
-                  <button
-                    key={p}
-                    onClick={() => handlePageChange(p)}
-                    className={`w-9 h-9 rounded-lg flex justify-center items-center text-sm font-medium 
-                      border ${searchParams.page === p
-                        ? "border-indigo-500 bg-indigo-50 text-indigo-700"
-                        : "border-gray-300 bg-white text-gray-700 hover:bg-gray-100"
-                      }
-                    `}
-                  >
-                    {p + 1}
-                  </button>
-                ))}
-
-                {/* Next Page Button */}
-                <button
-                  disabled={searchParams.page === totalPages - 1}
-                  onClick={() => handlePageChange(searchParams.page + 1)}
-                  className={`w-9 h-9 rounded-lg flex justify-center items-center 
-                    border ${searchParams.page === totalPages - 1 ? "border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed" : "border-gray-300 bg-white text-gray-700 hover:bg-gray-100 cursor-pointer"}
-                  `}
-                >
-                  <span className="material-symbols-outlined text-base">chevron_right</span>
-                </button>
-              </div>
+              <Pagination
+                currentPage={searchParams.page}
+                totalItems={total}
+                pageSize={searchParams.size}
+                onPageChange={handlePageChange}
+              />
             </div>
           </div>
         </div>

@@ -9,13 +9,12 @@ export const CustomerHeader = () => {
   const isLoggedIn = useAuthStore((state) => state.isLoggedIn());
   const { userName } = useUserStore();
   const navigate = useNavigate();
-/*
+
   const menuItems = [
-    { name: "서비스 소개", path: "/services" },
-    //{ name: "후기", path: "/reviews" },
-    { name: "고객센터", path: "/support" },
+    { name: "예약하기", path: "/reservations/new" },
+    { name: "마이페이지", path: "/my" },
   ];
-*/
+
   // 수요자 로그아웃 
   const handleLogout = async () => {
     await logout();
@@ -37,7 +36,7 @@ export const CustomerHeader = () => {
           <div className="justify-start text-zinc-800 text-xl font-bold font-['Inter'] leading-normal">HaloCare</div>
         </button>
 
-        {/* 중간 메뉴 
+        {/* 중간 메뉴 */}
         <div className="flex justify-center items-center gap-10">
           {menuItems.map(({name, path}) => (
             <NavLink 
@@ -50,14 +49,14 @@ export const CustomerHeader = () => {
             </NavLink>            
           ))}
         </div>
-        */}
+      
         {/* 우측 메뉴 */}
         {isLoggedIn ? (
           <div className="inline-flex justify-end items-center gap-4">
             <div className="flex justify-end items-center gap-2">
               <div
                 className="justify-start text-zinc-800 text-base font-medium font-['Inter'] leading-tight cursor-pointer hover:underline"
-                onClick={() => navigate("/my/reservations")}
+                onClick={() => navigate("/my")}
               >
                 {userName}님
               </div>
