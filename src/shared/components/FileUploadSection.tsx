@@ -7,6 +7,8 @@ interface FileUploadSectionProps {
   errors?: string;
   multiple?: boolean;
   isRequired?: boolean;
+  uploadedFiles?: { name: string; url: string; size?: number }[];
+  onRemoveUploadedFile?: (idx: number) => void;
 }
 
 const MAX_FILE_SIZE_MB = 10;
@@ -20,6 +22,8 @@ export const FileUploadSection = ({
   errors,
   multiple = true,
   isRequired = true,
+  uploadedFiles = [],
+  onRemoveUploadedFile,
 }: FileUploadSectionProps) => {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -31,7 +35,7 @@ export const FileUploadSection = ({
     if (!e.target.files) return;
     const selectedFiles = Array.from(e.target.files);
 
-    const validFiles = selectedFiles.filter((file) => {
+    const validFiles = selectedFiles.filter(file => {
       if (file.size > MAX_FILE_SIZE_BYTES) {
         alert(`'${file.name}' 파일은 ${MAX_FILE_SIZE_MB}MB를 초과합니다.`);
         return false;
@@ -48,23 +52,36 @@ export const FileUploadSection = ({
       return;
     }
 
-    setFiles((prev) => (multiple ? [...prev, ...validFiles] : validFiles));
+    setFiles(prev => (multiple ? [...prev, ...validFiles] : validFiles));
     e.target.value = "";
   };
 
   const handleRemoveFile = (index: number) => {
-    setFiles((prev) => prev.filter((_, i) => i !== index));
+    setFiles(prev => prev.filter((_, i) => i !== index));
   };
 
   const getFileURL = (file: File) => URL.createObjectURL(file);
 
+  const getFileIcon = (fileName: string) => {
+    const ext = fileName.split(".").pop()?.toLowerCase();
+    if (ext === "jpg" || ext === "jpeg" || ext === "png") {
+      return "image";
+    }
+    if (ext === "pdf") {
+      return "picture_as_pdf";
+    }
+    return "description";
+  };
+
+  const formatFileSize = (size: number) => `${(size / (1024 * 1024)).toFixed(1)}MB`;
+
   return (
-    <div className="self-stretch flex flex-col gap-2 cuser-pointer">
-      <label className="text-slate-700 text-sm font-medium font-['Inter'] leading-none">
+    <div className="cuser-pointer flex flex-col gap-2 self-stretch">
+      <label className="font-['Inter'] text-sm leading-none font-medium text-slate-700">
         {title ? title : "첨부파일"}
         {isRequired && <span> *</span>}
       </label>
-      <div className="self-stretch p-4 bg-slate-50 rounded-lg outline outline-1 outline-offset-[-1px] outline-slate-200 flex flex-col gap-3">
+      <div className="flex flex-col gap-3 self-stretch rounded-lg bg-slate-50 p-4 outline outline-1 outline-offset-[-1px] outline-slate-200">
         <input
           ref={fileInputRef}
           type="file"
@@ -74,57 +91,86 @@ export const FileUploadSection = ({
           onChange={handleFileChange}
         />
 
-        <ul className="flex flex-col gap-2 w-full">
+        <ul className="flex w-full flex-col gap-2">
           {files.map((file, index) => (
             <li
               key={index}
-              className="flex items-center gap-2 text-sm text-slate-700"
-            >
-              <div className="flex items-center gap-2 truncate grow">
-                <span className="material-symbols-outlined text-slate-500 text-base">
-                  description
+              className="flex items-center gap-2 text-sm text-slate-700">
+              <div className="flex grow items-center gap-2 truncate">
+                <span className="material-symbols-outlined text-base text-slate-500">
+                  {getFileIcon(file.name)}
                 </span>
                 <a
                   href={getFileURL(file)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="truncate max-w-[260px] text-blue-600 hover:underline"
-                >
+                  className="max-w-[11.25rem] truncate text-blue-600 hover:underline">
                   {file.name}
                 </a>
+                <span className="text-xs text-slate-400">({formatFileSize(file.size)})</span>
                 <button
                   type="button"
                   onClick={() => handleRemoveFile(index)}
-                  className="text-red-500 hover:text-red-600 transition text-sm"
-                  title="삭제"
-                >
-                  <span className="material-symbols-outlined text-sm align-text-bottom">
+                  className="text-sm text-red-500 transition hover:text-red-600"
+                  title="삭제">
+                  <span className="material-symbols-outlined align-text-bottom text-sm">
                     close_small
                   </span>
                 </button>
               </div>
             </li>
           ))}
+          {uploadedFiles.length > 0 && uploadedFiles.map((file, idx) => (
+            <li
+              key={`uploaded-${idx}`}
+              className="flex items-center gap-2 text-sm text-slate-700"
+            >
+              <div className="flex grow items-center gap-2 truncate">
+                <span className="material-symbols-outlined text-base text-slate-500">
+                  {getFileIcon(file.name)}
+                </span>
+                <a
+                  href={file.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="max-w-[11.25rem] truncate text-blue-600 hover:underline">
+                  {file.name}
+                </a>
+                {typeof file.size === 'number' && (
+                  <span className="text-xs text-slate-400">({formatFileSize(file.size)})</span>
+                )}
+                {onRemoveUploadedFile && (
+                  <button
+                    type="button"
+                    onClick={() => onRemoveUploadedFile(idx)}
+                    className="text-sm text-red-500 transition hover:text-red-600"
+                    title="삭제"
+                  >
+                    <span className="material-symbols-outlined align-text-bottom text-sm">
+                      close_small
+                    </span>
+                  </button>
+                )}
+              </div>
+            </li>
+          ))}
         </ul>
-
         <button
           type="button"
           onClick={handleFileButtonClick}
-          className="self-stretch h-12 px-4 bg-white rounded-lg outline outline-1 outline-offset-[-1px] outline-indigo-600 inline-flex justify-center items-center gap-2 cursor-pointer"
-        >
+          className="inline-flex h-12 cursor-pointer items-center justify-center gap-2 self-stretch rounded-lg bg-white px-4 outline outline-1 outline-offset-[-1px] outline-indigo-600">
           <span className="material-symbols-outlined text-[#4f39f6]">add</span>
-          <span className="text-indigo-600 text-sm font-medium font-['Inter'] leading-none">
+          <span className="font-['Inter'] text-sm leading-none font-medium text-indigo-600">
             파일 추가하기
           </span>
         </button>
-
-        <div className="text-slate-500 text-xs font-normal font-['Inter'] leading-none">
+        <div className="font-['Inter'] text-xs leading-none font-normal text-slate-500">
           JPG, PNG, PDF 파일 (각 최대 {MAX_FILE_SIZE_MB}MB
           {multiple ? `, 최대 ${MAX_FILE_COUNT}개` : ""})
         </div>
       </div>
       {errors && files.length === 0 && (
-        <p className="text-red-500 text-xs">{errors}</p>
+        <p className="text-xs text-red-500">{errors}</p>
       )}
     </div>
   );
