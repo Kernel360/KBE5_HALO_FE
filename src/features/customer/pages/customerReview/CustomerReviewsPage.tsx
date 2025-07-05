@@ -21,10 +21,14 @@ export const CustomerReviewsPage = () => {
     if (!accessToken) return;
     
     const fetchReviews = async () => {
+      try {
         const data = await searchCustomerReviews({ page: currentPage, size: REVIEW_PAGE_SIZE });
         setReviews(data.content);
         setTotalReviews(data.page.totalElements);
-
+      } catch (error: any) {
+        const errorMessage = error.response?.data?.message || error.message || "리뷰 목록을 조회하는데 실패하였습니다.";
+        alert(errorMessage);
+      }
     };
 
     fetchReviews();
