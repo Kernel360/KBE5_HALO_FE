@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { searchManagerReservations } from "@/features/manager/api/managerReservation";
 import type { ManagerReservationSummary as ManagerReservationType } from "@/features/manager/types/ManagerReservationType";

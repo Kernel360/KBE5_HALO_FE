@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { searchManagerReservations, checkIn, checkOut } from "@/features/manager/api/managerReservation";
 import { useNavigate } from "react-router-dom";
 import type { ManagerReservationSummary as ManagerReservationType } from "@/features/manager/types/ManagerReservationType";
 import { formatTimeRange } from "@/shared/utils/format";
 import { CleanignLogModal } from "../components/ManagerCleaningLogModal";
-import { createFileGroup, uploadFilesAndGetUrls, updateFileGroup } from "@/shared/utils/fileUpload";
+import { createFileGroup } from "@/shared/utils/fileUpload";
 import SuccessToast from "@/shared/components/ui/toast/SuccessToast";
 
 // 이번주 월~일 날짜 배열 생성
@@ -40,8 +40,6 @@ export const TodayScheduleSection = () => {
   const [files, setFiles] = useState<File[]>([]);
   const [fileId, setFileId] = useState<number | null>(null);
   const [uploadedFiles, setUploadedFiles] = useState<{ name: string; url: string; size?: number }[]>([]);
-  const [modalLoading, setModalLoading] = useState(false);
-  const [modalError, setModalError] = useState<string | null>(null);
   const [successToastMessage, setSuccessToastMessage] = useState<string | null>(null);
 
   // 오늘 날짜
@@ -139,14 +137,11 @@ export const TodayScheduleSection = () => {
       setFiles([]);
       setFileId(null);
       setUploadedFiles([]);
-      setModalError(null);
     }
   }, [modalOpen, checkType, selectedReservation]);
 
   // Handle file upload and check-in/out
   const handleCheck = async (type: "IN" | "OUT") => {
-    setModalLoading(true);
-    setModalError(null);
     try {
       if (!selectedReservation) throw new Error("예약 정보가 없습니다.");
       if (files.length === 0 && !fileId) throw new Error("파일을 첨부해주세요.");
@@ -169,7 +164,6 @@ export const TodayScheduleSection = () => {
       setFiles([]);
       setFileId(null);
       setUploadedFiles([]);
-      setModalError(null);
       // 새로고침
       searchManagerReservations({
         fromRequestDate: today,
@@ -188,9 +182,7 @@ export const TodayScheduleSection = () => {
         })
         .catch(() => {});
     } catch (err: any) {
-      setModalError(err.message || "체크인/체크아웃에 실패했습니다.");
-    } finally {
-      setModalLoading(false);
+      // setModalError(err.message || "체크인/체크아웃에 실패했습니다.");
     }
   };
 
@@ -368,7 +360,9 @@ export const TodayScheduleSection = () => {
                       e.stopPropagation();
                       if (buttonDisabled) return;
                       setSelectedReservation(reservation);
-                      setCheckType(nextCheckType);
+                      if (nextCheckType === "IN" || nextCheckType === "OUT") {
+                        setCheckType(nextCheckType);
+                      }
                       setModalOpen(true);
                     }}
                     disabled={buttonDisabled}

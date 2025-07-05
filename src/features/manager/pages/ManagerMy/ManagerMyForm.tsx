@@ -277,15 +277,6 @@ export const ManagerMyForm = () => {
       return;
     }
 
-    // 업무 가능 시간 포맷 변환 (요일, 시간 → ENUM + hh:mm)
-    const availableTimes = Object.entries(selectedTimes).flatMap(
-      ([day, hours]) =>
-        Array.from(hours).map((hour) => ({
-          dayOfWeek: convertToEnum(day),
-          time: hour.replace("시", ":00"),
-        })),
-    );
-
     // 최종 요청 객체 생성
     const requestBody = {
       userUpdateReqDTO: {

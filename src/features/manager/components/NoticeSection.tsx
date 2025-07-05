@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import WarningToast from "@/shared/components/ui/toast/WarningToast";
 
 export const NoticeSection = () => {

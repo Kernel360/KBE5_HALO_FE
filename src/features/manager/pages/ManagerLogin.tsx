@@ -13,8 +13,6 @@ import { Input } from "@/shared/components/ui/Input";
 import { Eye, EyeOff } from "lucide-react";
 
 export const ManagerLogin = () => {
-  const phoneRef = useRef<HTMLInputElement>(null)
-  const passwordRef = useRef<HTMLInputElement>(null)
   const [loginPhone, setPhone] = useState('')
   const [loginPassword, setPassword] = useState('')
   const [errors, setErrors] = useState<{ phone?: string; password?: string }>({})

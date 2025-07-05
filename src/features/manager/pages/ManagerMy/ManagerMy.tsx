@@ -6,7 +6,6 @@ import { Loading } from "@/shared/components/ui/Loading";
 import ErrorToast from "@/shared/components/ui/toast/ErrorToast";
 import { Button } from "@/shared/components/ui/Button";
 import { Card } from "@/shared/components/ui/Card";
-import ManagerProfileCard from "@/features/manager/components/ManagerProfileCard";
 
 export const ManagerMy = () => {
   const [manager, setManager] = useState<ManagerInfo | null>(null);

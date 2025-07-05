@@ -4,7 +4,7 @@ import { isValidDateRange } from '@/shared/utils/validation'
 import { searchManagerReviews } from '@/features/manager/api/managerReview'
 import { REVIEW_PAGE_SIZE } from '@/shared/constants/constants'
 import ErrorToast from "@/shared/components/ui/toast/ErrorToast";
-import Pagination from "@/shared/components/Pagination";
+import { Pagination } from "@/shared/components/Pagination";
 import EmptyState from "@/shared/components/EmptyState";
 import { SearchForm } from "@/shared/components/SearchForm";
 import ManagerReviewCard from "@/features/manager/components/ManagerReviewCard";
@@ -17,8 +17,8 @@ export const ManagerReviews = () => {
   const [reviews, setReviews] = useState<ManagerReviewType[]>([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(0)
-  const [fromCreatedAt, setFromCreatedAt] = useState<string>('')
-  const [toCreatedAt, setToCreatedAt] = useState<string>('')
+  const [fromCreatedAt, setFromCreatedAt] = useState<string>("")
+  const [toCreatedAt, setToCreatedAt] = useState<string>("")
   const [ratingOption, setRatingOption] = useState(0) // 평점 검색 조건 (0 = 전체, 1~5 = 해당 점수)
   const [customerNameKeyword, setCustomerNameKeyword] = useState('')
   const [contentKeyword, setContentKeyword] = useState('')
@@ -95,31 +95,6 @@ export const ManagerReviews = () => {
     }
   };
 
-  const handleSearch = () => {
-    setPage(0)
-    fetchReviews({ page: 0 })
-  }
-
-  const handleReset = () => {
-    const resetState = {
-      fromCreatedAt: '',
-      toCreatedAt: '',
-      ratingOption: 0,
-      customerNameKeyword: '',
-      contentKeyword: '',
-      page: 0
-    }
-
-    setFromCreatedAt(resetState.fromCreatedAt)
-    setToCreatedAt(resetState.toCreatedAt)
-    setRatingOption(resetState.ratingOption)
-    setCustomerNameKeyword(resetState.customerNameKeyword)
-    setContentKeyword(resetState.contentKeyword)
-    setPage(0)
-
-    fetchReviews(resetState)
-  }
-
   const totalPages = Math.max(Math.ceil(total / REVIEW_PAGE_SIZE), 1)
 
   const getToday = () => {
@@ -132,10 +107,6 @@ export const ManagerReviews = () => {
     const monday = new Date(today);
     monday.setDate(today.getDate() - day + 1);
     return monday.toISOString().slice(0, 10);
-  };
-  const getMonthStart = () => {
-    const today = new Date();
-    return new Date(today.getFullYear(), today.getMonth(), 1).toISOString().slice(0, 10);
   };
   const getMonthsAgo = (n: number) => {
     const today = new Date();

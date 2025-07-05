@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { searchManagerReviews } from "@/features/manager/api/managerReview";
 import ManagerReviewCard from "./ManagerReviewCard";
 import { useNavigate } from "react-router-dom";
