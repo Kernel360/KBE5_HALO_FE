@@ -1,5 +1,4 @@
 export interface ReservationConfirmReqType {
-    selectedManagerId: number;
-    matchedManagerIds: number[];
-  }
-  
+  selectedManagerId: number
+  matchedManagerIds: number[]
+}
