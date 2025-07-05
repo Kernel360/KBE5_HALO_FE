@@ -90,9 +90,9 @@ export const CustomerReviewForm: React.FC = () => {
     }
 
     try {
-      const payload = { rating, content };
+      const payload = { reservationId,rating, content };
       if (reviewFromReservation?.reviewId) {
-        await updateCustomerReview(Number(reservationId), payload);
+        await updateCustomerReview(Number(reviewFromReservation.reviewId), payload);
         alert("리뷰가 수정되었습니다.");
       } else {
         await createCustomerReview(Number(reservationId), payload);
@@ -100,7 +100,6 @@ export const CustomerReviewForm: React.FC = () => {
       }
       navigate(-1);
     } catch (error) {
-      console.error("리뷰 저장 실패:", error);
       alert("리뷰 저장에 실패했습니다. 다시 시도해주세요.");
     }
   };

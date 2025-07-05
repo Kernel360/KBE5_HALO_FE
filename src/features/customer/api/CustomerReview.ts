@@ -51,8 +51,8 @@ export const getCustomerReviewByReservationId = async (reservationId: number) =>
 };
 
 // 수요자 리뷰 수정
-export const updateCustomerReview = async (reservationId: number, payload: CustomerReviewReqType) => {
-  const res = await api.patch(`/customers/reviews/${reservationId}`, payload);
+export const updateCustomerReview = async (reviewId: number, payload: CustomerReviewReqType) => {
+  const res = await api.patch(`/customers/reviews/${reviewId}`, payload);
   
   if (!res.data.success) {
     // 명시적으로 실패 처리
