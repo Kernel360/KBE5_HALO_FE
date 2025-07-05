@@ -1,18 +1,20 @@
-import React from "react";
+import React from 'react'
 
 interface CardContentProps extends React.HTMLAttributes<HTMLDivElement> {
-  className?: string;
-  children: React.ReactNode;
+  className?: string
+  children: React.ReactNode
 }
 
 export const CardContent = ({
   children,
-  className = "",
+  className = '',
   ...rest
 }: CardContentProps) => (
-  <div className={className} {...rest}>
+  <div
+    className={className}
+    {...rest}>
     {children}
   </div>
-);
+)
 
-export default CardContent;
+export default CardContent

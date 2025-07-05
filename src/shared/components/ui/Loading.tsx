@@ -1,27 +1,27 @@
-import React from "react";
+import React from 'react'
 
 interface LoadingProps {
-  message?: string;
-  size?: "sm" | "md" | "lg";
-  fullScreen?: boolean;
-  className?: string;
+  message?: string
+  size?: 'sm' | 'md' | 'lg'
+  fullScreen?: boolean
+  className?: string
 }
 
 export const Loading: React.FC<LoadingProps> = ({
-  message = "로딩 중...",
-  size = "md",
+  message = '로딩 중...',
+  size = 'md',
   fullScreen = false,
-  className = "",
+  className = ''
 }) => {
   const sizeClasses = {
-    sm: "w-6 h-6 border-2",
-    md: "w-8 h-8 border-4",
-    lg: "w-12 h-12 border-4",
-  };
+    sm: 'w-6 h-6 border-2',
+    md: 'w-8 h-8 border-4',
+    lg: 'w-12 h-12 border-4'
+  }
 
   const containerClasses = fullScreen
-    ? "fixed inset-0 z-50 bg-white bg-opacity-90 flex flex-col justify-center items-center"
-    : "flex flex-col justify-center items-center";
+    ? 'fixed inset-0 z-50 bg-white bg-opacity-90 flex flex-col justify-center items-center'
+    : 'flex flex-col justify-center items-center'
 
   return (
     <>
@@ -39,10 +39,10 @@ export const Loading: React.FC<LoadingProps> = ({
       `}</style>
       <div className={`${containerClasses} ${className}`}>
         <div className={`halo-spinner ${sizeClasses[size]} mb-4`} />
-        <div className="text-indigo-500 text-base font-medium">{message}</div>
+        <div className="text-base font-medium text-indigo-500">{message}</div>
       </div>
     </>
-  );
-};
+  )
+}
 
-export default Loading;
+export default Loading
