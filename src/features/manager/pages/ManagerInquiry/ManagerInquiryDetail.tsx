@@ -1,7 +1,8 @@
 import { Fragment, useEffect, useState } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { getManagerInquiry, deleteManagerInquiry } from "@/features/manager/api/managerInquiry";
-import type { ManagerInquiryDetail as ManagerInquiryType } from "@/features/manager/types/ManagerInquirylType";
+import type { InquiryDetail as ManagerInquiryType } from "@/shared/types/InquiryType";
+import { PenLine, Trash2 } from "lucide-react";
 
 
 
@@ -49,110 +50,109 @@ export const ManagerInquiryDetail = () => {
 
   return (
     <Fragment>
-      <div className="w-full min-h-screen flex flex-col">
+      <div className="w-full min-h-0 flex flex-col">
         {/* 상단 헤더 */}
         <div className="h-16 px-6 bg-white border-b border-gray-200 flex justify-between items-center">
           <div className="text-gray-900 text-xl font-bold">문의사항 상세</div>
-          <div className="flex gap-2">
-            <Link 
-              to="/managers/inquiries"
-              className="h-10 px-4 flex justify-center items-center border rounded-md text-sm text-gray-500 hover:bg-gray-100">목록으로</Link>
-            {!inquiry.answerId && (
-              <Fragment>
-                <button
-                  onClick={handleEdit}
-                  className="h-10 px-4 bg-[#4f39f6] text-white rounded-md text-sm font-semibold hover:bg-[#3d2ee6]">
-                  수정
-                </button>
-                <button
-                  onClick={handleDelete}
-                  className="h-10 px-4 bg-red-500 text-white rounded-md text-sm font-semibold hover:bg-red-600">
-                  삭제
-                </button>
-              </Fragment>
-            )}
-          </div>
         </div>
 
         {/* 본문 */}
         <div className="p-6 flex flex-col gap-6">
           {/* 문의 내용 카드 */}
           <div className="p-8 bg-white rounded-xl shadow flex flex-col gap-6">
-            <div className="flex justify-between items-center">
-              <div className="text-slate-800 text-xl font-bold">
-                <span className="text-sm font-semibold text-white bg-slate-500 px-2 py-1 rounded mr-3">질문</span>
-                {inquiry.title}
-                </div>
-              <div className="flex gap-4 text-sm text-slate-500">
-                <div>작성일시: <span className="text-slate-700">{inquiry.createdAt}</span></div>
-              </div>
-            </div>
-
-            <div className="h-px bg-slate-200" />
-
-            <div className="p-4 bg-slate-50 rounded-lg text-slate-700 text-sm whitespace-pre-wrap min-h-[200px]">
-              {inquiry.content}
-            </div>
-
-            {/* 첨부파일 (있을 때만 표시) */}
-            {inquiry.fileId && (
-              <div className="flex flex-col gap-2">
-                <div className="text-base font-semibold text-slate-800">첨부파일</div>
-                <div className="h-12 px-4 bg-slate-50 rounded-lg flex items-center gap-2 outline outline-1 outline-slate-200">
-                  <span className="material-symbols-outlined text-slate-500">description</span>
-                  {/* <a
-                    href={inquiry.fileUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-slate-700 text-sm font-medium underline hover:text-blue-600"
-                  >
-                    {inquiry.fileName}
-                  </a> */}
-                </div>
-              </div>
+            <div className="flex justify-end gap-2">
+            {!inquiry.reply && (
+              <Fragment>
+                <button
+                  onClick={handleEdit}
+                  className="h-9 px-3 flex items-center gap-2 text-[#4f39f6] border border-[#4f39f6] bg-white rounded-md text-sm font-semibold hover:bg-indigo-50 cursor-pointer"
+                >
+                  <PenLine size={16} />
+                  수정
+                </button>
+                <button
+                  onClick={handleDelete}
+                  className="h-9 px-3 flex items-center gap-2 text-red-500 border border-red-500 bg-white rounded-md text-sm font-semibold hover:bg-red-50 cursor-pointer"
+                >
+                  <Trash2 size={16} />
+                  삭제
+                </button>
+              </Fragment>
             )}
+            <Link
+              to="/managers/inquiries"
+              className="h-9 px-3 flex items-center gap-2 text-gray-500 border border-gray-300 bg-white rounded-md text-sm font-semibold hover:bg-gray-50 cursor-pointer"
+            >
+              목록으로
+            </Link>
           </div>
-
-          <hr className="my-1 border-t border-slate-200" />
-
-          {/* 답변 카드 */}
-          <div className="p-8 bg-white rounded-xl shadow flex flex-col gap-6">
-            <div className="flex justify-between items-center">
-              <div className="text-slate-800 text-xl font-bold">
-                <span className="text-sm font-semibold text-white bg-indigo-600 px-2 py-1 rounded">답변</span>
+            <div className="flex flex-col gap-4 text-sm text-slate-800">
+              {inquiry.categoryName && (
+                <div className="flex flex-col">
+                  <div className="font-semibold text-sm text-slate-500 mb-1">문의 유형</div>
+                  <div className="p-4 bg-slate-50 rounded-lg text-slate-800 text-sm">
+                    {inquiry.categoryName}
+                  </div>
+                </div>
+              )}
+              <div className="flex flex-col">
+                <div className="font-semibold text-sm text-slate-500 mb-1">문의 제목</div>
+                <div className="p-4 bg-slate-50 rounded-lg text-slate-800 text-sm">
+                  {inquiry.title}
+                </div>
               </div>
-              {inquiry.answerId && (
-                <div className="flex gap-4 text-sm text-slate-500">
-                  <div>작성일시: <span className="text-slate-700">{inquiry.replyCreatedAt ?? "-"}</span></div>
+              <div className="flex flex-col">
+                <div className="font-semibold text-sm text-slate-500 mb-1">문의 내용</div>
+                <div className="p-4 bg-slate-50 rounded-lg text-slate-800 text-sm whitespace-pre-wrap h-48 overflow-y-auto">
+                  {inquiry.content}
+                </div>
+              </div>
+              <div className="flex flex-col">
+                <div className="font-semibold text-sm text-slate-500 mb-1">작성일시</div>
+                <div className="p-4 bg-slate-50 rounded-lg text-slate-800 text-sm">
+                  {inquiry.createdAt}
+                </div>
+              </div>
+              {inquiry.fileId && (
+                <div className="flex flex-col">
+                  <div className="font-semibold text-sm text-slate-500 mb-1">첨부 파일</div>
+                  <div className="h-10 px-4 bg-slate-50 rounded-lg flex items-center gap-2 outline outline-1 outline-slate-200">
+                    <span className="material-symbols-outlined text-slate-500">description</span>
+                    <span className="text-slate-700 text-sm font-medium">첨부파일</span>
+                  </div>
                 </div>
               )}
             </div>
-            <div className="h-px bg-slate-200" />
-            <div className="p-4 bg-slate-50 rounded-lg text-slate-700 text-sm whitespace-pre-wrap min-h-[200px]">
-              {inquiry.replyContent ?? "아직 관리자의 답변이 등록되지 않았습니다."}
-            </div>
-
-            {/* 첨부파일 (있을 때만 표시) */}
-          {inquiry.replyFileId && (
-            <div className="flex flex-col gap-2">
-              <div className="text-base font-semibold text-slate-800">첨부파일</div>
-              <div className="h-12 px-4 bg-slate-50 rounded-lg flex items-center gap-2 outline outline-1 outline-slate-200">
-                <span className="material-symbols-outlined text-slate-500">description</span>
-                {/* <a
-                  href={inquiry.fileUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-slate-700 text-sm font-medium underline hover:text-blue-600"
-                >
-                  {inquiry.fileName}
-                </a> */}
-              </div>
-            </div>
-          )}
-
           </div>
 
-
+          {/* 답변 카드 (답변 있을 경우만) */}
+          {inquiry.reply && (
+            <div className="p-8 bg-white rounded-xl shadow flex flex-col gap-6">
+              <div className="flex justify-between items-center">
+                <div className="text-slate-800 text-xl font-bold">답변</div>
+                <div className="flex gap-4 text-sm text-slate-500">
+                  <div>
+                    <span className="text-slate-700">
+                      {inquiry.reply.createdAt}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div className="h-px bg-slate-200" />
+              <div className="p-4 bg-blue-50 rounded-lg text-slate-800 text-sm whitespace-pre-wrap h-48 overflow-y-auto">
+                {inquiry.reply.content}
+              </div>
+              {inquiry.reply&& (
+                <div className="flex flex-col">
+                  <div className="font-semibold text-sm text-slate-500 mb-1">첨부 파일</div>
+                  <div className="h-10 px-4 bg-slate-50 rounded-lg flex items-center gap-2 outline outline-1 outline-slate-200">
+                    <span className="material-symbols-outlined text-slate-500">description</span>
+                    <span className="text-slate-700 text-sm font-medium">첨부파일</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </Fragment>
