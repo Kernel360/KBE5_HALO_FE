@@ -1,3 +1,5 @@
+import { ChevronLeft, ChevronRight, ChevronFirst, ChevronLast } from "lucide-react";
+
 interface AdminPaginationProps {
   page: number; // 0-based index
   totalPages: number;
@@ -20,9 +22,6 @@ export const AdminPagination = ({
   const groupStart = currentGroup * PAGE_GROUP_SIZE;
   const groupEnd = Math.min(groupStart + PAGE_GROUP_SIZE, safeTotalPages);
 
-  // 이전/다음 그룹 이동 가능 여부
-  const hasPrevGroup = groupStart > 0;
-  const hasNextGroup = groupEnd < safeTotalPages;
 
   // 페이지 번호 배열
   const pageNumbers = [];
@@ -32,20 +31,29 @@ export const AdminPagination = ({
 
   return (
     <div className={`flex justify-center gap-1 pt-4 ${className}`}>
-      {/* 이전 그룹 */}
+      {/* 첫 페이지 */}
       <button
-        className={`w-8 h-8 rounded-md flex justify-center items-center text-sm font-medium transition-colors
-          ${hasPrevGroup ? "bg-slate-100 text-slate-500 cursor-pointer hover:bg-slate-200" : "bg-slate-50 text-slate-300 cursor-not-allowed"}`}
-        onClick={() => hasPrevGroup && onChange(groupStart - 1)}
-        disabled={!hasPrevGroup}
+        className={`w-9 h-9 rounded-md flex justify-center items-center text-sm font-medium transition-colors
+          ${page > 0 ? "bg-slate-100 text-slate-500 cursor-pointer hover:bg-slate-200" : "bg-slate-50 text-slate-300 cursor-not-allowed"}`}
+        onClick={() => page > 0 && onChange(0)}
+        disabled={page <= 0}
       >
-        이전
+        <ChevronFirst size={18} />
+      </button>
+      {/* 이전 페이지 */}
+      <button
+        className={`w-9 h-9 rounded-md flex justify-center items-center text-sm font-medium transition-colors
+          ${page > 0 ? "bg-slate-100 text-slate-500 cursor-pointer hover:bg-slate-200" : "bg-slate-50 text-slate-300 cursor-not-allowed"}`}
+        onClick={() => page > 0 && onChange(page - 1)}
+        disabled={page <= 0}
+      >
+        <ChevronLeft size={18} />
       </button>
       {/* 페이지 번호 */}
       {pageNumbers.map((p) => (
         <button
           key={p}
-          className={`w-8 h-8 rounded-md flex justify-center items-center text-sm font-medium transition-colors
+          className={`w-9 h-9 rounded-md flex justify-center items-center text-sm font-medium transition-colors
             ${page === p ? "bg-indigo-600 text-white" : "bg-slate-100 text-slate-500 hover:bg-slate-200"}
           `}
           onClick={() => onChange(p)}
@@ -53,14 +61,23 @@ export const AdminPagination = ({
           {p + 1}
         </button>
       ))}
-      {/* 다음 그룹 */}
+      {/* 다음 페이지 */}
       <button
-        className={`w-8 h-8 rounded-md flex justify-center items-center text-sm font-medium transition-colors
-          ${hasNextGroup ? "bg-slate-100 text-slate-500 cursor-pointer hover:bg-slate-200" : "bg-slate-50 text-slate-300 cursor-not-allowed"}`}
-        onClick={() => hasNextGroup && onChange(groupEnd)}
-        disabled={!hasNextGroup}
+        className={`w-9 h-9 rounded-md flex justify-center items-center text-sm font-medium transition-colors
+          ${page < safeTotalPages - 1 ? "bg-slate-100 text-slate-500 cursor-pointer hover:bg-slate-200" : "bg-slate-50 text-slate-300 cursor-not-allowed"}`}
+        onClick={() => page < safeTotalPages - 1 && onChange(page + 1)}
+        disabled={page >= safeTotalPages - 1}
       >
-        다음
+        <ChevronRight size={18} />
+      </button>
+      {/* 마지막 페이지 */}
+      <button
+        className={`w-9 h-9 rounded-md flex justify-center items-center text-sm font-medium transition-colors
+          ${page < safeTotalPages - 1 ? "bg-slate-100 text-slate-500 cursor-pointer hover:bg-slate-200" : "bg-slate-50 text-slate-300 cursor-not-allowed"}`}
+        onClick={() => page < safeTotalPages - 1 && onChange(safeTotalPages - 1)}
+        disabled={page >= safeTotalPages - 1}
+      >
+        <ChevronLast size={18} />
       </button>
     </div>
   );
