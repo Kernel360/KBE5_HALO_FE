@@ -78,45 +78,63 @@ export const ManagerReservationTable = ({
   ];
 
   const dateRangeOptions = [
+    { value: "all", label: "전체" },
     { value: "today", label: "오늘" },
     { value: "thisWeek", label: "이번 주" },
     { value: "thisMonth", label: "이번 달" },
-    { value: "lastWeek", label: "지난 주" },
-    { value: "lastMonth", label: "지난 달" },
     { value: "last7Days", label: "최근 7일" },
     { value: "last30Days", label: "최근 30일" },
-    { value: "all", label: "전체" },
   ];
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
+      // 예약 상태 드롭다운
       if (
+        isStatusDropdownOpen &&
         statusDropdownRef.current &&
-        !statusDropdownRef.current.contains(event.target as Node)
+        !statusDropdownRef.current.contains(event.target as Node) &&
+        statusDropdownButtonRef.current &&
+        !statusDropdownButtonRef.current.contains(event.target as Node)
       ) {
         setIsStatusDropdownOpen(false);
       }
+      // 체크인 드롭다운
       if (
+        isCheckedInDropdownOpen &&
         checkedInDropdownRef.current &&
-        !checkedInDropdownRef.current.contains(event.target as Node)
+        !checkedInDropdownRef.current.contains(event.target as Node) &&
+        checkedInDropdownButtonRef.current &&
+        !checkedInDropdownButtonRef.current.contains(event.target as Node)
       ) {
         setIsCheckedInDropdownOpen(false);
       }
+      // 체크아웃 드롭다운
       if (
+        isCheckedOutDropdownOpen &&
         checkedOutDropdownRef.current &&
-        !checkedOutDropdownRef.current.contains(event.target as Node)
+        !checkedOutDropdownRef.current.contains(event.target as Node) &&
+        checkedOutDropdownButtonRef.current &&
+        !checkedOutDropdownButtonRef.current.contains(event.target as Node)
       ) {
         setIsCheckedOutDropdownOpen(false);
       }
+      // 리뷰작성 드롭다운
       if (
+        isReviewedDropdownOpen &&
         reviewedDropdownRef.current &&
-        !reviewedDropdownRef.current.contains(event.target as Node)
+        !reviewedDropdownRef.current.contains(event.target as Node) &&
+        reviewedDropdownButtonRef.current &&
+        !reviewedDropdownButtonRef.current.contains(event.target as Node)
       ) {
         setIsReviewedDropdownOpen(false);
       }
+      // 날짜 드롭다운
       if (
+        isDateRangeDropdownOpen &&
         dateRangeDropdownRef.current &&
-        !dateRangeDropdownRef.current.contains(event.target as Node)
+        !dateRangeDropdownRef.current.contains(event.target as Node) &&
+        dateRangeDropdownButtonRef.current &&
+        !dateRangeDropdownButtonRef.current.contains(event.target as Node)
       ) {
         setIsDateRangeDropdownOpen(false);
       }
@@ -126,7 +144,13 @@ export const ManagerReservationTable = ({
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, []);
+  }, [
+    isStatusDropdownOpen,
+    isCheckedInDropdownOpen,
+    isCheckedOutDropdownOpen,
+    isReviewedDropdownOpen,
+    isDateRangeDropdownOpen,
+  ]);
 
   const handleToggleAll = () => {
     if (selectedStatuses.length === statuses.length) {
@@ -201,74 +225,12 @@ export const ManagerReservationTable = ({
     setIsDateRangeDropdownOpen(false);
   };
 
-  const renderDropdown = (
-    isOpen: boolean,
-    toggleOpen: () => void,
-    toggleAll: () => void,
-    toggle: (value: string) => void,
-    selectedValues: string[],
-    options: StatusOption[],
-    label: string
-  ) => (
-    <div className="relative">
-      <button
-        onClick={toggleOpen}
-        className="flex items-center justify-center gap-1 text-sm font-medium text-slate-700 transition-colors hover:text-slate-900">
-        {label}
-        <svg
-          className={`h-4 w-4 transition-transform ${isOpen ? "rotate-180" : ""}`}
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M19 9l-7 7-7-7"
-          />
-        </svg>
-      </button>
-      {isOpen && (
-        <div className="absolute top-full left-0 z-50 mt-2 w-48 rounded-lg border border-slate-200 bg-white shadow-lg">
-          <div className="border-b border-slate-200 p-3">
-            <label className="flex cursor-pointer items-center gap-2">
-              <input
-                type="checkbox"
-                checked={selectedValues.length === options.length}
-                onChange={toggleAll}
-                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-              />
-              <span className="text-sm font-medium text-slate-700">
-                전체 선택
-              </span>
-            </label>
-          </div>
-          <div className="max-h-48 overflow-y-auto p-3">
-            {options.map((option) => (
-              <label
-                key={option.value}
-                className="mb-2 flex cursor-pointer items-center gap-2 last:mb-0">
-                <input
-                  type="checkbox"
-                  checked={selectedValues.includes(option.value)}
-                  onChange={() => toggle(option.value)}
-                  className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                />
-                <span className="text-sm text-slate-700">{option.label}</span>
-              </label>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-
   const renderDateRangeDropdown = () => (
     <div className="relative">
       <button
         ref={dateRangeDropdownButtonRef}
-        onClick={() => setIsDateRangeDropdownOpen(!isDateRangeDropdownOpen)}
-        className="flex items-center justify-center gap-1 text-sm font-medium text-slate-700 transition-colors hover:text-slate-900">
+        onClick={() => setIsDateRangeDropdownOpen((open) => !open)}
+        className="flex items-center justify-center gap-1 text-base font-medium text-slate-700 transition-colors hover:text-slate-900">
         청소 요청 날짜
         <svg
           className={`h-4 w-4 transition-transform ${
@@ -285,8 +247,16 @@ export const ManagerReservationTable = ({
           />
         </svg>
       </button>
-      {isDateRangeDropdownOpen && (
-        <div className="absolute top-full left-0 z-50 mt-2 w-48 rounded-lg border border-slate-200 bg-white shadow-lg">
+      <PortalDropdown
+        anchorRef={
+          dateRangeDropdownButtonRef as unknown as React.RefObject<Element>
+        }
+        open={isDateRangeDropdownOpen}
+      >
+        <div
+          ref={dateRangeDropdownRef}
+          className="absolute top-0 left-0 z-[9999] mt-2 w-48 rounded-lg border border-slate-200 bg-white shadow-lg"
+        >
           <div className="max-h-48 overflow-y-auto p-3">
             {dateRangeOptions.map((option) => (
               <button
@@ -302,7 +272,7 @@ export const ManagerReservationTable = ({
             ))}
           </div>
         </div>
-      )}
+      </PortalDropdown>
     </div>
   );
 
@@ -330,27 +300,25 @@ export const ManagerReservationTable = ({
       </div>
 
       {/* 데스크탑/태블릿: 테이블 */}
-      <div className="hidden md:block w-full max-w-full min-w-0">
+      <div className="hidden md:block w-full max-w-full min-w-0 overflow-x-auto">
         <div className="w-full max-w-full min-w-0">
-          <table className="min-w-[900px] w-full">
+          <table className="min-w-[900px] w-full rounded-xl shadow-md overflow-hidden">
             <thead>
-              <tr className="border-b border-slate-200">
-                <th className="min-w-[80px] max-w-[100px] px-2 py-3 text-left text-sm font-medium text-slate-700 whitespace-nowrap overflow-hidden truncate">예약 ID</th>
-                <th className="min-w-[120px] max-w-[140px] relative px-2 py-3 text-center text-sm font-medium text-slate-700 whitespace-nowrap overflow-hidden truncate">
-                  <div className="relative">
-                    {renderDateRangeDropdown()}
-                  </div>
+              <tr className="bg-slate-50 border-b-2 border-slate-200">
+                <th className="py-3 px-4 text-left font-semibold text-base text-slate-700 min-w-[80px]">예약 ID</th>
+                <th className="py-3 px-4 text-center font-semibold text-base text-slate-700 min-w-[120px]">
+                  <div className="relative">{renderDateRangeDropdown()}</div>
                 </th>
-                <th className="min-w-[90px] max-w-[110px] px-2 py-3 text-center text-sm font-medium text-slate-700 whitespace-nowrap overflow-hidden truncate">요청 시간</th>
-                <th className="min-w-[100px] max-w-[120px] px-2 py-3 text-center text-sm font-medium text-slate-700 whitespace-nowrap overflow-hidden truncate">고객명</th>
-                <th className="min-w-[180px] max-w-[240px] px-2 py-3 text-center text-sm font-medium text-slate-700 whitespace-nowrap overflow-hidden truncate">고객 주소</th>
-                <th className="min-w-[100px] max-w-[120px] px-2 py-3 text-center text-sm font-medium text-slate-700 whitespace-nowrap overflow-hidden truncate">서비스명</th>
-                <th className="min-w-[110px] max-w-[130px] relative px-2 py-3 text-center text-sm font-medium text-slate-700 whitespace-nowrap overflow-hidden truncate">
+                <th className="py-3 px-4 text-center font-semibold text-base text-slate-700 min-w-[120px]">요청 시간</th>
+                <th className="py-3 px-4 text-center font-semibold text-base text-slate-700 min-w-[100px]">고객명</th>
+                <th className="py-3 px-4 text-center font-semibold text-base text-slate-700 min-w-[180px]">고객 주소</th>
+                <th className="py-3 px-4 text-center font-semibold text-base text-slate-700 min-w-[120px]">서비스명</th>
+                <th className="py-3 px-4 text-center font-semibold text-base text-slate-700 min-w-[100px]">
                   <div className="relative">
                     <button
                       ref={statusDropdownButtonRef}
-                      onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
-                      className="flex items-center justify-center gap-1 text-sm font-medium text-slate-700 transition-colors hover:text-slate-900"
+                      onClick={() => setIsStatusDropdownOpen((open) => !open)}
+                      className="flex items-center justify-center gap-1 text-base font-medium text-slate-700 transition-colors hover:text-slate-900"
                     >
                       예약 상태
                       <svg
@@ -368,7 +336,10 @@ export const ManagerReservationTable = ({
                       </svg>
                     </button>
                     <PortalDropdown anchorRef={statusDropdownButtonRef as unknown as React.RefObject<Element>} open={isStatusDropdownOpen}>
-                      <div className="absolute top-0 left-0 z-[9999] mt-2 w-48 rounded-lg border border-slate-200 bg-white shadow-lg">
+                      <div
+                        ref={statusDropdownRef}
+                        className="absolute top-0 left-0 z-[9999] mt-2 w-48 rounded-lg border border-slate-200 bg-white shadow-lg"
+                      >
                         <div className="border-b border-slate-200 p-3">
                           <label className="flex cursor-pointer items-center gap-2">
                             <input
@@ -402,12 +373,12 @@ export const ManagerReservationTable = ({
                     </PortalDropdown>
                   </div>
                 </th>
-                <th className="min-w-[80px] max-w-[100px] relative px-2 py-3 text-center text-sm font-medium text-slate-700 whitespace-nowrap overflow-hidden truncate">
+                <th className="py-3 px-4 text-center font-semibold text-base text-slate-700 min-w-[100px]">
                   <div className="relative">
                     <button
                       ref={checkedInDropdownButtonRef}
-                      onClick={() => setIsCheckedInDropdownOpen(!isCheckedInDropdownOpen)}
-                      className="flex items-center justify-center gap-1 text-sm font-medium text-slate-700 transition-colors hover:text-slate-900"
+                      onClick={() => setIsCheckedInDropdownOpen((open) => !open)}
+                      className="flex items-center justify-center gap-1 text-base font-medium text-slate-700 transition-colors hover:text-slate-900"
                     >
                       체크인
                       <svg
@@ -425,7 +396,10 @@ export const ManagerReservationTable = ({
                       </svg>
                     </button>
                     <PortalDropdown anchorRef={checkedInDropdownButtonRef as unknown as React.RefObject<Element>} open={isCheckedInDropdownOpen}>
-                      <div className="absolute top-0 left-0 z-[9999] mt-2 w-48 rounded-lg border border-slate-200 bg-white shadow-lg">
+                      <div
+                        ref={checkedInDropdownRef}
+                        className="absolute top-0 left-0 z-[9999] mt-2 w-48 rounded-lg border border-slate-200 bg-white shadow-lg"
+                      >
                         <div className="border-b border-slate-200 p-3">
                           <label className="flex cursor-pointer items-center gap-2">
                             <input
@@ -459,12 +433,12 @@ export const ManagerReservationTable = ({
                     </PortalDropdown>
                   </div>
                 </th>
-                <th className="min-w-[80px] max-w-[100px] relative px-2 py-3 text-center text-sm font-medium text-slate-700 whitespace-nowrap overflow-hidden truncate">
+                <th className="py-3 px-4 text-center font-semibold text-base text-slate-700 min-w-[100px]">
                   <div className="relative">
                     <button
                       ref={checkedOutDropdownButtonRef}
-                      onClick={() => setIsCheckedOutDropdownOpen(!isCheckedOutDropdownOpen)}
-                      className="flex items-center justify-center gap-1 text-sm font-medium text-slate-700 transition-colors hover:text-slate-900"
+                      onClick={() => setIsCheckedOutDropdownOpen((open) => !open)}
+                      className="flex items-center justify-center gap-1 text-base font-medium text-slate-700 transition-colors hover:text-slate-900"
                     >
                       체크아웃
                       <svg
@@ -482,7 +456,10 @@ export const ManagerReservationTable = ({
                       </svg>
                     </button>
                     <PortalDropdown anchorRef={checkedOutDropdownButtonRef as unknown as React.RefObject<Element>} open={isCheckedOutDropdownOpen}>
-                      <div className="absolute top-0 left-0 z-[9999] mt-2 w-48 rounded-lg border border-slate-200 bg-white shadow-lg">
+                      <div
+                        ref={checkedOutDropdownRef}
+                        className="absolute top-0 left-0 z-[9999] mt-2 w-48 rounded-lg border border-slate-200 bg-white shadow-lg"
+                      >
                         <div className="border-b border-slate-200 p-3">
                           <label className="flex cursor-pointer items-center gap-2">
                             <input
@@ -516,12 +493,12 @@ export const ManagerReservationTable = ({
                     </PortalDropdown>
                   </div>
                 </th>
-                <th className="min-w-[80px] max-w-[100px] relative px-2 py-3 text-center text-sm font-medium text-slate-700 whitespace-nowrap overflow-hidden truncate">
+                <th className="py-3 px-4 text-center font-semibold text-base text-slate-700 min-w-[100px]">
                   <div className="relative">
                     <button
                       ref={reviewedDropdownButtonRef}
-                      onClick={() => setIsReviewedDropdownOpen(!isReviewedDropdownOpen)}
-                      className="flex items-center justify-center gap-1 text-sm font-medium text-slate-700 transition-colors hover:text-slate-900"
+                      onClick={() => setIsReviewedDropdownOpen((open) => !open)}
+                      className="flex items-center justify-center gap-1 text-base font-medium text-slate-700 transition-colors hover:text-slate-900"
                     >
                       리뷰작성
                       <svg
@@ -539,7 +516,10 @@ export const ManagerReservationTable = ({
                       </svg>
                     </button>
                     <PortalDropdown anchorRef={reviewedDropdownButtonRef as unknown as React.RefObject<Element>} open={isReviewedDropdownOpen}>
-                      <div className="absolute top-0 left-0 z-[9999] mt-2 w-48 rounded-lg border border-slate-200 bg-white shadow-lg">
+                      <div
+                        ref={reviewedDropdownRef}
+                        className="absolute top-0 left-0 z-[9999] mt-2 w-48 rounded-lg border border-slate-200 bg-white shadow-lg"
+                      >
                         <div className="border-b border-slate-200 p-3">
                           <label className="flex cursor-pointer items-center gap-2">
                             <input
@@ -586,19 +566,20 @@ export const ManagerReservationTable = ({
                 reservations.map((reservation) => (
                   <tr
                     key={reservation.reservationId}
-                    className="border-b border-slate-100 transition-colors hover:bg-slate-50 cursor-pointer"
-                    onClick={() => navigate(`/managers/reservations/${reservation.reservationId}`)}>
-                    <td className="min-w-[80px] max-w-[100px] px-2 py-3 text-sm text-slate-700 whitespace-nowrap overflow-hidden truncate">
+                    className="border-b border-slate-200 hover:bg-slate-100 transition-colors cursor-pointer"
+                    onClick={() => navigate(`/managers/reservations/${reservation.reservationId}`)}
+                  >
+                    <td className="py-3 px-4 text-sm text-slate-700 truncate min-w-[80px]">
                       <Link
                         to={`/managers/reservations/${reservation.reservationId}`}
                         className="font-medium text-indigo-600 hover:text-indigo-800 truncate block">
                         {reservation.reservationId || "-"}
                       </Link>
                     </td>
-                    <td className="min-w-[120px] max-w-[140px] px-2 py-3 text-center text-sm text-slate-700 whitespace-nowrap overflow-hidden truncate">
+                    <td className="py-3 px-4 text-center text-sm text-slate-700 truncate min-w-[120px]">
                       {reservation.requestDate || "-"}
                     </td>
-                    <td className="min-w-[90px] max-w-[110px] px-2 py-3 text-center text-sm text-slate-700 whitespace-nowrap overflow-hidden truncate">
+                    <td className="py-3 px-4 text-center text-sm text-slate-700 truncate min-w-[120px]">
                       {reservation.startTime && reservation.turnaround
                         ? formatTimeRange(
                             reservation.startTime,
@@ -606,20 +587,20 @@ export const ManagerReservationTable = ({
                           )
                         : "-"}
                     </td>
-                    <td className="min-w-[100px] max-w-[120px] px-2 py-3 text-center text-sm text-slate-700 whitespace-nowrap overflow-hidden truncate">
+                    <td className="py-3 px-4 text-center text-sm text-slate-700 truncate min-w-[100px]">
                       <div className="truncate block" title={reservation.customerName || "-"}>
                         {reservation.customerName || "-"}
                       </div>
                     </td>
-                    <td className="min-w-[180px] max-w-[240px] px-2 py-3 text-center text-sm text-slate-700 whitespace-nowrap overflow-hidden truncate">
+                    <td className="py-3 px-4 text-center text-sm text-slate-700 truncate min-w-[180px]">
                       <div className="truncate block" title={reservation.customerAddress || "-"}>
                         {reservation.customerAddress || "-"}
                       </div>
                     </td>
-                    <td className="min-w-[100px] max-w-[120px] px-2 py-3 text-center text-sm text-slate-700 whitespace-nowrap overflow-hidden truncate">
+                    <td className="py-3 px-4 text-center text-sm text-slate-700 truncate min-w-[120px]">
                       {reservation.serviceName || "-"}
                     </td>
-                    <td className="min-w-[110px] max-w-[130px] px-2 py-3 text-center text-sm whitespace-nowrap overflow-hidden truncate">
+                    <td className="py-3 px-4 text-center text-sm whitespace-nowrap overflow-hidden truncate min-w-[100px]">
                       {reservation.statusName ? (
                         <div
                           className={`inline-flex h-7 items-center justify-center rounded-2xl px-3 ${
@@ -636,21 +617,21 @@ export const ManagerReservationTable = ({
                         <span className="text-slate-400">-</span>
                       )}
                     </td>
-                    <td className="min-w-[80px] max-w-[100px] px-2 py-3 text-center text-sm whitespace-nowrap overflow-hidden truncate">
+                    <td className="py-3 px-4 text-center text-sm whitespace-nowrap overflow-hidden truncate min-w-[100px]">
                       <StatusBadge
                         value={reservation.isCheckedIn}
                         trueText="완료"
                         falseText="대기"
                       />
                     </td>
-                    <td className="min-w-[80px] max-w-[100px] px-2 py-3 text-center text-sm whitespace-nowrap overflow-hidden truncate">
+                    <td className="py-3 px-4 text-center text-sm whitespace-nowrap overflow-hidden truncate min-w-[100px]">
                       <StatusBadge
                         value={reservation.isCheckedOut}
                         trueText="완료"
                         falseText="대기"
                       />
                     </td>
-                    <td className="min-w-[80px] max-w-[100px] px-2 py-3 text-center text-sm whitespace-nowrap overflow-hidden truncate">
+                    <td className="py-3 px-4 text-center text-sm whitespace-nowrap overflow-hidden truncate min-w-[100px]">
                       <StatusBadge
                         value={reservation.isReviewed}
                         trueText="완료"
