@@ -69,7 +69,7 @@ export const ManagerInquiryForm = () => {
 
     // TODO: S3 업로드 후 받은 실제 fileId와 fileUrls로 대체 필요
     setFileId(1);
-    const fileUrls = files.map(file => URL.createObjectURL(file));
+    //const fileUrls = files.map(file => URL.createObjectURL(file));
 
     try {
       if (isEditMode && existingData) {

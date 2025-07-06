@@ -142,7 +142,7 @@ export const ManagerInquiryDetail = () => {
               <div className="p-4 bg-blue-50 rounded-lg text-slate-800 text-sm whitespace-pre-wrap h-48 overflow-y-auto">
                 {inquiry.reply.content}
               </div>
-              {inquiry.reply&& (
+              {inquiry.reply && inquiry.reply.fileId && (
                 <div className="flex flex-col">
                   <div className="font-semibold text-sm text-slate-500 mb-1">첨부 파일</div>
                   <div className="h-10 px-4 bg-slate-50 rounded-lg flex items-center gap-2 outline outline-1 outline-slate-200">
