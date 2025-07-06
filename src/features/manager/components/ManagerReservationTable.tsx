@@ -52,7 +52,7 @@ export const ManagerReservationTable = ({
   onReviewedFilterChange,
   selectedDateRange,
   onDateRangeChange,
-  className = ""
+  className = "",
 }: ManagerReservationTableProps) => {
   const navigate = useNavigate();
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
@@ -229,16 +229,16 @@ export const ManagerReservationTable = ({
     <div className="relative">
       <button
         ref={dateRangeDropdownButtonRef}
-        onClick={() => setIsDateRangeDropdownOpen((open) => !open)}
-        className="flex items-center justify-center gap-1 text-base font-medium text-slate-700 transition-colors hover:text-slate-900">
+        onClick={() => setIsDateRangeDropdownOpen(!isDateRangeDropdownOpen)}
+        className="flex items-center justify-center gap-1 text-sm font-medium text-slate-700 transition-colors hover:text-slate-900"
+      >
         청소 요청 날짜
         <svg
-          className={`h-4 w-4 transition-transform ${
-            isDateRangeDropdownOpen ? "rotate-180" : ""
-          }`}
+          className={`h-4 w-4 transition-transform ${isDateRangeDropdownOpen ? "rotate-180" : ""}`}
           fill="none"
           stroke="currentColor"
-          viewBox="0 0 24 24">
+          viewBox="0 0 24 24"
+        >
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -266,7 +266,8 @@ export const ManagerReservationTable = ({
                   selectedDateRange === option.value
                     ? "bg-blue-50 font-medium text-blue-600"
                     : "text-slate-700 hover:bg-slate-50"
-                }`}>
+                }`}
+              >
                 {option.label}
               </button>
             ))}
@@ -277,7 +278,9 @@ export const ManagerReservationTable = ({
   );
 
   return (
-    <div className={`h-full w-full flex-1 min-w-0 rounded-xl bg-white p-6 shadow-[0px_2px_12px_0px_rgba(0,0,0,0.04)] flex flex-col ${className}`}>
+    <div
+      className={`h-full w-full flex-1 min-w-0 rounded-xl bg-white p-6 shadow-[0px_2px_12px_0px_rgba(0,0,0,0.04)] flex flex-col ${className}`}
+    >
       {/* 헤더 */}
       <div className="mb-4 flex items-center justify-between">
         <h3 className="text-lg font-semibold text-slate-800">예약 목록</h3>
@@ -288,7 +291,9 @@ export const ManagerReservationTable = ({
       <div className="block md:hidden">
         <ManagerReservationListMobile
           reservations={reservations}
-          onClickItem={reservationId => navigate(`/managers/reservations/${reservationId}`)}
+          onClickItem={(reservationId) =>
+            navigate(`/managers/reservations/${reservationId}`)
+          }
         />
         <div className="mt-6 flex justify-center">
           <Pagination
@@ -305,14 +310,24 @@ export const ManagerReservationTable = ({
           <table className="min-w-[900px] w-full rounded-xl shadow-md overflow-hidden">
             <thead>
               <tr className="bg-slate-50 border-b-2 border-slate-200">
-                <th className="py-3 px-4 text-left font-semibold text-base text-slate-700 min-w-[80px]">예약 ID</th>
+                <th className="py-3 px-4 text-left font-semibold text-base text-slate-700 min-w-[80px]">
+                  예약 ID
+                </th>
                 <th className="py-3 px-4 text-center font-semibold text-base text-slate-700 min-w-[120px]">
                   <div className="relative">{renderDateRangeDropdown()}</div>
                 </th>
-                <th className="py-3 px-4 text-center font-semibold text-base text-slate-700 min-w-[120px]">요청 시간</th>
-                <th className="py-3 px-4 text-center font-semibold text-base text-slate-700 min-w-[100px]">고객명</th>
-                <th className="py-3 px-4 text-center font-semibold text-base text-slate-700 min-w-[180px]">고객 주소</th>
-                <th className="py-3 px-4 text-center font-semibold text-base text-slate-700 min-w-[120px]">서비스명</th>
+                <th className="py-3 px-4 text-center font-semibold text-base text-slate-700 min-w-[120px]">
+                  요청 시간
+                </th>
+                <th className="py-3 px-4 text-center font-semibold text-base text-slate-700 min-w-[100px]">
+                  고객명
+                </th>
+                <th className="py-3 px-4 text-center font-semibold text-base text-slate-700 min-w-[180px]">
+                  고객 주소
+                </th>
+                <th className="py-3 px-4 text-center font-semibold text-base text-slate-700 min-w-[120px]">
+                  서비스명
+                </th>
                 <th className="py-3 px-4 text-center font-semibold text-base text-slate-700 min-w-[100px]">
                   <div className="relative">
                     <button
@@ -335,7 +350,12 @@ export const ManagerReservationTable = ({
                         />
                       </svg>
                     </button>
-                    <PortalDropdown anchorRef={statusDropdownButtonRef as unknown as React.RefObject<Element>} open={isStatusDropdownOpen}>
+                    <PortalDropdown
+                      anchorRef={
+                        statusDropdownButtonRef as unknown as React.RefObject<Element>
+                      }
+                      open={isStatusDropdownOpen}
+                    >
                       <div
                         ref={statusDropdownRef}
                         className="absolute top-0 left-0 z-[9999] mt-2 w-48 rounded-lg border border-slate-200 bg-white shadow-lg"
@@ -344,7 +364,9 @@ export const ManagerReservationTable = ({
                           <label className="flex cursor-pointer items-center gap-2">
                             <input
                               type="checkbox"
-                              checked={selectedStatuses.length === statuses.length}
+                              checked={
+                                selectedStatuses.length === statuses.length
+                              }
                               onChange={handleToggleAll}
                               className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                             />
@@ -362,10 +384,14 @@ export const ManagerReservationTable = ({
                               <input
                                 type="checkbox"
                                 checked={selectedStatuses.includes(option.value)}
-                                onChange={() => handleStatusToggle(option.value)}
+                                onChange={() =>
+                                  handleStatusToggle(option.value)
+                                }
                                 className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                               />
-                              <span className="text-sm text-slate-700">{option.label}</span>
+                              <span className="text-sm text-slate-700">
+                                {option.label}
+                              </span>
                             </label>
                           ))}
                         </div>
@@ -395,7 +421,12 @@ export const ManagerReservationTable = ({
                         />
                       </svg>
                     </button>
-                    <PortalDropdown anchorRef={checkedInDropdownButtonRef as unknown as React.RefObject<Element>} open={isCheckedInDropdownOpen}>
+                    <PortalDropdown
+                      anchorRef={
+                        checkedInDropdownButtonRef as unknown as React.RefObject<Element>
+                      }
+                      open={isCheckedInDropdownOpen}
+                    >
                       <div
                         ref={checkedInDropdownRef}
                         className="absolute top-0 left-0 z-[9999] mt-2 w-48 rounded-lg border border-slate-200 bg-white shadow-lg"
@@ -404,7 +435,9 @@ export const ManagerReservationTable = ({
                           <label className="flex cursor-pointer items-center gap-2">
                             <input
                               type="checkbox"
-                              checked={selectedCheckedIn.length === checkOptions.length}
+                              checked={
+                                selectedCheckedIn.length === checkOptions.length
+                              }
                               onChange={handleCheckedInToggleAll}
                               className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                             />
@@ -422,10 +455,14 @@ export const ManagerReservationTable = ({
                               <input
                                 type="checkbox"
                                 checked={selectedCheckedIn.includes(option.value)}
-                                onChange={() => handleCheckedInToggle(option.value)}
+                                onChange={() =>
+                                  handleCheckedInToggle(option.value)
+                                }
                                 className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                               />
-                              <span className="text-sm text-slate-700">{option.label}</span>
+                              <span className="text-sm text-slate-700">
+                                {option.label}
+                              </span>
                             </label>
                           ))}
                         </div>
@@ -437,7 +474,9 @@ export const ManagerReservationTable = ({
                   <div className="relative">
                     <button
                       ref={checkedOutDropdownButtonRef}
-                      onClick={() => setIsCheckedOutDropdownOpen((open) => !open)}
+                      onClick={() =>
+                        setIsCheckedOutDropdownOpen((open) => !open)
+                      }
                       className="flex items-center justify-center gap-1 text-base font-medium text-slate-700 transition-colors hover:text-slate-900"
                     >
                       체크아웃
@@ -455,7 +494,12 @@ export const ManagerReservationTable = ({
                         />
                       </svg>
                     </button>
-                    <PortalDropdown anchorRef={checkedOutDropdownButtonRef as unknown as React.RefObject<Element>} open={isCheckedOutDropdownOpen}>
+                    <PortalDropdown
+                      anchorRef={
+                        checkedOutDropdownButtonRef as unknown as React.RefObject<Element>
+                      }
+                      open={isCheckedOutDropdownOpen}
+                    >
                       <div
                         ref={checkedOutDropdownRef}
                         className="absolute top-0 left-0 z-[9999] mt-2 w-48 rounded-lg border border-slate-200 bg-white shadow-lg"
@@ -464,7 +508,9 @@ export const ManagerReservationTable = ({
                           <label className="flex cursor-pointer items-center gap-2">
                             <input
                               type="checkbox"
-                              checked={selectedCheckedOut.length === checkOptions.length}
+                              checked={
+                                selectedCheckedOut.length === checkOptions.length
+                              }
                               onChange={handleCheckedOutToggleAll}
                               className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                             />
@@ -482,10 +528,14 @@ export const ManagerReservationTable = ({
                               <input
                                 type="checkbox"
                                 checked={selectedCheckedOut.includes(option.value)}
-                                onChange={() => handleCheckedOutToggle(option.value)}
+                                onChange={() =>
+                                  handleCheckedOutToggle(option.value)
+                                }
                                 className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                               />
-                              <span className="text-sm text-slate-700">{option.label}</span>
+                              <span className="text-sm text-slate-700">
+                                {option.label}
+                              </span>
                             </label>
                           ))}
                         </div>
@@ -515,7 +565,12 @@ export const ManagerReservationTable = ({
                         />
                       </svg>
                     </button>
-                    <PortalDropdown anchorRef={reviewedDropdownButtonRef as unknown as React.RefObject<Element>} open={isReviewedDropdownOpen}>
+                    <PortalDropdown
+                      anchorRef={
+                        reviewedDropdownButtonRef as unknown as React.RefObject<Element>
+                      }
+                      open={isReviewedDropdownOpen}
+                    >
                       <div
                         ref={reviewedDropdownRef}
                         className="absolute top-0 left-0 z-[9999] mt-2 w-48 rounded-lg border border-slate-200 bg-white shadow-lg"
@@ -524,7 +579,9 @@ export const ManagerReservationTable = ({
                           <label className="flex cursor-pointer items-center gap-2">
                             <input
                               type="checkbox"
-                              checked={selectedReviewed.length === checkOptions.length}
+                              checked={
+                                selectedReviewed.length === checkOptions.length
+                              }
                               onChange={handleReviewedToggleAll}
                               className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                             />
@@ -542,10 +599,14 @@ export const ManagerReservationTable = ({
                               <input
                                 type="checkbox"
                                 checked={selectedReviewed.includes(option.value)}
-                                onChange={() => handleReviewedToggle(option.value)}
+                                onChange={() =>
+                                  handleReviewedToggle(option.value)
+                                }
                                 className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                               />
-                              <span className="text-sm text-slate-700">{option.label}</span>
+                              <span className="text-sm text-slate-700">
+                                {option.label}
+                              </span>
                             </label>
                           ))}
                         </div>
@@ -558,7 +619,10 @@ export const ManagerReservationTable = ({
             <tbody key={fadeKey}>
               {reservations.length === 0 ? (
                 <tr>
-                  <td colSpan={10} className="py-20 text-center text-slate-400 whitespace-nowrap overflow-hidden truncate">
+                  <td
+                    colSpan={10}
+                    className="py-20 text-center text-slate-400 whitespace-nowrap overflow-hidden truncate"
+                  >
                     조회된 예약이 없습니다.
                   </td>
                 </tr>
@@ -567,12 +631,15 @@ export const ManagerReservationTable = ({
                   <tr
                     key={reservation.reservationId}
                     className="border-b border-slate-200 hover:bg-slate-100 transition-colors cursor-pointer"
-                    onClick={() => navigate(`/managers/reservations/${reservation.reservationId}`)}
+                    onClick={() =>
+                      navigate(`/managers/reservations/${reservation.reservationId}`)
+                    }
                   >
                     <td className="py-3 px-4 text-sm text-slate-700 truncate min-w-[80px]">
                       <Link
                         to={`/managers/reservations/${reservation.reservationId}`}
-                        className="font-medium text-indigo-600 hover:text-indigo-800 truncate block">
+                        className="font-medium text-indigo-600 hover:text-indigo-800 truncate block"
+                      >
                         {reservation.reservationId || "-"}
                       </Link>
                     </td>
@@ -588,12 +655,18 @@ export const ManagerReservationTable = ({
                         : "-"}
                     </td>
                     <td className="py-3 px-4 text-center text-sm text-slate-700 truncate min-w-[100px]">
-                      <div className="truncate block" title={reservation.customerName || "-"}>
+                      <div
+                        className="truncate block"
+                        title={reservation.customerName || "-"}
+                      >
                         {reservation.customerName || "-"}
                       </div>
                     </td>
                     <td className="py-3 px-4 text-center text-sm text-slate-700 truncate min-w-[180px]">
-                      <div className="truncate block" title={reservation.customerAddress || "-"}>
+                      <div
+                        className="truncate block"
+                        title={reservation.customerAddress || "-"}
+                      >
                         {reservation.customerAddress || "-"}
                       </div>
                     </td>
