@@ -66,7 +66,9 @@ const ManagerReviewCard: React.FC<ManagerReviewCardProps> = ({
       </div>
       {/* 리뷰 내용 (미리보기) */}
       <div className="relative text-base text-slate-700 font-medium italic line-clamp-3 pl-8 mt-2 mb-4">
-        <span className="absolute left-0 top-0 text-2xl text-indigo-200 select-none">"</span>
+        <span className="absolute left-0 top-0 text-2xl text-indigo-200 select-none">
+          "
+        </span>
         {preview}
       </div>
       {/* 하단 부가정보 */}
