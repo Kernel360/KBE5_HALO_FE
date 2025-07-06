@@ -1,39 +1,52 @@
 import api from "@/services/axios";
+import type { SearchInquiriesRequest } from "@/features/admin/types/AdminInquiryType";
+
+// EnumValueDTO 타입 정의
+export interface EnumValue {
+  code: string;
+  label: string;
+}
+
+// 문의사항 카테고리 전체 조회
+export const getAllInquiryCategories = async (): Promise<{[key: string]: EnumValue[]}> => {
+  const res = await api.get("/admin/inquiries/categories");
+  if (!res.data.success) {
+    throw new Error(res.data.message || "카테고리 조회에 실패했습니다.");
+  }
+  return res.data.body;
+};
+
+// 문의사항 작성자 타입 조회
+export const getAllInquiryAuthorTypes = async (): Promise<EnumValue[]> => {
+  const res = await api.get("/admin/inquiries/authorTypes");
+  if (!res.data.success) {
+    throw new Error(res.data.message || "작성자 타입 조회에 실패했습니다.");
+  }
+  return res.data.body;
+};
 
 // 문의사항 목록 조회
 export const searchAdminInquiries = async (
-  type: "customer" | "manager",
-  params: {
-    fromCreatedAt?: string;
-    toCreatedAt?: string;
-    replyStatus?: string;
-    titleKeyword?: string;
-    contentKeyword?: string;
-    page: number;
-    size: number;
-  },
+  params: SearchInquiriesRequest,
 ) => {
-  // authorRole만 분기, endpoint는 고정
-  const authorRole = type === "customer" ? "CUSTOMER" : "MANAGER";
-  const endpoint = "/admin/inquiry/search";
+  // GET 방식으로 변경, query parameter 사용
+  const queryParams = new URLSearchParams();
+  
+  if (params.fromCreatedAt) queryParams.append("fromCreatedAt", params.fromCreatedAt);
+  if (params.toCreatedAt) queryParams.append("toCreatedAt", params.toCreatedAt);
+  if (params.replyStatus !== undefined) queryParams.append("replyStatus", params.replyStatus.toString());
+  if (params.titleKeyword) queryParams.append("titleKeyword", params.titleKeyword);
+  if (params.contentKeyword) queryParams.append("contentKeyword", params.contentKeyword);
+  if (params.authorType) queryParams.append("authorType", typeof params.authorType === 'string' ? params.authorType.toUpperCase() : params.authorType.code.toUpperCase());
+  if (params.userName) queryParams.append("userName", params.userName);
+  if (params.categories && params.categories.length > 0) {
+    params.categories.forEach((category: string) => queryParams.append("categories", category));
+  }
+  
+  queryParams.append("page", (params.page ?? 0).toString());
+  queryParams.append("size", (params.size ?? 10).toString());
 
-  // replyStatus: string ("PENDING" | "ANSWERED" | "") => boolean | undefined
-  let replyStatusBool: boolean | undefined = undefined;
-  if (params.replyStatus === "PENDING") replyStatusBool = false;
-  else if (params.replyStatus === "ANSWERED") replyStatusBool = true;
-
-  const body = {
-    fromCreatedAt: params.fromCreatedAt || undefined,
-    toCreatedAt: params.toCreatedAt || undefined,
-    replyStatus: replyStatusBool,
-    titleKeyword: params.titleKeyword || undefined,
-    contentKeyword: params.contentKeyword || undefined,
-    authorRole,
-    page: params.page,
-    size: params.size,
-  };
-
-  const res = await api.post(endpoint, body);
+  const res = await api.get(`/admin/inquiries?${queryParams.toString()}`);
   if (!res.data.success)
     throw new Error(res.data.message || "문의사항 목록 조회에 실패했습니다.");
   return res.data.body;
@@ -41,13 +54,9 @@ export const searchAdminInquiries = async (
 
 // 문의사항 상세 조회
 export const getAdminInquiry = async (
-  type: "customer" | "manager",
   inquiryId: number,
-  authorId: number | string,
 ) => {
-  const res = await api.get(`/admin/inquiries/${type}/${inquiryId}`, {
-    params: { authorId },
-  });
+  const res = await api.get(`/admin/inquiries/${inquiryId}`);
   console.log(res.data.body);
   if (!res.data.success)
     throw new Error(res.data.message || "문의사항 상세 조회에 실패했습니다.");
@@ -67,33 +76,15 @@ export const deleteAdminInquiry = async (
 
 // 문의사항 답변 등록
 export const answerAdminInquiry = async (
-  type: "customer" | "manager",
   inquiryId: number,
   data: { replyContent: string },
 ) => {
-  const res = await api.post(`/admin/inquiries/${type}`, {
+  const res = await api.post(`/admin/reply`, {
     inquiryId,
     content: data.replyContent,
     fileId: null,
   });
   if (!res.data.success)
     throw new Error(res.data.message || "문의사항 답변 등록에 실패했습니다.");
-  return res.data.body;
-};
-
-// 문의사항 답변 수정
-export const updateAdminInquiryAnswer = async (
-  type: "customer" | "manager",
-  answerId: number,
-  inquiryId: number,
-  data: { replyContent: string },
-) => {
-  const res = await api.patch(`/admin/inquiries/${type}/${answerId}`, {
-    inquiryId,
-    content: data.replyContent,
-    fileId: null,
-  });
-  if (!res.data.success)
-    throw new Error(res.data.message || "문의사항 답변 수정에 실패했습니다.");
   return res.data.body;
 };
