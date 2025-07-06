@@ -16,6 +16,7 @@ interface ManagerReviewCardProps {
     content: string;
   };
   onClick?: () => void;
+  className?: string;
 }
 
 const MAX_PREVIEW_LENGTH = 100;
@@ -23,6 +24,7 @@ const MAX_PREVIEW_LENGTH = 100;
 const ManagerReviewCard: React.FC<ManagerReviewCardProps> = ({
   review,
   onClick,
+  className = "",
 }) => {
   // Truncate content for preview
   const preview =
@@ -31,7 +33,7 @@ const ManagerReviewCard: React.FC<ManagerReviewCardProps> = ({
       : review.content;
   return (
     <div
-      className="relative rounded-2xl bg-white border border-slate-200 shadow-lg hover:shadow-2xl transition-transform hover:scale-[1.03] p-6 flex flex-col flex-1 min-w-[260px] min-h-[260px] md:min-h-[280px] cursor-pointer"
+      className={`relative rounded-2xl bg-white border border-slate-200 shadow-lg hover:shadow-2xl transition-transform hover:scale-[1.03] flex flex-col flex-1 min-w-[180px] min-h-[140px] max-h-[200px] p-4 md:p-5 cursor-pointer ${className}`}
       onClick={onClick}
       tabIndex={0}
       role="button"
@@ -63,8 +65,8 @@ const ManagerReviewCard: React.FC<ManagerReviewCardProps> = ({
         </span>
       </div>
       {/* 리뷰 내용 (미리보기) */}
-      <div className="relative text-lg text-slate-700 font-medium italic line-clamp-3 pl-8 mt-2 mb-4">
-        <span className="absolute left-0 top-0 text-3xl text-indigo-200 select-none">"</span>
+      <div className="relative text-base text-slate-700 font-medium italic line-clamp-3 pl-8 mt-2 mb-4">
+        <span className="absolute left-0 top-0 text-2xl text-indigo-200 select-none">"</span>
         {preview}
       </div>
       {/* 하단 부가정보 */}

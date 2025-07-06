@@ -1,4 +1,5 @@
 import { Fragment, useEffect, useRef, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import type { ManagerReservationSummary as ManagerReservationType } from '@/features/manager/types/ManagerReservationType'
 import { isValidDateRange } from '@/shared/utils/validation'
 import { DEFAULT_PAGE_SIZE } from '@/shared/constants/constants'
@@ -43,6 +44,11 @@ export const ManagerReservations = () => {
   ])
   const [customerNameKeyword, setCustomerNameKeyword] = useState('')
   const fromDateRef = useRef<HTMLInputElement>(null)
+  const [searchParams] = useSearchParams();
+  const dateParam = searchParams.get("date");
+  const fromRequestDateParam = searchParams.get("fromRequestDate");
+  const toRequestDateParam = searchParams.get("toRequestDate");
+  const statusParam = searchParams.get("status");
 
   const formData = {
     customerNameKeyword
@@ -108,26 +114,99 @@ export const ManagerReservations = () => {
     })
   }
 
-  const getCurrentParams = () => ({
-    fromRequestDate,
-    toRequestDate,
-    reservationStatus:
-      selectedStatuses.length === statuses.length
-        ? ''
-        : selectedStatuses.join(','),
-    isCheckedIn:
-      selectedCheckedIn.length === 2 ? '' : selectedCheckedIn.join(','),
-    isCheckedOut:
-      selectedCheckedOut.length === 2 ? '' : selectedCheckedOut.join(','),
-    isReviewed: selectedReviewed.length === 2 ? '' : selectedReviewed.join(','),
-    customerNameKeyword,
-    page,
-    size: DEFAULT_PAGE_SIZE
-  })
+  const getCurrentParams = () => {
+    if (dateParam) {
+      return {
+        ...{
+          fromRequestDate: dateParam,
+          toRequestDate: dateParam,
+        },
+        reservationStatus:
+          selectedStatuses.length === statuses.length
+            ? ''
+            : selectedStatuses.join(','),
+        isCheckedIn:
+          selectedCheckedIn.length === 2 ? '' : selectedCheckedIn.join(','),
+        isCheckedOut:
+          selectedCheckedOut.length === 2 ? '' : selectedCheckedOut.join(','),
+        isReviewed: selectedReviewed.length === 2 ? '' : selectedReviewed.join(','),
+        customerNameKeyword,
+        page,
+        size: DEFAULT_PAGE_SIZE,
+      };
+    }
+    return {
+      fromRequestDate,
+      toRequestDate,
+      reservationStatus:
+        selectedStatuses.length === statuses.length
+          ? ''
+          : selectedStatuses.join(','),
+      isCheckedIn:
+        selectedCheckedIn.length === 2 ? '' : selectedCheckedIn.join(','),
+      isCheckedOut:
+        selectedCheckedOut.length === 2 ? '' : selectedCheckedOut.join(','),
+      isReviewed: selectedReviewed.length === 2 ? '' : selectedReviewed.join(','),
+      customerNameKeyword,
+      page,
+      size: DEFAULT_PAGE_SIZE,
+    };
+  };
 
   useEffect(() => {
-    fetchReservations()
-  }, [page])
+    // date 쿼리 우선 적용
+    if (dateParam) {
+      setFromRequestDate(dateParam);
+      setToRequestDate(dateParam);
+      setSelectedDateRange(""); // 프리셋 해제
+      setPage(0);
+      fetchReservations({
+        page: 0,
+        fromRequestDate: dateParam,
+        toRequestDate: dateParam,
+      });
+      return;
+    }
+    // fromRequestDate/toRequestDate/status 쿼리 적용
+    if (fromRequestDateParam && toRequestDateParam) {
+      setFromRequestDate(fromRequestDateParam);
+      setToRequestDate(toRequestDateParam);
+      setSelectedDateRange("");
+      setPage(0);
+      // 상태 필터도 적용
+      if (statusParam) {
+        const statusArr = statusParam.split(",");
+        setSelectedStatuses(statusArr);
+        fetchReservations({
+          page: 0,
+          fromRequestDate: fromRequestDateParam,
+          toRequestDate: toRequestDateParam,
+          reservationStatus: statusParam,
+        });
+      } else {
+        fetchReservations({
+          page: 0,
+          fromRequestDate: fromRequestDateParam,
+          toRequestDate: toRequestDateParam,
+        });
+      }
+      return;
+    }
+    // status 쿼리만 있을 때 (예약 요청 등)
+    if (statusParam) {
+      const statusArr = statusParam.split(",");
+      setSelectedStatuses(statusArr);
+      setPage(0);
+      fetchReservations({
+        page: 0,
+        reservationStatus: statusParam,
+      });
+      return;
+    }
+    // 기본 동작
+    fetchReservations();
+    // eslint-disable-next-line
+  }, [dateParam, fromRequestDateParam, toRequestDateParam, statusParam]);
 
   const handleSearch = (keyword?: string) => {
     // keyword가 전달되면 해당 값으로 상태 업데이트
