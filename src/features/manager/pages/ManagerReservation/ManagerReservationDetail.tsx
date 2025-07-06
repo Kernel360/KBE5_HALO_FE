@@ -84,7 +84,20 @@ export const ManagerReservationDetail = () => {
   // 문의사항 조회
   useEffect(() => {
     if (!reservationId) return;
-    getManagerReservation(Number(reservationId)).then(setReservation);
+    getManagerReservation(Number(reservationId)).then((data) => {
+      // Map API fields to ReviewSection expected fields
+      setReservation(
+        data
+          ? {
+              ...data,
+              customerContent: data.customerReviewContent ?? data.customerContent,
+              customerRating: data.customerReviewRating ?? data.customerRating,
+              managerContent: data.managerReviewContent ?? data.managerContent,
+              managerRating: data.managerReviewRating ?? data.managerRating,
+            }
+          : null,
+      );
+    });
   }, [reservationId]);
 
   useEffect(() => {
@@ -218,12 +231,10 @@ export const ManagerReservationDetail = () => {
         setSuccessToastMessage("체크아웃이 완료되었습니다.");
         setOpenModal(false);
       }
-    } catch (error: any) {
-      setErrorToastMessage(
-        error?.response?.data?.message ||
-        error?.message ||
-        `${checkType === "IN" ? "체크인" : "체크아웃"} 요청 중 오류가 발생하였습니다.`
-      );
+    } catch (error) {
+      // 우선순위: 응답 data의 message > error.message > 기본 메시지
+      const errMsg = (error as any)?.response?.data?.message || (error as any)?.message || `${checkType === "IN" ? "체크인" : "체크아웃"} 요청 중 오류가 발생하였습니다.`;
+      setErrorToastMessage(errMsg);
     }
   };
 
@@ -241,7 +252,7 @@ export const ManagerReservationDetail = () => {
       const res = await createManagerReview(
         Number(reservationId),
         rating,
-        content
+        content,
       );
       setReservation(prev =>
         prev
@@ -252,11 +263,12 @@ export const ManagerReservationDetail = () => {
               managerContent: res.content,
               managerCreateAt: res.createdAt,
             }
-          : prev
+          : prev,
       );
       setSuccessToastMessage("리뷰가 등록되었습니다.");
     } catch (error) {
-      setErrorToastMessage("리뷰 등록 중 오류가 발생하였습니다.");
+      const errMsg = (error as any)?.response?.data?.message || (error as any)?.message || "리뷰 등록 중 오류가 발생하였습니다.";
+      setErrorToastMessage(errMsg);
     }
   };
 
@@ -267,17 +279,17 @@ export const ManagerReservationDetail = () => {
         setErrorToastMessage("예약 ID가 없습니다.");
         return;
       }
-      
-      await acceptReservation(Number(reservationId))
+      await acceptReservation(Number(reservationId));
       setReservation(prev => prev ? {
         ...prev,
-        status: 'CONFIRMED'
-      } : prev)
+        status: "CONFIRMED",
+      } : prev);
       setSuccessToastMessage("예약이 수락되었습니다.");
     } catch (error) {
-      setErrorToastMessage("예약 수락 중 오류가 발생하였습니다.");
+      const errMsg = (error as any)?.response?.data?.message || (error as any)?.message || "예약 수락 중 오류가 발생하였습니다.";
+      setErrorToastMessage(errMsg);
     }
-  }
+  };
 
   // 예약 거절
   const handleReject = async () => {
@@ -286,24 +298,23 @@ export const ManagerReservationDetail = () => {
         setErrorToastMessage("예약 ID가 없습니다.");
         return;
       }
-      
       if (!rejectReason.trim()) {
         setErrorToastMessage("거절 사유를 입력해주세요.");
         return;
       }
-      
-      await rejectReservation(Number(reservationId), rejectReason)
+      await rejectReservation(Number(reservationId), rejectReason);
       setReservation(prev => prev ? {
         ...prev,
-        status: 'REJECTED'
-      } : prev)
-      setOpenRejectModal(false)
-      setRejectReason('')
+        status: "REJECTED",
+      } : prev);
+      setOpenRejectModal(false);
+      setRejectReason("");
       setSuccessToastMessage("예약이 거절되었습니다.");
     } catch (error) {
-      setErrorToastMessage("예약 거절 중 오류가 발생하였습니다.");
+      const errMsg = (error as any)?.response?.data?.message || (error as any)?.message || "예약 거절 중 오류가 발생하였습니다.";
+      setErrorToastMessage(errMsg);
     }
-  }
+  };
 
   // 고객 메모 추가
   const handleAddCustomerNote = (note: string, tag: string) => {
@@ -385,7 +396,7 @@ export const ManagerReservationDetail = () => {
             <div className="w-full grid grid-cols-1 xl:grid-cols-2 gap-8">
               {/* 왼쪽: 예약 정보 + 서비스 상세 + 리뷰 */}
               <div className="flex flex-col gap-8">
-                <ReservationInfoCard reservation={reservation} />
+                <ReservationInfoCard reservation={reservation} customerProfile={customerProfile} />
                 <ServiceDetailCard reservation={reservation} />
                 <ReviewSection
                   reservation={reservation}

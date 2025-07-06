@@ -1,6 +1,7 @@
 import { getReservationStatusStyle } from "@/features/manager/utils/ManagerReservationStauts";
+import { UserCircleIcon, PhoneIcon, EnvelopeIcon } from "@heroicons/react/24/solid";
 
-export function ReservationInfoCard({ reservation }: { reservation: any }) {
+export function ReservationInfoCard({ reservation, customerProfile }: { reservation: any; customerProfile?: any }) {
   const statusInfo = getReservationStatusStyle(reservation.status);
   return (
     <div className="space-y-6">
@@ -46,6 +47,25 @@ export function ReservationInfoCard({ reservation }: { reservation: any }) {
           </p>
         </div>
       </div>
+      {customerProfile && (
+        <div className="bg-white rounded-xl border border-blue-100 shadow p-4 mt-2 flex flex-col gap-2">
+          <div className="flex items-center gap-3 mb-1">
+            <UserCircleIcon className="w-7 h-7 text-blue-400" />
+            <span className="text-lg font-bold text-blue-700">{customerProfile.customerName}</span>
+            <span className="ml-2 px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 text-xs font-semibold">{customerProfile.customerGrade}</span>
+          </div>
+          <div className="flex items-center gap-2 text-slate-700 text-sm">
+            <PhoneIcon className="w-4 h-4 text-blue-400" />
+            <span>{customerProfile.customerPhone}</span>
+          </div>
+          {customerProfile.customerEmail && (
+            <div className="flex items-center gap-2 text-slate-700 text-sm">
+              <EnvelopeIcon className="w-4 h-4 text-blue-400" />
+              <span>{customerProfile.customerEmail}</span>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 } 

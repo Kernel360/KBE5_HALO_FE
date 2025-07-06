@@ -51,12 +51,16 @@ export interface ManagerReservationDetail {
   customerRating?: number | null;
   customerContent?: string | null;
   customerCreateAt?: string | null;
+  customerReviewContent?: string | null;
+  customerReviewRating?: number | null;
 
   // 매니저 리뷰
   managerReviewId?: number | null;
   managerRating?: number | null;
   managerContent?: string | null;
   managerCreateAt?: string | null;
+  managerReviewContent?: string | null;
+  managerReviewRating?: number | null;
 
   // 예약 취소 정보
   cancelDate?: string | null;

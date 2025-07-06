@@ -6,6 +6,7 @@ import { StatusBadge } from "../../../shared/components";
 import { Pagination } from "../../../shared/components";
 import { getReservationStatusStyle } from "../utils/ManagerReservationStauts";
 import ManagerReservationListMobile from "@/features/manager/components/ManagerReservationListMobile";
+import { PortalDropdown } from "@/shared/components/PortalDropdown";
 
 interface StatusOption {
   value: string;
@@ -65,6 +66,11 @@ export const ManagerReservationTable = ({
   const checkedOutDropdownRef = useRef<HTMLDivElement>(null);
   const reviewedDropdownRef = useRef<HTMLDivElement>(null);
   const dateRangeDropdownRef = useRef<HTMLDivElement>(null);
+  const statusDropdownButtonRef = useRef<HTMLButtonElement>(null);
+  const checkedInDropdownButtonRef = useRef<HTMLButtonElement>(null);
+  const checkedOutDropdownButtonRef = useRef<HTMLButtonElement>(null);
+  const reviewedDropdownButtonRef = useRef<HTMLButtonElement>(null);
+  const dateRangeDropdownButtonRef = useRef<HTMLButtonElement>(null);
 
   const checkOptions = [
     { value: "true", label: "완료" },
@@ -260,6 +266,7 @@ export const ManagerReservationTable = ({
   const renderDateRangeDropdown = () => (
     <div className="relative">
       <button
+        ref={dateRangeDropdownButtonRef}
         onClick={() => setIsDateRangeDropdownOpen(!isDateRangeDropdownOpen)}
         className="flex items-center justify-center gap-1 text-sm font-medium text-slate-700 transition-colors hover:text-slate-900">
         청소 요청 날짜
@@ -324,13 +331,13 @@ export const ManagerReservationTable = ({
 
       {/* 데스크탑/태블릿: 테이블 */}
       <div className="hidden md:block w-full max-w-full min-w-0">
-        <div className="w-full max-w-full min-w-0 overflow-x-auto">
+        <div className="w-full max-w-full min-w-0">
           <table className="min-w-[900px] w-full">
             <thead>
               <tr className="border-b border-slate-200">
                 <th className="min-w-[80px] max-w-[100px] px-2 py-3 text-left text-sm font-medium text-slate-700 whitespace-nowrap overflow-hidden truncate">예약 ID</th>
                 <th className="min-w-[120px] max-w-[140px] relative px-2 py-3 text-center text-sm font-medium text-slate-700 whitespace-nowrap overflow-hidden truncate">
-                  <div ref={dateRangeDropdownRef} className="relative">
+                  <div className="relative">
                     {renderDateRangeDropdown()}
                   </div>
                 </th>
@@ -339,55 +346,231 @@ export const ManagerReservationTable = ({
                 <th className="min-w-[180px] max-w-[240px] px-2 py-3 text-center text-sm font-medium text-slate-700 whitespace-nowrap overflow-hidden truncate">고객 주소</th>
                 <th className="min-w-[100px] max-w-[120px] px-2 py-3 text-center text-sm font-medium text-slate-700 whitespace-nowrap overflow-hidden truncate">서비스명</th>
                 <th className="min-w-[110px] max-w-[130px] relative px-2 py-3 text-center text-sm font-medium text-slate-700 whitespace-nowrap overflow-hidden truncate">
-                  <div ref={statusDropdownRef} className="relative">
-                    {renderDropdown(
-                      isStatusDropdownOpen,
-                      () => setIsStatusDropdownOpen(!isStatusDropdownOpen),
-                      handleToggleAll,
-                      handleStatusToggle,
-                      selectedStatuses,
-                      statuses,
-                      "예약 상태"
-                    )}
+                  <div className="relative">
+                    <button
+                      ref={statusDropdownButtonRef}
+                      onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
+                      className="flex items-center justify-center gap-1 text-sm font-medium text-slate-700 transition-colors hover:text-slate-900"
+                    >
+                      예약 상태
+                      <svg
+                        className={`h-4 w-4 transition-transform ${isStatusDropdownOpen ? "rotate-180" : ""}`}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 9l-7 7-7-7"
+                        />
+                      </svg>
+                    </button>
+                    <PortalDropdown anchorRef={statusDropdownButtonRef as unknown as React.RefObject<Element>} open={isStatusDropdownOpen}>
+                      <div className="absolute top-0 left-0 z-[9999] mt-2 w-48 rounded-lg border border-slate-200 bg-white shadow-lg">
+                        <div className="border-b border-slate-200 p-3">
+                          <label className="flex cursor-pointer items-center gap-2">
+                            <input
+                              type="checkbox"
+                              checked={selectedStatuses.length === statuses.length}
+                              onChange={handleToggleAll}
+                              className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                            />
+                            <span className="text-sm font-medium text-slate-700">
+                              전체 선택
+                            </span>
+                          </label>
+                        </div>
+                        <div className="max-h-48 overflow-y-auto p-3">
+                          {statuses.map((option) => (
+                            <label
+                              key={option.value}
+                              className="mb-2 flex cursor-pointer items-center gap-2 last:mb-0"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={selectedStatuses.includes(option.value)}
+                                onChange={() => handleStatusToggle(option.value)}
+                                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                              />
+                              <span className="text-sm text-slate-700">{option.label}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    </PortalDropdown>
                   </div>
                 </th>
                 <th className="min-w-[80px] max-w-[100px] relative px-2 py-3 text-center text-sm font-medium text-slate-700 whitespace-nowrap overflow-hidden truncate">
-                  <div ref={checkedInDropdownRef} className="relative">
-                    {renderDropdown(
-                      isCheckedInDropdownOpen,
-                      () => setIsCheckedInDropdownOpen(!isCheckedInDropdownOpen),
-                      handleCheckedInToggleAll,
-                      handleCheckedInToggle,
-                      selectedCheckedIn,
-                      checkOptions,
-                      "체크인"
-                    )}
+                  <div className="relative">
+                    <button
+                      ref={checkedInDropdownButtonRef}
+                      onClick={() => setIsCheckedInDropdownOpen(!isCheckedInDropdownOpen)}
+                      className="flex items-center justify-center gap-1 text-sm font-medium text-slate-700 transition-colors hover:text-slate-900"
+                    >
+                      체크인
+                      <svg
+                        className={`h-4 w-4 transition-transform ${isCheckedInDropdownOpen ? "rotate-180" : ""}`}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 9l-7 7-7-7"
+                        />
+                      </svg>
+                    </button>
+                    <PortalDropdown anchorRef={checkedInDropdownButtonRef as unknown as React.RefObject<Element>} open={isCheckedInDropdownOpen}>
+                      <div className="absolute top-0 left-0 z-[9999] mt-2 w-48 rounded-lg border border-slate-200 bg-white shadow-lg">
+                        <div className="border-b border-slate-200 p-3">
+                          <label className="flex cursor-pointer items-center gap-2">
+                            <input
+                              type="checkbox"
+                              checked={selectedCheckedIn.length === checkOptions.length}
+                              onChange={handleCheckedInToggleAll}
+                              className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                            />
+                            <span className="text-sm font-medium text-slate-700">
+                              전체 선택
+                            </span>
+                          </label>
+                        </div>
+                        <div className="max-h-48 overflow-y-auto p-3">
+                          {checkOptions.map((option) => (
+                            <label
+                              key={option.value}
+                              className="mb-2 flex cursor-pointer items-center gap-2 last:mb-0"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={selectedCheckedIn.includes(option.value)}
+                                onChange={() => handleCheckedInToggle(option.value)}
+                                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                              />
+                              <span className="text-sm text-slate-700">{option.label}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    </PortalDropdown>
                   </div>
                 </th>
                 <th className="min-w-[80px] max-w-[100px] relative px-2 py-3 text-center text-sm font-medium text-slate-700 whitespace-nowrap overflow-hidden truncate">
-                  <div ref={checkedOutDropdownRef} className="relative">
-                    {renderDropdown(
-                      isCheckedOutDropdownOpen,
-                      () => setIsCheckedOutDropdownOpen(!isCheckedOutDropdownOpen),
-                      handleCheckedOutToggleAll,
-                      handleCheckedOutToggle,
-                      selectedCheckedOut,
-                      checkOptions,
-                      "체크아웃"
-                    )}
+                  <div className="relative">
+                    <button
+                      ref={checkedOutDropdownButtonRef}
+                      onClick={() => setIsCheckedOutDropdownOpen(!isCheckedOutDropdownOpen)}
+                      className="flex items-center justify-center gap-1 text-sm font-medium text-slate-700 transition-colors hover:text-slate-900"
+                    >
+                      체크아웃
+                      <svg
+                        className={`h-4 w-4 transition-transform ${isCheckedOutDropdownOpen ? "rotate-180" : ""}`}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 9l-7 7-7-7"
+                        />
+                      </svg>
+                    </button>
+                    <PortalDropdown anchorRef={checkedOutDropdownButtonRef as unknown as React.RefObject<Element>} open={isCheckedOutDropdownOpen}>
+                      <div className="absolute top-0 left-0 z-[9999] mt-2 w-48 rounded-lg border border-slate-200 bg-white shadow-lg">
+                        <div className="border-b border-slate-200 p-3">
+                          <label className="flex cursor-pointer items-center gap-2">
+                            <input
+                              type="checkbox"
+                              checked={selectedCheckedOut.length === checkOptions.length}
+                              onChange={handleCheckedOutToggleAll}
+                              className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                            />
+                            <span className="text-sm font-medium text-slate-700">
+                              전체 선택
+                            </span>
+                          </label>
+                        </div>
+                        <div className="max-h-48 overflow-y-auto p-3">
+                          {checkOptions.map((option) => (
+                            <label
+                              key={option.value}
+                              className="mb-2 flex cursor-pointer items-center gap-2 last:mb-0"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={selectedCheckedOut.includes(option.value)}
+                                onChange={() => handleCheckedOutToggle(option.value)}
+                                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                              />
+                              <span className="text-sm text-slate-700">{option.label}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    </PortalDropdown>
                   </div>
                 </th>
                 <th className="min-w-[80px] max-w-[100px] relative px-2 py-3 text-center text-sm font-medium text-slate-700 whitespace-nowrap overflow-hidden truncate">
-                  <div ref={reviewedDropdownRef} className="relative">
-                    {renderDropdown(
-                      isReviewedDropdownOpen,
-                      () => setIsReviewedDropdownOpen(!isReviewedDropdownOpen),
-                      handleReviewedToggleAll,
-                      handleReviewedToggle,
-                      selectedReviewed,
-                      checkOptions,
-                      "리뷰작성"
-                    )}
+                  <div className="relative">
+                    <button
+                      ref={reviewedDropdownButtonRef}
+                      onClick={() => setIsReviewedDropdownOpen(!isReviewedDropdownOpen)}
+                      className="flex items-center justify-center gap-1 text-sm font-medium text-slate-700 transition-colors hover:text-slate-900"
+                    >
+                      리뷰작성
+                      <svg
+                        className={`h-4 w-4 transition-transform ${isReviewedDropdownOpen ? "rotate-180" : ""}`}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 9l-7 7-7-7"
+                        />
+                      </svg>
+                    </button>
+                    <PortalDropdown anchorRef={reviewedDropdownButtonRef as unknown as React.RefObject<Element>} open={isReviewedDropdownOpen}>
+                      <div className="absolute top-0 left-0 z-[9999] mt-2 w-48 rounded-lg border border-slate-200 bg-white shadow-lg">
+                        <div className="border-b border-slate-200 p-3">
+                          <label className="flex cursor-pointer items-center gap-2">
+                            <input
+                              type="checkbox"
+                              checked={selectedReviewed.length === checkOptions.length}
+                              onChange={handleReviewedToggleAll}
+                              className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                            />
+                            <span className="text-sm font-medium text-slate-700">
+                              전체 선택
+                            </span>
+                          </label>
+                        </div>
+                        <div className="max-h-48 overflow-y-auto p-3">
+                          {checkOptions.map((option) => (
+                            <label
+                              key={option.value}
+                              className="mb-2 flex cursor-pointer items-center gap-2 last:mb-0"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={selectedReviewed.includes(option.value)}
+                                onChange={() => handleReviewedToggle(option.value)}
+                                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                              />
+                              <span className="text-sm text-slate-700">{option.label}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    </PortalDropdown>
                   </div>
                 </th>
               </tr>

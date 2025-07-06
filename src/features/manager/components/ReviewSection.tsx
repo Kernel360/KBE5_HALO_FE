@@ -1,7 +1,23 @@
 import { StarRating } from "@/shared/components/ui/StarRating";
 import { ReviewForm } from "@/shared/components";
-import { StarIcon, UserCircleIcon, PencilSquareIcon } from "@heroicons/react/24/solid";
+import {
+  StarIcon,
+  UserCircleIcon,
+  PencilSquareIcon,
+} from "@heroicons/react/24/solid";
 import { ReviewCard } from "@/shared/components/ui/ReviewCard";
+
+// TODO: Replace 'any' with a proper type for reservation (ManagerReservationDetail)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+interface ReviewSectionProps {
+  reservation: any;
+  rating: number;
+  content: string;
+  onRatingChange: (rating: number) => void;
+  onContentChange: (content: string) => void;
+  onSubmit: () => void;
+  improvedDesign?: boolean;
+}
 
 export function ReviewSection({
   reservation,
@@ -11,7 +27,7 @@ export function ReviewSection({
   onContentChange,
   onSubmit,
   improvedDesign,
-}: any) {
+}: ReviewSectionProps) {
   if (!(reservation.outTime && reservation.status === "COMPLETED")) return null;
 
   if (!improvedDesign) {
@@ -61,40 +77,62 @@ export function ReviewSection({
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* 수요자 리뷰 */}
-        <div className="bg-slate-50 rounded-lg p-4 border border-slate-200 flex flex-col gap-2">
-          <div className="flex items-center gap-2 mb-1">
-            <UserCircleIcon className="w-4 h-4 text-slate-400" />
-            <span className="text-sm font-medium text-slate-600">수요자 리뷰</span>
+        <div className="bg-yellow-50 rounded-xl p-6 border border-yellow-100 shadow-sm flex flex-col gap-3">
+          <div className="flex items-center gap-3 mb-1">
+            <UserCircleIcon className="w-8 h-8 text-yellow-400" />
+            <span className="text-base font-bold text-yellow-700">
+              {reservation.userName || "고객"}
+            </span>
+            <span className="ml-2 px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700 text-xs font-semibold">
+              수요자 리뷰
+            </span>
           </div>
           {reservation.customerContent || reservation.customerRating ? (
             <>
-              <div className="flex items-center gap-2">
-                <StarRating rating={reservation.customerRating ?? 0} showValue className="!text-yellow-500" />
-                <span className="text-xs text-slate-500">{reservation.customerCreateAt}</span>
+              <div className="flex items-center gap-3 mb-2">
+                <StarRating
+                  rating={reservation.customerRating ?? 0}
+                  showValue
+                  className="!text-yellow-500 !text-2xl"
+                />
+                <span className="text-xs text-slate-500">
+                  {reservation.customerCreateAt}
+                </span>
               </div>
-              <div className="text-base text-slate-700 whitespace-pre-line min-h-[32px]">
+              <blockquote className="italic text-lg text-yellow-900 border-l-4 border-yellow-300 pl-4 bg-yellow-100/60 rounded min-h-[32px]">
                 {reservation.customerContent}
-              </div>
+              </blockquote>
             </>
           ) : (
-            <div className="text-slate-400 text-base">아직 등록된 리뷰가 없습니다.</div>
+            <div className="text-slate-400 text-base">
+              아직 등록된 리뷰가 없습니다.
+            </div>
           )}
         </div>
         {/* 매니저 리뷰 */}
-        <div className="bg-slate-50 rounded-lg p-4 border border-slate-200 flex flex-col gap-2">
-          <div className="flex items-center gap-2 mb-1">
-            <PencilSquareIcon className="w-4 h-4 text-indigo-400" />
-            <span className="text-sm font-medium text-indigo-700">매니저 리뷰</span>
+        <div className="bg-indigo-50 rounded-xl p-6 border border-indigo-100 shadow-sm flex flex-col gap-3">
+          <div className="flex items-center gap-3 mb-1">
+            <PencilSquareIcon className="w-8 h-8 text-indigo-400" />
+            <span className="text-base font-bold text-indigo-700">매니저</span>
+            <span className="ml-2 px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 text-xs font-semibold">
+              매니저 리뷰
+            </span>
           </div>
           {reservation.managerReviewId ? (
             <>
-              <div className="flex items-center gap-2">
-                <StarRating rating={reservation.managerRating ?? 0} showValue className="!text-yellow-500" />
-                <span className="text-xs text-slate-500">{reservation.managerCreateAt}</span>
+              <div className="flex items-center gap-3 mb-2">
+                <StarRating
+                  rating={reservation.managerRating ?? 0}
+                  showValue
+                  className="!text-yellow-500 !text-2xl"
+                />
+                <span className="text-xs text-slate-500">
+                  {reservation.managerCreateAt}
+                </span>
               </div>
-              <div className="text-base text-slate-700 whitespace-pre-line min-h-[32px]">
+              <blockquote className="italic text-lg text-indigo-900 border-l-4 border-indigo-300 pl-4 bg-indigo-100/60 rounded min-h-[32px]">
                 {reservation.managerContent}
-              </div>
+              </blockquote>
             </>
           ) : (
             <ReviewForm
