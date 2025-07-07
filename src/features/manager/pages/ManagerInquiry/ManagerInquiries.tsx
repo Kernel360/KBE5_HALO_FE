@@ -1,9 +1,15 @@
 import { Fragment, useEffect, useState, useRef } from "react";
 import { Link } from "react-router-dom";
+import { Search } from "lucide-react";
 import type { InquirySummary, InquiryCategory } from "@/shared/types/InquiryType";
 import { isValidDateRange } from "@/shared/utils/validation";
 import { DEFAULT_PAGE_SIZE } from "@/shared/constants/constants";
 import { searchManagerInquiries, getCustomerInquiryCategories } from "@/features/manager/api/managerInquiry";
+import { ResetButton } from "@/shared/components/ui/ResetButton";
+import { SearchButton } from "@/shared/components/ui/SearchButton";
+import ErrorToast from "@/shared/components/ui/toast/ErrorToast";
+import SuccessToast from "@/shared/components/ui/toast/SuccessToast";
+import Toast from "@/shared/components/ui/toast/Toast";
 
 export const ManagerInquiries = () => {
   const [fadeKey, setFadeKey] = useState(0);
@@ -18,6 +24,11 @@ export const ManagerInquiries = () => {
   const [, setCategories] = useState<InquiryCategory[]>([]);
   const [showReplyStatusSelect, setShowReplyStatusSelect] = useState(false);
   const fromDateRef = useRef<HTMLInputElement>(null);
+  
+  // Toast 상태 관리
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const [errorToastMsg, setErrorToastMsg] = useState<string | null>(null);
+  const [successToastMsg, setSuccessToastMsg] = useState<string | null>(null);
 
   const fetchInquiries = (paramsOverride?: Partial<ReturnType<typeof getCurrentParams>>) => {
     const params = getCurrentParams();
@@ -34,6 +45,9 @@ export const ManagerInquiries = () => {
         setInquiries(res.body?.content || []);
         setTotal(res.body?.page?.totalElements || 0);
         setFadeKey((prev) => prev + 1);
+      })
+      .catch((error) => {
+        setErrorToastMsg(error.message || "문의사항 조회 중 오류가 발생했습니다.");
       });
   };
 
@@ -71,8 +85,7 @@ export const ManagerInquiries = () => {
       const res = await getCustomerInquiryCategories();
       setCategories(res.body || []);
     } catch (error) {
-      console.error('카테고리 조회 실패:', error);
-    }
+      setErrorToastMsg('카테고리를 불러오는 중 오류가 발생했습니다.');}
   };
 
   const handleSearch = () => {
@@ -98,6 +111,7 @@ export const ManagerInquiries = () => {
     setPage(0);
 
     fetchInquiries(resetState);
+    setToastMsg("검색 조건이 초기화되었습니다.");
   };
 
   const totalPages = Math.max(Math.ceil(total / DEFAULT_PAGE_SIZE), 1);
@@ -152,33 +166,28 @@ export const ManagerInquiries = () => {
                   <option value="PENDING">답변 대기</option>
                   <option value="ANSWERED">답변 완료</option>
                 </select>
-                <input
-                  type="text"
-                  value={titleKeyword}
-                  onChange={(e) => setTitleKeyword(e.target.value)}
-                  placeholder="제목 검색"
-                  className="h-8 px-2 bg-white rounded border border-gray-200 text-sm text-slate-700 min-w-[120px]"
-                />
-                <input
-                  type="text"
-                  value={contentKeyword}
-                  onChange={(e) => setContentKeyword(e.target.value)}
-                  placeholder="내용 검색"
-                  className="h-8 px-2 bg-white rounded border border-gray-200 text-sm text-slate-700 min-w-[120px]"
-                />
-                <button
-                  type="button"
-                  onClick={handleReset}
-                  className="h-8 px-4 bg-slate-100 rounded text-slate-500 text-xs font-medium hover:bg-slate-200 cursor-pointer"
-                >
-                  초기화
-                </button>
-                <button
-                  type="submit"
-                  className="h-8 px-4 bg-indigo-600 rounded text-white text-xs font-medium hover:bg-indigo-700 cursor-pointer"
-                >
-                  검색
-                </button>
+                <div className="relative">
+                  <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400" size={14} />
+                  <input
+                    type="text"
+                    value={titleKeyword}
+                    onChange={(e) => setTitleKeyword(e.target.value)}
+                    placeholder="제목 검색"
+                    className="h-8 pl-8 pr-2 bg-white rounded border border-gray-200 text-sm text-slate-700 min-w-[120px]"
+                  />
+                </div>
+                <div className="relative">
+                  <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400" size={14} />
+                  <input
+                    type="text"
+                    value={contentKeyword}
+                    onChange={(e) => setContentKeyword(e.target.value)}
+                    placeholder="내용 검색"
+                    className="h-8 pl-8 pr-2 bg-white rounded border border-gray-200 text-sm text-slate-700 min-w-[120px]"
+                  />
+                </div>
+                <ResetButton onClick={handleReset} className="h-8 px-4 text-xs" />
+                <SearchButton type="submit" className="h-8 px-4 text-xs" />
               </form>
             </div>
             <div className="self-stretch inline-flex justify-end items-center">
@@ -305,6 +314,23 @@ export const ManagerInquiries = () => {
 
         </div>
       </div>
+      
+      {/* Toast 컴포넌트들 */}
+      <SuccessToast
+        open={!!successToastMsg}
+        message={successToastMsg || ""}
+        onClose={() => setSuccessToastMsg(null)}
+      />
+      <ErrorToast
+        open={!!errorToastMsg}
+        message={errorToastMsg || ""}
+        onClose={() => setErrorToastMsg(null)}
+      />
+      <Toast
+        open={!!toastMsg}
+        message={toastMsg || ""}
+        onClose={() => setToastMsg(null)}
+      />
     </Fragment>
   );
 };

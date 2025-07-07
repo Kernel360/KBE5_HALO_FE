@@ -5,6 +5,9 @@ import { isValidLength } from "@/shared/utils/validation";
 import { createManagerInquiry, updateManagerInquiry, getCustomerInquiryCategories } from "@/features/manager/api/managerInquiry";
 import type { InquiryDetail as ManagerInquiryType } from "@/shared/types/InquiryType";
 import type { InquiryCategory } from "@/shared/types/InquiryType";
+import ErrorToast from "@/shared/components/ui/toast/ErrorToast";
+import SuccessToast from "@/shared/components/ui/toast/SuccessToast";
+import Toast from "@/shared/components/ui/toast/Toast";
 
 export const ManagerInquiryForm = () => {
   const location = useLocation();
@@ -18,6 +21,11 @@ export const ManagerInquiryForm = () => {
   const [files, setFiles] = useState<File[]>([]);
   const [categories, setCategories] = useState<InquiryCategory[]>([]);
   const navigate = useNavigate();
+  
+  // Toast 상태 관리
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const [errorToastMsg, setErrorToastMsg] = useState<string | null>(null);
+  const [successToastMsg, setSuccessToastMsg] = useState<string | null>(null);
 
   // 카테고리 조회
   useEffect(() => {
@@ -29,7 +37,7 @@ export const ManagerInquiryForm = () => {
         }
       } catch (error: any) {
         const errorMessage = error.response?.data?.message || error.message || "카테고리 조회에 실패했습니다.";
-        alert(errorMessage);
+        setErrorToastMsg(errorMessage);
       }
     };
 
@@ -53,17 +61,17 @@ export const ManagerInquiryForm = () => {
     e.preventDefault();
 
     if (!isValidLength(title, 2, 50)) {
-      alert("제목은 최소 2자, 50자 이하로 입력해주세요.");
+      setErrorToastMsg("제목은 최소 2자, 50자 이하로 입력해주세요.");
       return;
     }
 
     if (!isValidLength(content, 5, 5000)) {
-      alert("내용은 최소 5자, 최대 5000자까지 입력할 수 있습니다.");
+      setErrorToastMsg("내용은 최소 5자, 최대 5000자까지 입력할 수 있습니다.");
       return;
     }
 
     if (!category) {
-      alert("문의유형을 선택해주세요.");
+      setErrorToastMsg("문의유형을 선택해주세요.");
       return;
     }
 
@@ -74,16 +82,20 @@ export const ManagerInquiryForm = () => {
     try {
       if (isEditMode && existingData) {
         await updateManagerInquiry(existingData.inquiryId, { category, title, content, fileId });
-        alert("문의가 수정되었습니다.");
-        navigate(`/managers/inquiries/${existingData.inquiryId}`);
+        setSuccessToastMsg("문의가 수정되었습니다.");
+        setTimeout(() => {
+          navigate(`/managers/inquiries/${existingData.inquiryId}`);
+        }, 1500);
       } else {
         const result = await createManagerInquiry({ category, title, content, fileId});
-        alert("문의가 등록되었습니다.");
-        navigate(`/managers/inquiries/${result}`);
+        setSuccessToastMsg("문의가 등록되었습니다.");
+        setTimeout(() => {
+          navigate(`/managers/inquiries/${result}`);
+        }, 1500);
       }
     } catch (error: any) {
       const errorMessage = error.response?.data?.message || error.message || (isEditMode ? "수정 중 오류가 발생했습니다." : "등록 중 오류가 발생했습니다.");
-      alert(errorMessage);
+      setErrorToastMsg(errorMessage);
     }
   };
 
@@ -184,6 +196,23 @@ export const ManagerInquiryForm = () => {
           </div>
         </div>
       </form>
+      
+      {/* Toast 컴포넌트들 */}
+      <SuccessToast
+        open={!!successToastMsg}
+        message={successToastMsg || ""}
+        onClose={() => setSuccessToastMsg(null)}
+      />
+      <ErrorToast
+        open={!!errorToastMsg}
+        message={errorToastMsg || ""}
+        onClose={() => setErrorToastMsg(null)}
+      />
+      <Toast
+        open={!!toastMsg}
+        message={toastMsg || ""}
+        onClose={() => setToastMsg(null)}
+      />
     </Fragment>
   );
 };

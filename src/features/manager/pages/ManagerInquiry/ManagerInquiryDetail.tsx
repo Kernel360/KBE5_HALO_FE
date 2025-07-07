@@ -3,6 +3,9 @@ import { useNavigate, useParams, Link } from "react-router-dom";
 import { getManagerInquiry, deleteManagerInquiry } from "@/features/manager/api/managerInquiry";
 import type { InquiryDetail as ManagerInquiryType } from "@/shared/types/InquiryType";
 import { PenLine, Trash2 } from "lucide-react";
+import ErrorToast from "@/shared/components/ui/toast/ErrorToast";
+import SuccessToast from "@/shared/components/ui/toast/SuccessToast";
+import Toast from "@/shared/components/ui/toast/Toast";
 
 
 
@@ -10,6 +13,11 @@ export const ManagerInquiryDetail = () => {
   const { inquiryId } = useParams();
   const [inquiry, setInquiry] = useState<ManagerInquiryType | null>(null);
   const navigate = useNavigate();
+  
+  // Toast 상태 관리
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const [errorToastMsg, setErrorToastMsg] = useState<string | null>(null);
+  const [successToastMsg, setSuccessToastMsg] = useState<string | null>(null);
 
   // 문의사항 조회
   useEffect(() => {
@@ -41,10 +49,10 @@ export const ManagerInquiryDetail = () => {
 
     try {
       await deleteManagerInquiry(Number(inquiryId));
-      alert("삭제가 완료되었습니다.");
+      setSuccessToastMsg("삭제가 완료되었습니다.");
       navigate("/managers/inquiries");
     } catch (error) {
-      alert("삭제 중 오류가 발생했습니다.");
+      setErrorToastMsg("삭제 중 오류가 발생했습니다.");
     }
   };
 
@@ -158,6 +166,23 @@ export const ManagerInquiryDetail = () => {
           )}
         </div>
       </div>
+      
+      {/* Toast 컴포넌트들 */}
+      <SuccessToast
+        open={!!successToastMsg}
+        message={successToastMsg || ""}
+        onClose={() => setSuccessToastMsg(null)}
+      />
+      <ErrorToast
+        open={!!errorToastMsg}
+        message={errorToastMsg || ""}
+        onClose={() => setErrorToastMsg(null)}
+      />
+      <Toast
+        open={!!toastMsg}
+        message={toastMsg || ""}
+        onClose={() => setToastMsg(null)}
+      />
     </Fragment>
   );
 };
