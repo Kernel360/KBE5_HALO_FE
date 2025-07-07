@@ -8,12 +8,26 @@ import {
   isValidEmail
 } from '@/shared/utils/validation'
 import { useNavigate } from 'react-router-dom'
-import type { createManagerSignup } from '@/features/manager/types/ManagerAuthType'
 import { signupManager } from '@/features/manager/api/managerAuth'
 import { createFileGroup } from "@/shared/utils/fileUpload";
+import { getServiceCategories } from "@/features/manager/api/managerMy";
+import type { ServiceCategoryTreeType } from "@/features/customer/types/reservation/ServiceCategoryTreeType";
+import FormField from "@/shared/components/ui/FormField";
 
-interface ManagerSignupForm extends createManagerSignup {
+interface ManagerSignupForm {
+  phone: string;
+  email: string;
+  password: string;
   confirmPassword: string;
+  userName: string;
+  birthDate: string;
+  gender: string;
+  bio: string;
+  profileImageId: number | null; // 타입 에러 방지용, 실제 사용 X
+  specialty: number | "";
+  fileId: number | null;
+  profileImageFileId: number | null;
+  availableTimes: { dayOfWeek: string; time: string }[];
   termsAgreed: boolean;
 }
 
@@ -39,12 +53,7 @@ export const ManagerSignup = () => {
     useAddressStore();
 
   // form 입력 상태 초기값 (주소 관련 필드 제거)
-  const [form, setForm] = useState<
-    Omit<
-      ManagerSignupForm,
-      "roadAddress" | "detailAddress" | "latitude" | "longitude"
-    >
-  >({
+  const [form, setForm] = useState<ManagerSignupForm>({
     phone: "",
     email: "",
     password: "",
@@ -53,43 +62,67 @@ export const ManagerSignup = () => {
     birthDate: "",
     gender: "",
     bio: "",
-    profileImageId: null,
+    profileImageId: null, // 타입 에러 방지용, 실제 사용 X
+    specialty: "",
     fileId: null,
+    profileImageFileId: null,
     availableTimes: [],
     termsAgreed: false,
   });
+
+  // 서비스 카테고리 상태
+  const [serviceCategories, setServiceCategories] = useState<
+    ServiceCategoryTreeType[]
+  >([]);
 
   // 주소 상태 초기화
   useEffect(() => {
     setAddress("", 0, 0, "");
   }, [setAddress]);
 
+  // 서비스 카테고리 불러오기
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const categories = await getServiceCategories();
+        setServiceCategories(categories);
+      } catch {
+        alert("서비스 카테고리 조회에 실패했습니다.");
+      }
+    };
+    fetchCategories();
+  }, []);
+
   // 공통 입력값 변경 핸들러 (checkbox 포함)
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target
-    setForm(prev => ({
+    setForm((prev) => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: type === "checkbox" ? checked : value,
     }));
-    setErrors(prev => ({ ...prev, [name]: '' }));
+    setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
   // 연락처 입력 시 하이픈 자동 포맷 적용
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const formatted = formatPhoneNumber(e.target.value)
-    setForm(prev => ({ ...prev, phone: formatted }))
-    setErrors(prev => ({ ...prev, phone: '' }))
+    const formatted = formatPhoneNumber(e.target.value);
+    setForm((prev) => ({ ...prev, phone: formatted }));
+    setErrors((prev) => ({ ...prev, phone: "" }));
   };
 
   // 업무 가능 시간 선택/해제 토글
   const toggleTimeSlot = (day: string, hour: string) => {
-    setSelectedTimes(prev => {
-      const updated = { ...prev }
-      const currentSet = new Set(updated[day] || [])
-      currentSet.has(hour) ? currentSet.delete(hour) : currentSet.add(hour)
-      updated[day] = currentSet
-      return updated
-    })
+    setSelectedTimes((prev) => {
+      const updated = { ...prev };
+      const currentSet = new Set(updated[day] || []);
+      if (currentSet.has(hour)) {
+        currentSet.delete(hour);
+      } else {
+        currentSet.add(hour);
+      }
+      updated[day] = currentSet;
+      return updated;
+    });
   };
 
   // 모든 선택된 시간 초기화
@@ -97,41 +130,41 @@ export const ManagerSignup = () => {
 
   // 선택된 시간 텍스트 포맷 (예: "월요일: 09시, 10시")
   const formatSelectedTimeText = (day: string, hours: Set<string>) => {
-    const sorted = Array.from(hours).sort()
-    return `${day}요일: ${sorted.join(', ')}`
+    const sorted = Array.from(hours).sort();
+    return `${day}요일: ${sorted.join(", ")}`;
   };
 
   // 한글 요일 → 영문 ENUM 매핑
   const convertToEnum = (dayKor: string): string => {
     switch (dayKor) {
-      case '월':
-        return 'MONDAY'
-      case '화':
-        return 'TUESDAY'
-      case '수':
-        return 'WEDNESDAY'
-      case '목':
-        return 'THURSDAY'
-      case '금':
-        return 'FRIDAY'
-      case '토':
-        return 'SATURDAY'
-      case '일':
-        return 'SUNDAY'
+      case "월":
+        return "MONDAY";
+      case "화":
+        return "TUESDAY";
+      case "수":
+        return "WEDNESDAY";
+      case "목":
+        return "THURSDAY";
+      case "금":
+        return "FRIDAY";
+      case "토":
+        return "SATURDAY";
+      case "일":
+        return "SUNDAY";
       default:
-        return ''
+        return "";
     }
   };
 
   // selectedTimes가 바뀔 때 availableTimes 업데이트
   useEffect(() => {
     const converted = Object.entries(selectedTimes).flatMap(([day, hours]) =>
-      Array.from(hours).map(hour => ({
+      Array.from(hours).map((hour) => ({
         dayOfWeek: convertToEnum(day),
-        time: hour.replace('시', ':00')
-      }))
+        time: hour.replace("시", ":00"),
+      })),
     )
-    setForm(prev => ({ ...prev, availableTimes: converted }))
+    setForm((prev) => ({ ...prev, availableTimes: converted }));
   }, [selectedTimes]);
 
   // 유효성 검사
@@ -153,6 +186,9 @@ export const ManagerSignup = () => {
     if (!form.birthDate) newErrors.birthDate = '생년월일을 입력해주세요.'
     if (!form.gender) newErrors.gender = '성별을 선택해주세요.'
     if (!form.bio.trim()) newErrors.bio = '한줄소개를 입력해주세요.'
+    if (!form.specialty) newErrors.specialty = "특기를 선택해주세요.";
+    if (form.fileId === null) newErrors.fileId = "서류 파일을 업로드해주세요.";
+    if (form.profileImageFileId === null) newErrors.profileImageFileId = "프로필 사진을 업로드해주세요.";
     if (
       !roadAddress.trim() ||
       !detailAddress.trim() ||
@@ -161,8 +197,6 @@ export const ManagerSignup = () => {
     ) {
       newErrors.address = '주소를 다시 입력해주세요.'
     }
-    // if (form.profileImageId === null) newErrors.profileImageId = "프로필 사진을 업로드해주세요.";
-    // if (form.fileId === null) newErrors.fileId = "첨부파일을 업로드해주세요.";
     if (form.availableTimes.length === 0)
       newErrors.availableTimes = '업무 가능 시간을 1개 이상 선택해주세요.'
 
@@ -178,18 +212,33 @@ export const ManagerSignup = () => {
       return false
     }
 
-    const { confirmPassword, termsAgreed, ...filteredForm } = form
-    const requestBody: createManagerSignup = {
-      ...filteredForm,
-      roadAddress,
-      detailAddress,
-      latitude: latitude ?? 0,
-      longitude: longitude ?? 0,
-      availableTimes: form.availableTimes
-    }
+    const requestBody = {
+      userSignupReqDTO: {
+        phone: form.phone,
+        userName: form.userName,
+        email: form.email,
+        password: form.password,
+        status: "ACTIVE",
+      },
+      userInfoSignupReqDTO: {
+        birthDate: form.birthDate,
+        gender: form.gender,
+        latitude: latitude ?? 0,
+        longitude: longitude ?? 0,
+        roadAddress,
+        detailAddress,
+      },
+      availableTimeReqDTOList: form.availableTimes, // [{ dayOfWeek, time }]
+      managerReqDTO: {
+        specialty: form.specialty,
+        bio: form.bio,
+        fileId: form.fileId,
+        profileImageFileId: form.profileImageFileId,
+      },
+    };
 
     try {
-      await signupManager(requestBody)
+      await signupManager(requestBody as any)
       alert('매니저 지원이 완료되었습니다.')
       setAddress("", 0, 0, "");
       navigate('/managers/auth/login')
@@ -200,6 +249,13 @@ export const ManagerSignup = () => {
 
   const [uploading, setUploading] = useState(false)
   const [previewFile, setPreviewFile] = useState<File | null>(null)
+
+  // specialty select 핸들러
+  const handleSpecialtyChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value === "" ? "" : Number(e.target.value);
+    setForm((prev) => ({ ...prev, specialty: value }));
+    setErrors((prev) => ({ ...prev, specialty: "" }));
+  };
 
   return (
     <Fragment>
@@ -225,39 +281,31 @@ export const ManagerSignup = () => {
                     ※ 숫자만 입력하면 하이픈(-)이 자동으로 추가됩니다.
                   </span>
                 </div>
-                <input
-                  type="tel"
+                <FormField
+                  label="연락처"
                   name="phone"
+                  type="tel"
                   value={form.phone}
                   onChange={handlePhoneChange}
                   placeholder="010-0000-0000"
-                  className="h-12 rounded-lg bg-slate-50 px-4 text-sm text-slate-700 placeholder-slate-400 outline outline-1 outline-slate-200"
+                  required
+                  error={errors.phone || errors.phoneFormat}
                 />
-                {errors.phone && !form.phone && (
-                  <p className="text-xs text-red-500">{errors.phone}</p>
-                )}
-                {errors.phoneFormat && (
-                  <p className="text-xs text-red-500">{errors.phoneFormat}</p>
-                )}
               </div>
               <div className="flex flex-1 flex-col gap-2">
                 <label className="font-['Inter'] text-sm leading-none font-medium text-slate-700">
                   이메일 *
                 </label>
-                <input
-                  type="email"
+                <FormField
+                  label="이메일"
                   name="email"
+                  type="email"
                   value={form.email}
                   onChange={handleChange}
                   placeholder="이메일 주소"
-                  className="h-12 rounded-lg bg-slate-50 px-4 text-sm text-slate-700 placeholder-slate-400 outline outline-1 outline-slate-200"
+                  required
+                  error={errors.email || errors.emailFormat}
                 />
-                {errors.email && !form.email && (
-                  <p className="text-xs text-red-500">{errors.email}</p>
-                )}
-                {errors.emailFormat && (
-                  <p className="text-xs text-red-500">{errors.emailFormat}</p>
-                )}
               </div>
             </div>
 
@@ -271,35 +319,31 @@ export const ManagerSignup = () => {
                     ※ 8~20자, 대/소문자·숫자·특수문자 중 3가지 이상 포함
                   </span>
                 </div>
-                <input
-                  type="password"
+                <FormField
+                  label="비밀번호"
                   name="password"
+                  type="password"
                   value={form.password}
                   onChange={handleChange}
                   placeholder="비밀번호"
-                  className="h-12 rounded-lg bg-slate-50 px-4 text-sm text-slate-700 placeholder-slate-400 outline outline-1 outline-slate-200"
+                  required
+                  error={errors.password}
                 />
-                {errors.password && !form.password && (
-                  <p className="text-xs text-red-500">{errors.password}</p>
-                )}
               </div>
               <div className="flex flex-1 flex-col gap-2">
                 <label className="font-['Inter'] text-sm leading-none font-medium text-slate-700">
                   비밀번호 확인 *
                 </label>
-                <input
-                  type="password"
+                <FormField
+                  label="비밀번호 확인"
                   name="confirmPassword"
+                  type="password"
                   value={form.confirmPassword}
                   onChange={handleChange}
                   placeholder="비밀번호"
-                  className="h-12 rounded-lg bg-slate-50 px-4 text-sm text-slate-700 placeholder-slate-400 outline outline-1 outline-slate-200"
+                  required
+                  error={errors.confirmPassword}
                 />
-                {errors.confirmPassword && !form.confirmPassword && (
-                  <p className="text-xs text-red-500">
-                    {errors.confirmPassword}
-                  </p>
-                )}
               </div>
             </div>
 
@@ -308,32 +352,30 @@ export const ManagerSignup = () => {
                 <label className="font-['Inter'] text-sm leading-none font-medium text-slate-700">
                   이름 *
                 </label>
-                <input
-                  type="text"
+                <FormField
+                  label="이름"
                   name="userName"
+                  type="text"
                   value={form.userName}
                   onChange={handleChange}
                   placeholder="이름"
-                  className="h-12 rounded-lg bg-slate-50 px-4 text-sm text-slate-700 placeholder-slate-400 outline outline-1 outline-slate-200"
+                  required
+                  error={errors.userName}
                 />
-                {errors.userName && !form.userName && (
-                  <p className="text-xs text-red-500">{errors.userName}</p>
-                )}
               </div>
               <div className="flex flex-1 flex-col gap-2">
                 <label className="font-['Inter'] text-sm leading-none font-medium text-slate-700">
                   생년월일 *
                 </label>
-                <input
-                  type="date"
+                <FormField
+                  label="생년월일"
                   name="birthDate"
+                  type="date"
                   value={form.birthDate}
                   onChange={handleChange}
-                  className="h-12 rounded-lg bg-slate-50 px-4 text-sm text-slate-700 outline outline-1 outline-slate-200"
+                  required
+                  error={errors.birthDate}
                 />
-                {errors.birthDate && !form.birthDate && (
-                  <p className="text-xs text-red-500">{errors.birthDate}</p>
-                )}
               </div>
             </div>
 
@@ -372,7 +414,12 @@ export const ManagerSignup = () => {
                   </label>
                 </div>
                 {errors.gender && !form.gender && (
-                  <p className="text-xs text-red-500">{errors.gender}</p>
+                  <div className="relative mt-1">
+                    <div className="w-fit max-w-full rounded-xl border border-red-200 bg-white px-3 py-1 text-xs text-red-500 shadow">
+                      {errors.gender}
+                    </div>
+                    <div className="absolute -top-2 left-4 h-0 w-0 border-x-8 border-t-0 border-b-8 border-x-transparent border-b-white"></div>
+                  </div>
                 )}
               </div>
             </div>
@@ -414,9 +461,9 @@ export const ManagerSignup = () => {
                 <label className="font-['Inter'] text-sm leading-none font-medium text-slate-700">
                   프로필 사진 *
                 </label>
-                {errors.profileImageId && !form.profileImageId && (
+                {errors.profileImageFileId && !form.profileImageFileId && (
                   <p className="text-xs text-red-500">
-                    {errors.profileImageId}
+                    {errors.profileImageFileId}
                   </p>
                 )}
                 <label className="flex h-10 w-40 items-center justify-center rounded-md bg-slate-50 px-4 text-sm font-medium text-slate-700 outline outline-1 outline-slate-200 cursor-pointer">
@@ -432,7 +479,7 @@ export const ManagerSignup = () => {
                         setUploading(true);
                         try {
                           const fileId = await createFileGroup([file]);
-                          setForm(prev => ({ ...prev, profileImageId: fileId }));
+                          setForm((prev) => ({ ...prev, profileImageFileId: fileId }));
                         } catch (err) {
                           alert("프로필 사진 업로드에 실패했습니다.");
                         } finally {
@@ -451,22 +498,87 @@ export const ManagerSignup = () => {
               </div>
             </div>
 
+            {/* 특기(서비스 카테고리) 선택 */}
+            <div className="flex w-full flex-col gap-2">
+              <label className="font-['Inter'] text-sm leading-none font-medium text-slate-700">
+                특기(서비스 카테고리) *
+              </label>
+              <select
+                name="specialty"
+                value={form.specialty}
+                onChange={handleSpecialtyChange}
+                className="h-12 rounded-lg bg-slate-50 px-4 text-sm text-slate-700 outline outline-1 outline-slate-200"
+              >
+                <option value="">특기를 선택하세요</option>
+                {serviceCategories.map(cat => (
+                  <option key={cat.serviceId} value={cat.serviceId}>
+                    {cat.serviceName}
+                  </option>
+                ))}
+              </select>
+              {errors.specialty && !form.specialty && (
+                <div className="relative mt-1">
+                  <div className="w-fit max-w-full rounded-xl border border-red-200 bg-white px-3 py-1 text-xs text-red-500 shadow">
+                    {errors.specialty}
+                  </div>
+                  <div className="absolute -top-2 left-4 h-0 w-0 border-x-8 border-t-0 border-b-8 border-x-transparent border-b-white"></div>
+                </div>
+              )}
+            </div>
+
+            {/* 서류 파일 업로드 */}
+            <div className="flex w-full flex-col gap-2">
+              <label className="font-['Inter'] text-sm leading-none font-medium text-slate-700">
+                서류 파일 업로드 *
+              </label>
+              {errors.fileId && !form.fileId && (
+                <p className="text-xs text-red-500">{errors.fileId}</p>
+              )}
+              <label className="flex h-10 w-40 items-center justify-center rounded-md bg-slate-50 px-4 text-sm font-medium text-slate-700 outline outline-1 outline-slate-200 cursor-pointer">
+                파일 선택
+                <input
+                  type="file"
+                  accept="application/pdf,image/*"
+                  style={{ display: "none" }}
+                  onChange={async (e) => {
+                    const file = e.target.files && e.target.files[0];
+                    if (file) {
+                      setUploading(true);
+                      try {
+                        const fileId = await createFileGroup([file]);
+                        setForm((prev) => ({ ...prev, fileId: fileId }));
+                      } catch (err) {
+                        alert("서류 파일 업로드에 실패했습니다.");
+                      } finally {
+                        setUploading(false);
+                      }
+                    }
+                  }}
+                />
+              </label>
+              {uploading && (
+                <div className="text-xs text-indigo-600 mt-1">
+                  업로드 중...
+                </div>
+              )}
+              <p className="text-xs text-slate-500">PDF, JPG, PNG 파일 (최대 10MB)</p>
+            </div>
+
             {/* 한줄소개 */}
             <div className="flex w-full flex-col gap-2">
               <label className="font-['Inter'] text-sm leading-none font-medium text-slate-700">
                 한줄소개 *
               </label>
-              <input
-                type="text"
+              <FormField
+                label="한줄소개"
                 name="bio"
+                type="text"
                 value={form.bio}
                 onChange={handleChange}
                 placeholder="자신을 소개하는 한 줄을 작성해주세요"
-                className="h-12 rounded-lg bg-slate-50 px-4 text-sm text-slate-700 placeholder-slate-400 outline outline-1 outline-slate-200"
+                required
+                error={errors.bio}
               />
-              {errors.bio && !form.bio && (
-                <p className="text-xs text-red-500">{errors.bio}</p>
-              )}
             </div>
 
             {/* 업무 가능 시간 */}
