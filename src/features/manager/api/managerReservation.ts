@@ -32,7 +32,6 @@ export const searchManagerReservations = async (params: {
   )
 
   const res = await api.get('/managers/reservations', { params: cleanedParams })
-  console.log(res.data.body)
   if (!res.data.success) {
     // 명시적으로 실패 처리
     if (res.data.message?.trim()) alert(res.data.message)
@@ -79,7 +78,6 @@ export const getManagerReservation = async (
   reservationId: number
 ): Promise<ManagerReservationDetail> => {
   const res = await api.get(`/managers/reservations/${reservationId}`)
-  console.log(res.data.body)
   if (!res.data.success) {
     // 명시적으로 실패 처리
     if (res.data.message?.trim()) alert(res.data.message)
