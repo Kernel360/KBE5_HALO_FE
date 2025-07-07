@@ -1,13 +1,11 @@
 // CustomerReservation.ts (API 호출)
 import api from "@/services/axios";
-import type { ReservationReqType } from '@/features/customer/types/reservation/ReservationReqType';
-import type { ReservationConfirmReqType } from '@/features/customer/types/reservation/ReservationConfirmReqType';
-import type { PreCancelReqType, CustomerReservationCancelReqType, ReservationStatus } from '@/features/customer/types/CustomerReservationType';
+import type { ReservationConfirmReqType, ReservationReqType, PreCancelReqType, CustomerReservationCancelReqType, ReservationStatus } from '@/features/customer/types/CustomerReservationType';
 
 
 // 서비스 카테고리 조회
 export const getServiceCategories = async () => {
-    const res = await api.get("/customers/reservations/categories");
+    const res = await api.get("/common/serviceCategory");
     return res.data;
 };
 
@@ -43,7 +41,7 @@ export const cancelBeforeConfirmReservation = async (reservationId: number,paylo
 
 // 나의 예약 조회
 export const getCustomerReservations = async (params: {
-  reservationStatus?: ReservationStatus;
+  status?: ReservationStatus;
   page?: number;
   
 }) => {

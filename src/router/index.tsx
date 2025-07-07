@@ -18,20 +18,21 @@ import { CustomerReviewsPage } from '@/features/customer/pages/customerReview/Cu
 import { CustomerMyInfo } from '@/features/customer/pages/CustomerMyInfo'
 
 // 매니저
-import { ManagerLayout } from '@/features/manager/layouts/ManagerLayout'
-import { ManagerMain } from '@/features/manager/pages/ManagerMain'
-import { ManagerSignup } from '@/features/manager/pages/ManagerSignup'
-import { ManagerLogin } from '@/features/manager/pages/ManagerLogin'
-import { ManagerMy } from '@/features/manager/pages/ManagerMy/ManagerMy'
-import { ManagerContractCancel } from '@/features/manager/pages/ManagerMy/ManagerContractCancel'
-import { ManagerMyForm } from '@/features/manager/pages/ManagerMy/ManagerMyForm'
-import { ManagerReservations } from '@/features/manager/pages/ManagerReservation/ManagerReservations'
-import { ManagerReservationDetail } from '@/features/manager/pages/ManagerReservation/ManagerReservationDetail'
-import { ManagerInquiries } from '@/features/manager/pages/ManagerInquiry/ManagerInquiries'
-import { ManagerInquiryDetail } from '@/features/manager/pages/ManagerInquiry/ManagerInquiryDetail'
-import { ManagerInquiryForm } from '@/features/manager/pages/ManagerInquiry/ManagerInquiryForm'
-import { ManagerReviews } from '@/features/manager/pages/ManagerReview/ManagerReviews'
-import { ManagerPayments } from '@/features/manager/pages/ManagerPayment/ManagerPayments'
+import { ManagerLayout } from "@/features/manager/layouts/ManagerLayout";
+import { ManagerMain } from "@/features/manager/pages/ManagerMain";
+import { ManagerSignup } from "@/features/manager/pages/ManagerSignup";
+import { ManagerLogin } from "@/features/manager/pages/ManagerLogin";
+import { ManagerMy } from "@/features/manager/pages/ManagerMy/ManagerMy";
+import { ManagerContractCancel } from "@/features/manager/pages/ManagerMy/ManagerContractCancel";
+import { ManagerMyForm } from "@/features/manager/pages/ManagerMy/ManagerMyForm";
+import { ManagerReservations } from "@/features/manager/pages/ManagerReservation/ManagerReservations";
+import { ManagerReservationDetail } from "@/features/manager/pages/ManagerReservation/ManagerReservationDetail";
+import { ManagerInquiries } from "@/features/manager/pages/ManagerInquiry/ManagerInquiries";
+import { ManagerInquiryDetail } from "@/features/manager/pages/ManagerInquiry/ManagerInquiryDetail";
+import { ManagerInquiryForm } from "@/features/manager/pages/ManagerInquiry/ManagerInquiryForm";
+import { ManagerReviews } from "@/features/manager/pages/ManagerReview/ManagerReviews";
+import { ManagerPayments } from "@/features/manager/pages/ManagerPayment/ManagerPayments";
+
 
 // 관리자
 import { AdminLogin } from '@/features/admin/pages/AdminLogin'
@@ -242,20 +243,9 @@ export const router = createBrowserRouter([
 
               // 상세
               {
-                path: 'customer/:inquiryId',
-                element: <AdminInquiryDetail activeTab="customer" />
+                path: ":inquiryId", element: <AdminInquiryDetail />,
               },
-              {
-                path: 'manager/:inquiryId',
-                element: <AdminInquiryDetail activeTab="manager" />
-              }
-
-              // 삭제
-
-              // 답변 등록
-
-              // 답변 수정
-            ]
+            ],
           },
           // // 공지/이벤트 목록
           {

@@ -1,7 +1,7 @@
 import React from 'react';
 import { useLocation, Navigate } from 'react-router-dom';
 import ReservationStepFinal from '@/features/customer/pages/reservation/ReservationStepFinal';
-import type { ReservationConfirmRspType } from '@/features/customer/types/reservation/ReservationConfirmRspType';
+import type { ReservationConfirmRspType } from '@/features/customer/types/CustomerReservationType';
 
 const ReservationStepFinalGuard: React.FC = () => {
   const location = useLocation();
@@ -14,9 +14,10 @@ const ReservationStepFinalGuard: React.FC = () => {
   }
 
   // 필수 필드들이 누락되었는지 확인
-  if (!finalReservationData.reservationId || 
-      !finalReservationData.managerName || 
-      !finalReservationData.serviceName) {
+  if (!finalReservationData.reservationId 
+    //||   !finalReservationData.managerName || 
+    //  !finalReservationData.serviceName
+    ) {
     alert('예약 정보가 완전하지 않습니다. 다시 예약해주세요.');
     return <Navigate to="/reservations/new" replace />;
   }

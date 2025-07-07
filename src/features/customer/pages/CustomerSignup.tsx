@@ -99,13 +99,13 @@ export const CustomerSignup: React.FC = () => {
     };
 
     try {
-      await signupCustomer(payload);
-      alert('회원가입 성공하였습니다.');
-      setAddress("", 0, 0, "");
-      navigate('/auth/login');
+    await signupCustomer(payload);
+    alert('회원가입 성공하였습니다.');
+    setAddress("", 0, 0, "");
+    navigate('/auth/login');
     } catch (error: any) {
-      const message = error.response?.data?.message || '회원가입에 실패했습니다.';
-      alert(message);
+    const message = error.response?.data?.message || '회원가입에 실패했습니다.';
+    alert(message); // ← 여기서 정확한 백엔드 메시지 보여줌
     }
   };
 

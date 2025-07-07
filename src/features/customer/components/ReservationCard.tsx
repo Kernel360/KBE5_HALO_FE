@@ -69,7 +69,7 @@ const ReservationCard: React.FC<ReservationCardProps> = ({
     <Link
       to={`/my/reservations/${reservation.reservationId}`}
       className="block bg-white rounded-lg shadow-md mb-5 p-6 relative cursor-pointer
-                 border border-transparent hover:border-indigo-500 transition-all duration-200"
+                 border border-transparent hover:border-indigo-500 transition-all duration-100"
     >
       {/* 상단 날짜/시간 및 상태 배지 */}
       <div className="flex justify-between items-center mb-4">

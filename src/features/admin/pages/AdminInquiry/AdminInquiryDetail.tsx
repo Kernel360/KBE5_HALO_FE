@@ -1,25 +1,26 @@
 import { Fragment, useEffect, useState, useRef } from "react";
-import { useNavigate, useParams, Link, useLocation } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import {
   getAdminInquiry,
-  deleteAdminInquiry,
   answerAdminInquiry,
 } from "@/features/admin/api/adminInquiry";
 import Loading from "@/shared/components/ui/Loading";
+import ErrorToast from "@/shared/components/ui/toast/ErrorToast";
+import SuccessToast from "@/shared/components/ui/toast/SuccessToast";
+import Toast from "@/shared/components/ui/toast/Toast";
+import type { InquiryDetail } from "@/features/admin/types/AdminInquiryType";
 
-export const AdminInquiryDetail = ({
-  activeTab,
-}: {
-  activeTab: "manager" | "customer";
-}) => {
+export const AdminInquiryDetail = () => {
   const { inquiryId } = useParams();
-  const location = useLocation();
-  const authorId = location.state?.authorId;
-  const [inquiry, setInquiry] = useState<any>(null);
-  const navigate = useNavigate();
+  const [inquiry, setInquiry] = useState<InquiryDetail | null>(null);
   const answerTextareaRef = useRef<HTMLTextAreaElement | null>(null);
   const [answer, setAnswer] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
+  
+  // Toast 상태 관리
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const [errorToastMsg, setErrorToastMsg] = useState<string | null>(null);
+  const [successToastMsg, setSuccessToastMsg] = useState<string | null>(null);
 
   // HTML formatting handlers
   const formatText = (tag: string) => {
@@ -63,60 +64,47 @@ export const AdminInquiryDetail = ({
 
   // 문의사항 조회
   useEffect(() => {
-    if (!inquiryId || !authorId) return;
-    getAdminInquiry(activeTab, Number(inquiryId), authorId).then(
-      (data: any) => {
+    if (!inquiryId) return;
+    getAdminInquiry(Number(inquiryId)).then(
+      (data: InquiryDetail) => {
         setInquiry(data);
-        if (data.replyStatus === true) {
-          setAnswer(data.reply || "");
-        } else {
-          setAnswer(data.replyContent || "");
+        if (data.replyDetail) {
+          setAnswer(data.replyDetail.content || "");
         }
       },
-    );
-  }, [inquiryId, activeTab, authorId]);
+    ).catch((error) => {
+      setErrorToastMsg(error.message || "문의사항을 불러오는 중 오류가 발생했습니다.");
+    });
+  }, [inquiryId]);
+  
   if (!inquiry) {
     return (
-      <Loading
-        message="문의사항을 불러오는 중..."
-        size="lg"
-        className="h-screen"
-      />
+      <div className="w-full h-screen flex justify-center items-center">
+        <Loading
+          message="문의사항을 불러오는 중..."
+          size="lg"
+        />
+      </div>
     );
   }
 
   // 답변 상태 구분
-  const isAnswered = inquiry.replyStatus === true;
-  const answerText = isAnswered ? "답변 완료" : "답변 대기";
-
-  // 문의사항 삭제
-  const handleDelete = async () => {
-    if (!inquiryId) return;
-    const confirmDelete = window.confirm("정말로 삭제하시겠습니까?");
-    if (!confirmDelete) return;
-
-    try {
-      await deleteAdminInquiry(activeTab, Number(inquiryId));
-      alert("삭제가 완료되었습니다.");
-      navigate("/admin/inquiries");
-    } catch (error) {
-      console.error(error);
-      alert("삭제 중 오류가 발생했습니다.");
-    }
-  };
+  const isAnswered = !!inquiry.replyDetail;
 
   // 답변 등록
   const handleAnswer = async () => {
     if (!inquiryId || !answer.trim()) return;
     setLoading(true);
     try {
-      await answerAdminInquiry(activeTab, Number(inquiryId), {
+      await answerAdminInquiry(Number(inquiryId), {
         replyContent: answer,
       });
-      alert("답변이 등록되었습니다.");
-      window.location.reload();
+      setSuccessToastMsg("답변이 등록되었습니다.");
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
     } catch (error) {
-      alert("답변 처리 중 오류가 발생했습니다.");
+      setErrorToastMsg("답변 처리 중 오류가 발생했습니다.");
     } finally {
       setLoading(false);
     }
@@ -124,222 +112,214 @@ export const AdminInquiryDetail = ({
 
   return (
     <Fragment>
-      <div className="w-full min-h-screen flex flex-col">
+      <div className="w-full min-h-0 flex flex-col">
         {/* 상단 헤더 */}
         <div className="h-16 px-6 bg-white border-b border-gray-200 flex justify-between items-center">
           <div className="text-gray-900 text-xl font-bold">문의사항 상세</div>
-          <div className="flex gap-2">
-            <Link
-              to="/admin/inquiries"
-              className="h-10 px-4 flex justify-center items-center border rounded-md text-sm text-gray-500 hover:bg-gray-100"
-            >
-              목록으로
-            </Link>
-            {!inquiry.answerId && (
-              <Fragment>
-                <button
-                  onClick={handleDelete}
-                  className="h-10 px-4 bg-red-500 text-white rounded-md text-sm font-semibold hover:bg-red-600"
-                >
-                  삭제
-                </button>
-              </Fragment>
-            )}
-          </div>
         </div>
 
         {/* 본문 */}
-        <div className="self-stretch bg-white rounded-xl outline outline-1 outline-offset-[-1px] outline-gray-200 flex flex-col justify-start items-start">
-          <div className="self-stretch p-6 flex flex-col justify-start items-start gap-5">
-            <div className="self-stretch inline-flex justify-between items-center">
-              <div className="flex justify-start items-center gap-2">
-                <div
-                  className={`h-7 px-3 rounded-2xl flex justify-center items-center ${isAnswered ? "bg-green-100" : "bg-amber-100"}`}
-                >
-                  <div
-                    className={`justify-start text-xs font-semibold font-['Inter'] leading-none ${isAnswered ? "text-green-600" : "text-amber-600"}`}
-                  >
-                    {answerText}
+        <div className="p-6 flex flex-col gap-4">
+          {/* 문의 내용 카드 */}
+          <div className="p-8 bg-white rounded-xl shadow flex flex-col gap-4">
+               <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-sm text-slate-500">
+                    {/* 상태 뱃지 */}
+                    <div
+                      className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                        inquiry.replyDetail
+                          ? 'bg-gray-100 text-gray-600'
+                          : 'bg-yellow-100 text-orange-600'
+                      }`}
+                    >
+                      {inquiry.replyDetail ? '답변 완료' : '답변 대기'}
+                    </div>
+                    {/* 접수일 */}
+                    <span>
+                      작성 일자 :{" "}
+                      <span className="text-slate-700">{formatDate(inquiry.createdAt)}</span>
+                    </span>
+                  </div>
+                  <div className="flex gap-2">
+                    <Link
+                      to="/admin/inquiries"
+                      className="h-9 px-3 flex items-center gap-2 text-gray-500 border border-gray-300 bg-white rounded-md text-sm font-semibold hover:bg-gray-50"
+                    >
+                      목록으로
+                    </Link>
                   </div>
                 </div>
-                <div className="justify-start text-gray-500 text-sm font-normal font-['Inter'] leading-none">
-                  접수일: {formatDate(inquiry.createdAt)}
-                </div>
-              </div>
-              {activeTab === "customer" && (
-                <div className="flex justify-start items-center gap-2">
-                  <div className="justify-start text-gray-500 text-sm font-medium font-['Inter'] leading-none">
-                    분류:
-                  </div>
-                  <div className="h-7 px-3 bg-blue-100 rounded-2xl flex justify-center items-center">
-                    <div className="justify-start text-blue-700 text-xs font-semibold font-['Inter'] leading-none">
-                      {inquiry.categoryName || "-"}
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-            <div className="self-stretch flex flex-col justify-start items-start gap-3 mt-6">
-              <div className="self-stretch justify-start text-gray-900 text-base font-bold font-['Inter'] leading-tight">
-                문의자 정보
-              </div>
-              <div className="self-stretch inline-flex justify-start items-start gap-4">
-                <div className="flex-1 inline-flex flex-col justify-start items-start gap-2">
-                  <div className="self-stretch inline-flex justify-start items-center gap-3">
-                    <div className="w-20 justify-start text-gray-500 text-sm font-medium font-['Inter'] leading-none">
-                      이름
-                    </div>
-                    <div className="justify-start text-gray-900 text-sm font-normal font-['Inter'] leading-none">
-                      {inquiry.userName || "-"}
-                    </div>
-                  </div>
-                  <div className="self-stretch inline-flex justify-start items-center gap-3">
-                    <div className="w-20 justify-start text-gray-500 text-sm font-medium font-['Inter'] leading-none">
-                      이메일
-                    </div>
-                    <div className="justify-start text-gray-900 text-sm font-normal font-['Inter'] leading-none">
-                      {inquiry.email || "-"}
-                    </div>
-                  </div>
-                </div>
-                <div className="flex-1 inline-flex flex-col justify-start items-start gap-2">
-                  <div className="self-stretch inline-flex justify-start items-center gap-3">
-                    <div className="w-20 justify-start text-gray-500 text-sm font-medium font-['Inter'] leading-none">
-                      연락처
-                    </div>
-                    <div className="justify-start text-gray-900 text-sm font-normal font-['Inter'] leading-none">
-                      {inquiry.phone || "-"}
-                    </div>
+            
+            <div className="h-px bg-slate-200" />
+            <div className="flex flex-col gap-6">
+              {/* 문의 유형 */}
+              <div className="flex flex-col">
+                <div className="flex items-center gap-2">
+                  <div className="font-bold mr-10 text-base text-gray-900">문의 유형 </div>
+                  <div className="text-blue-600 text-sm font-semibold px-3 py-1 rounded-full">
+                    {inquiry.categoryName || "-"}
                   </div>
                 </div>
               </div>
-            </div>
-            <div className="h-2 md:h-4" />
-            <div className="self-stretch flex flex-col justify-start items-start gap-3">
-              <div className="self-stretch justify-start text-gray-900 text-base font-bold font-['Inter'] leading-tight">
-                문의 제목
+              
+              {/* 문의자 정보 */}
+                <div className="space-y-4">
+                  <div className="font-bold text-base text-gray-900">문의자 정보</div>
+                  <div className="space-y-1 text-sm">
+                    <div className="flex">
+                      <div className="w-20 mr-10 text-slate-500">이름</div>
+                      <div className="text-gray-900">{inquiry.authorName}</div>
+                    </div>
+                    <div className="flex">
+                      <div className="w-20 mr-10 text-slate-500">작성자 타입</div>
+                      <div className="text-gray-900">{inquiry.authorType || "-"}</div>
+                    </div>
+                    <div className="flex">
+                      <div className="w-20 mr-10 text-slate-500">연락처</div>
+                      <div className="text-gray-900">{inquiry.phone || "-"}</div>
+                    </div>
+                    <div className="flex">
+                      <div className="w-20 mr-10 text-slate-500">이메일</div>
+                      <div className="text-gray-900">{inquiry.email || "-"}</div>
+                    </div>
+                  </div>
+                </div>
+              
+              {/* 문의글 정보 */}
+              <div className="flex flex-col">
+                <div className="font-bold text-base text-gray-900">문의 제목</div>
+                <div className="p-4 bg-slate-50 rounded-lg text-slate-800 text-sm">
+                  {inquiry.title}
+                </div>
               </div>
-              <div className="self-stretch  border border-gray-200 rounded-lg p-4 text-gray-900 text-lg font-['Inter'] leading-snug whitespace-pre-line">
-                {inquiry.title}
-              </div>
-              <div className="self-stretch justify-start text-gray-900 text-base font-bold font-['Inter'] leading-tight">
-                문의 내용
-              </div>
-              <div className="self-stretch h-48 p-4  rounded-lg outline outline-1 outline-offset-[-1px] outline-gray-200 flex flex-col justify-start items-start">
-                <div
-                  className="self-stretch justify-start text-gray-700 text-sm font-normal font-['Inter'] leading-tight"
-                  style={{ whiteSpace: "pre-line" }}
-                >
+              
+              <div className="flex flex-col">
+                <div className="font-bold text-base text-gray-900">문의 내용</div>
+                <div className="p-4 bg-slate-50 rounded-lg text-slate-800 text-sm whitespace-pre-wrap h-48 overflow-y-auto">
                   {inquiry.content}
                 </div>
               </div>
-            </div>
-            <div className="self-stretch flex flex-col justify-start items-start gap-3">
-              <div className="self-stretch justify-start text-gray-900 text-base font-bold font-['Inter'] leading-tight">
-                첨부파일
-              </div>
-              <div className="self-stretch inline-flex justify-start items-start gap-2">
-                {inquiry.fileId ? (
-                  <div className="flex-1 h-11 p-3 rounded-lg outline outline-1 outline-offset-[-1px] outline-gray-200 flex justify-start items-center gap-3">
-                    <div className="w-5 h-5 relative border-gray-500 overflow-hidden">
-                      <div className="w-3.5 h-4 left-[3.33px] top-[1.67px] absolute outline outline-[1.67px] outline-offset-[-0.83px] outline-gray-500" />
-                      <div className="w-[5px] h-[5px] left-[11.67px] top-[1.67px] absolute outline outline-[1.67px] outline-offset-[-0.83px] outline-gray-500" />
-                    </div>
-                    <div className="flex-1 justify-start text-gray-700 text-sm font-normal font-['Inter'] leading-none">
-                      첨부파일이 있습니다
-                    </div>
-                    <div className="w-4 h-4 relative border-blue-500 overflow-hidden">
-                      <div className="w-0 h-2 left-[8px] top-[2px] absolute outline outline-[1.33px] outline-offset-[-0.67px] outline-blue-500" />
-                      <div className="w-3 h-1 left-[2px] top-[10px] absolute outline outline-[1.33px] outline-offset-[-0.67px] outline-blue-500" />
-                      <div className="w-1.5 h-[3.33px] left-[4.67px] top-[6.67px] absolute outline outline-[1.33px] outline-offset-[-0.67px] outline-blue-500" />
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex-1 h-11 p-3 rounded-lg outline outline-1 outline-offset-[-1px] outline-gray-200 flex justify-start items-center text-gray-400 text-sm">
-                    첨부파일없음
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-          <div className="self-stretch h-px bg-gray-200" />
-          <div className="self-stretch p-6 flex flex-col justify-start items-start gap-4">
-            <div className="self-stretch justify-start text-gray-900 text-base font-bold font-['Inter'] leading-tight">
-              관리자 답변
-            </div>
-            <div className="self-stretch h-48 flex flex-col justify-start items-start gap-3">
-              {isAnswered ? (
-                // 답변이 있을 때: 카드 형태로 답변 내용만 표시
-                <div className="self-stretch h-40 bg-white rounded-lg outline outline-1 outline-offset-[-1px] outline-gray-300 flex flex-col justify-start items-start">
-                  <div className="self-stretch h-11 px-3 bg-gray-50 border-b border-gray-200 flex flex-row justify-start items-center gap-2">
-                    <span className="text-gray-700 text-sm">답변 내용</span>
-                  </div>
-                  <div className="self-stretch flex-1 p-3 flex flex-col justify-start items-start">
-                    <div
-                      className="self-stretch w-full h-full text-gray-900 text-sm font-normal font-['Inter'] leading-none"
-                      style={{ whiteSpace: "pre-line" }}
-                    >
-                      {answer}
-                    </div>
+              
+              {/* 첨부파일 */}
+              {inquiry.fileId && (
+                <div className="flex flex-col">
+                  <div className="font-semibold text-sm text-slate-500 mb-1">첨부파일</div>
+                  <div className="h-10 px-4 bg-slate-50 rounded-lg flex items-center gap-2 outline outline-1 outline-slate-200">
+                    <span className="material-symbols-outlined text-slate-500">description</span>
+                    <span className="text-slate-700 text-sm font-medium">첨부파일</span>
                   </div>
                 </div>
-              ) : (
-                // 답변이 없을 때: 입력폼과 툴바, 답변하기 버튼 표시
-                <>
-                  <div className="self-stretch h-40 bg-white rounded-lg outline outline-1 outline-offset-[-1px] outline-gray-300 flex flex-col justify-start items-start">
-                    <div className="self-stretch h-11 px-3 bg-gray-50 border-b border-gray-200 flex flex-row justify-start items-center gap-2">
-                      {/* HTML Formatting Toolbar */}
-                      <button
-                        type="button"
-                        title="Bold"
-                        className="px-2 py-1 text-gray-700 hover:bg-gray-200 rounded"
-                        onClick={() => formatText("b")}
-                      >
-                        <b>B</b>
-                      </button>
-                      <button
-                        type="button"
-                        title="Italic"
-                        className="px-2 py-1 text-gray-700 hover:bg-gray-200 rounded"
-                        onClick={() => formatText("i")}
-                      >
-                        <i>I</i>
-                      </button>
-                      <button
-                        type="button"
-                        title="Bullet List"
-                        className="px-2 py-1 text-gray-700 hover:bg-gray-200 rounded"
-                        onClick={() => formatText("ul")}
-                      >
-                        • List
-                      </button>
-                    </div>
-                    <div className="self-stretch flex-1 p-3 flex flex-col justify-start items-start">
-                      <textarea
-                        ref={answerTextareaRef}
-                        className="self-stretch w-full h-full resize-none bg-transparent text-gray-900 text-sm font-normal font-['Inter'] leading-none focus:outline-none"
-                        placeholder="답변을 입력해주세요..."
-                        value={answer}
-                        onChange={(e) => setAnswer(e.target.value)}
-                      />
-                    </div>
-                  </div>
-                  <div className="self-stretch inline-flex justify-end items-center gap-3">
-                    <button
-                      type="button"
-                      className={`w-28 h-10 px-4 rounded-lg flex justify-center items-center text-white text-sm font-semibold font-['Inter'] leading-none ${answer.trim() ? "bg-indigo-600 hover:bg-indigo-800" : "bg-gray-300 cursor-not-allowed"}`}
-                      disabled={!answer.trim() || loading}
-                      onClick={handleAnswer}
-                    >
-                      답변하기
-                    </button>
-                  </div>
-                </>
               )}
             </div>
           </div>
+
+          {/* 답변 섹션 */}
+          {isAnswered ? (
+            // 답변이 있을 때: 답변 카드 표시
+            <div className="p-8 bg-white rounded-xl shadow flex flex-col gap-6">
+              <div className="flex justify-between items-center">
+                <div className="text-slate-800 text-xl font-bold">답변</div>
+                <div className="flex gap-4 text-sm text-slate-500">
+                  <div>
+                    <span>
+                      답변자 :{" "}
+                    </span>
+                    <span className="text-slate-700">
+                      {inquiry.replyDetail?.userName || "관리자"}
+                    </span>
+                    <span>
+                      {" "}작성 일자 :{" "}
+                    </span>
+                    <span className="text-slate-700">
+                      {inquiry.replyDetail?.createdAt ? formatDate(inquiry.replyDetail.createdAt) : ""}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="h-px bg-slate-200" />
+              
+              <div className="p-4 bg-blue-50 rounded-lg text-slate-800 text-sm whitespace-pre-wrap h-48 overflow-y-auto">
+                {inquiry.replyDetail?.content || ""}
+              </div>
+            </div>
+          ) : (
+            // 답변이 없을 때: 답변 입력 폼 표시
+            <div className="p-8 bg-white rounded-xl shadow flex flex-col gap-6">
+              <div className="text-slate-800 text-xl font-bold">답변 작성</div>
+              
+              <div className="h-px bg-slate-200" />
+              
+              <div className="h-40 bg-white rounded-lg outline outline-1 outline-offset-[-1px] outline-gray-300 flex flex-col justify-start items-start">
+                <div className="self-stretch h-11 px-3 bg-gray-50 border-b border-gray-200 flex flex-row justify-start items-center gap-2">
+                  {/* HTML Formatting Toolbar */}
+                  <button
+                    type="button"
+                    title="Bold"
+                    className="px-2 py-1 text-gray-700 hover:bg-gray-200 rounded"
+                    onClick={() => formatText("b")}
+                  >
+                    <b>B</b>
+                  </button>
+                  <button
+                    type="button"
+                    title="Italic"
+                    className="px-2 py-1 text-gray-700 hover:bg-gray-200 rounded"
+                    onClick={() => formatText("i")}
+                  >
+                    <i>I</i>
+                  </button>
+                  <button
+                    type="button"
+                    title="Bullet List"
+                    className="px-2 py-1 text-gray-700 hover:bg-gray-200 rounded"
+                    onClick={() => formatText("ul")}
+                  >
+                    • List
+                  </button>
+                </div>
+                <div className="self-stretch flex-1 p-3 flex flex-col justify-start items-start">
+                  <textarea
+                    ref={answerTextareaRef}
+                    className="self-stretch w-full h-full resize-none bg-transparent text-gray-900 text-sm font-normal font-['Inter'] leading-none focus:outline-none"
+                    placeholder="답변을 입력해주세요..."
+                    value={answer}
+                    onChange={(e) => setAnswer(e.target.value)}
+                  />
+                </div>
+              </div>
+              
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  className={`h-9 px-4 rounded-lg flex justify-center items-center text-white text-sm font-semibold ${answer.trim() ? "bg-indigo-600 hover:bg-indigo-800" : "bg-gray-300 cursor-not-allowed"}`}
+                  disabled={!answer.trim() || loading}
+                  onClick={handleAnswer}
+                >
+                  답변하기
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
+      
+      {/* Toast 컴포넌트들 */}
+      <SuccessToast
+        open={!!successToastMsg}
+        message={successToastMsg || ""}
+        onClose={() => setSuccessToastMsg(null)}
+      />
+      <ErrorToast
+        open={!!errorToastMsg}
+        message={errorToastMsg || ""}
+        onClose={() => setErrorToastMsg(null)}
+      />
+      <Toast
+        open={!!toastMsg}
+        message={toastMsg || ""}
+        onClose={() => setToastMsg(null)}
+      />
     </Fragment>
   );
 };

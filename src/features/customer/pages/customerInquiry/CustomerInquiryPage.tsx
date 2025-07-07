@@ -1,25 +1,38 @@
 // CustomerInquiryPage.tsx
 import React, { Fragment, useEffect, useState, useCallback, useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { DEFAULT_PAGE_SIZE } from "@/shared/constants/constants";
 import { searchCustomerInquiries } from "@/features/customer/api/CustomerInquiries";
-import type { SearchCustomerInquiries as CustomerInquiryType } from "@/features/customer/types/CustomerInquiryType";
+import type { InquirySummary, SearchInquiriesRequest } from "@/shared/types/InquiryType";
+import Pagination from "@/shared/components/Pagination";
+import { useAuthStore } from "@/store/useAuthStore";
 
 export const CustomerInquiryPage: React.FC = () => {
+  const navigate = useNavigate();
   const [fadeKey, setFadeKey] = useState(0);
-  const [inquiries, setInquiries] = useState<CustomerInquiryType[]>([]);
+  const [inquiries, setInquiries] = useState<InquirySummary[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
 
   const isMounted = useRef(false);
 
-  const [searchParams, setSearchParams] = useState({
-    keyword: "",
-    inquiryType: "",
-    dateRange: "", // This will store the selected date range (e.g., "1m", "3m", "6m")
-    startDate: "",
+  const [searchParams, setSearchParams] = useState<SearchInquiriesRequest>({
+    fromCreatedAt: undefined,
+    toCreatedAt: undefined,
+    replyStatus: undefined,
+
+    titleKeyword: undefined,
+    contentKeyword: undefined,
     page: 0,
     size: DEFAULT_PAGE_SIZE,
+  });
+
+  // UI 상태 관리를 위한 별도 상태
+  const [uiState, setUiState] = useState({
+    dateRange: "", // "1m", "3m", "6m"
+    titleKeyword: "",
+    contentKeyword: "",
+    replyStatus: "", // "all", "replied", "pending"
   });
 
   // 날짜 표시를 위한 상태 추가
@@ -32,22 +45,28 @@ export const CustomerInquiryPage: React.FC = () => {
   };
 
   useEffect(() => {
-    const fetchInquiries = async () => {
-      const today = new Date();
-      const convertedParams = {
-        ...searchParams,
-        endDate: getFormattedDate(today),
-      };
+    const { accessToken } = useAuthStore.getState();
+    if (!accessToken) {
+      alert("로그인이 필요합니다.");
+      navigate("/auth/login");
+      return;
+    }
 
+    const fetchInitialData = async () => {
       setLoading(true);
       try {
-        const res = await searchCustomerInquiries(convertedParams);
-        if (res?.body) {
-          setInquiries(res.body.content);
-          setTotal(res.body.page.totalElements);
+        // 문의사항 조회
+        const inquiriesRes = await searchCustomerInquiries(searchParams);
+
+        // 문의사항 설정
+        if (inquiriesRes?.body) {
+          setInquiries(inquiriesRes.body.content);
+          setTotal(inquiriesRes.body.page.totalElements);
           setFadeKey((prev) => prev + 1);
         }
-      } catch (err) {
+      } catch (error: any) {
+        const errorMessage = error.response?.data?.message || error.message || "문의사항 목록을 조회하는데 실패하였습니다.";
+        alert(errorMessage);
         setInquiries([]);
         setTotal(0);
       } finally {
@@ -57,25 +76,24 @@ export const CustomerInquiryPage: React.FC = () => {
     };
 
     if (!isMounted.current) {
-      fetchInquiries();
+      fetchInitialData();
     }
-  }, []);
+  }, [navigate, searchParams]);
 
   // 문의사항 조회 함수
-  const loadInquiries = useCallback(async (paramsToSearch: typeof searchParams) => {
+  const loadInquiries = useCallback(async (paramsToSearch: SearchInquiriesRequest) => {
     if (!isMounted.current) return; // 초기 로딩 시에는 실행하지 않음
+
+    const { accessToken } = useAuthStore.getState();
+    if (!accessToken) {
+      alert("로그인이 필요합니다.");
+      navigate("/auth/login");
+      return;
+    }
 
     setLoading(true);
     try {
-      const calculatedStartDate = getDateRangeStart(paramsToSearch.dateRange);
-
-      const convertedParams = {
-        startDate: calculatedStartDate,
-        page: paramsToSearch.page,
-        size: paramsToSearch.size,
-      };
-
-      const res = await searchCustomerInquiries(convertedParams);
+      const res = await searchCustomerInquiries(paramsToSearch);
 
       if (res?.body) {
         setInquiries(res.body.content);
@@ -85,13 +103,15 @@ export const CustomerInquiryPage: React.FC = () => {
         setInquiries([]);
         setTotal(0);
       }
-    } catch (err) {
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || error.message || "문의사항 목록을 조회하는데 실패하였습니다.";
+      alert(errorMessage);
       setInquiries([]);
       setTotal(0);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [navigate]);
 
   // searchParams 변경 시에만 문의사항 재조회
   useEffect(() => {
@@ -122,58 +142,60 @@ export const CustomerInquiryPage: React.FC = () => {
     return `${year}년 ${month}월 ${day}일`;
   };
 
-  // Helper function to calculate start date based on date range string
-  const getDateRangeStart = (range: string): string => {
+  // Helper function to calculate date range based on range string
+  const getDateRange = (range: string): { fromDate: string; toDate: string } => {
     const today = new Date();
     let startDate = new Date();
 
     if (range === "1m") {
       startDate.setMonth(today.getMonth() - 1);
-      startDate.setDate(today.getDate() + 1); // 현재 날짜로부터 1개월 전의 '다음 날' (ex. 6/9 -> 5/10)
+      startDate.setDate(today.getDate() + 1);
     } else if (range === "3m") {
       startDate.setMonth(today.getMonth() - 3);
-      startDate.setDate(today.getDate() + 1); // 현재 날짜로부터 3개월 전의 '다음 날' (ex. 6/9 -> 3/10)
+      startDate.setDate(today.getDate() + 1);
     } else if (range === "6m") {
       startDate.setMonth(today.getMonth() - 6);
-      startDate.setDate(today.getDate() + 1); // 현재 날짜로부터 6개월 전의 '다음 날' (ex. 6/9 -> 12/10)
-    } else { // 초기 로딩 또는 아무 필터도 선택되지 않았을 때
-      return ''; // 또는 API가 전체 기간을 조회하도록 빈 문자열 반환
+      startDate.setDate(today.getDate() + 1);
+    } else {
+      return { fromDate: "", toDate: "" };
     }
-    return getFormattedDate(startDate) + "T00:00:00";
+    
+    return {
+      fromDate: getFormattedDate(startDate),
+      toDate: getFormattedDate(today)
+    };
   };
 
 
   // Handle date range button click
   const handleDateRangeSearch = (range: string) => {
-    const today = new Date();
-    const newStartDate = new Date();
+    const { fromDate, toDate } = getDateRange(range);
+    
+    // UI 상태 업데이트
+    setUiState(prev => ({
+      ...prev,
+      dateRange: range
+    }));
 
-    if (range === "1m") {
-      newStartDate.setMonth(today.getMonth() - 1);
-      newStartDate.setDate(today.getDate() + 1); // '오늘' 포함을 위한 조정
-    } else if (range === "3m") {
-      newStartDate.setMonth(today.getMonth() - 3);
-      newStartDate.setDate(today.getDate() + 1); // '오늘' 포함을 위한 조정
-    } else if (range === "6m") {
-      newStartDate.setMonth(today.getMonth() - 6);
-      newStartDate.setDate(today.getDate() + 1); // '오늘' 포함을 위한 조정
+    if (range && fromDate && toDate) {
+      const newStartDate = new Date(fromDate);
+      setStartDateDisplay(getFormattedDateDisplay(newStartDate));
+    } else {
+      setStartDateDisplay('');
     }
 
-    setStartDateDisplay(getFormattedDateDisplay(newStartDate));
-
+    // 검색 파라미터 업데이트
     setSearchParams((prev) => ({
       ...prev,
-      dateRange: range,
-      startDate: range ? getFormattedDate(newStartDate) + "T00:00:00" : "",
+      fromCreatedAt: fromDate || undefined,
+      toCreatedAt: toDate || undefined,
       page: 0,
     }));
   };
 
-  // Calculate total pages
-  const totalPages = Math.max(Math.ceil(total / searchParams.size), 1);
 
   // Helper to update specific search parameter
-  const updateSearchParam = (key: string, value: any) => {
+  const updateSearchParam = (key: keyof SearchInquiriesRequest, value: any) => {
     setSearchParams((prev) => ({ ...prev, [key]: value }));
   };
 
@@ -182,22 +204,6 @@ export const CustomerInquiryPage: React.FC = () => {
     updateSearchParam("page", pageNumber);
   };
 
-  // Determine the range of page numbers to display
-  const renderPaginationNumbers = () => {
-    const pagesToShow = 5;
-    let startPage = Math.max(0, searchParams.page - Math.floor(pagesToShow / 2));
-    let endPage = Math.min(totalPages - 1, startPage + pagesToShow - 1);
-
-    if (endPage - startPage + 1 < pagesToShow) {
-      startPage = Math.max(0, endPage - pagesToShow + 1);
-    }
-
-    const pages = [];
-    for (let i = startPage; i <= endPage; i++) {
-      pages.push(i);
-    }
-    return pages;
-  };
 
   return (
     <Fragment>
@@ -221,14 +227,14 @@ export const CustomerInquiryPage: React.FC = () => {
               <div className="flex justify-end items-center">
                 <div className="flex items-center gap-4">
                   {/* Display selected date range */}
-                  {searchParams.dateRange !== "" && startDateDisplay && (
+                  {uiState.dateRange !== "" && startDateDisplay && (
                     <div className="text-slate-600 text-sm font-medium">
                       {startDateDisplay}~
                     </div>
                   )}
                   <div className="relative">
                     <select
-                      value={searchParams.dateRange}
+                      value={uiState.dateRange}
                       onChange={(e) => handleDateRangeSearch(e.target.value)}
                       className="h-10 pr-10 pl-4 text-sm rounded-md border border-slate-200 text-slate-700 bg-white appearance-none"
                     >
@@ -312,45 +318,12 @@ export const CustomerInquiryPage: React.FC = () => {
               </div>
 
               {/* Pagination */}
-              <div className="flex justify-center gap-2 pt-4">
-                {/* Previous Page Button */}
-                <button
-                  disabled={searchParams.page === 0}
-                  onClick={() => handlePageChange(searchParams.page - 1)}
-                  className={`w-9 h-9 rounded-lg flex justify-center items-center 
-                    border ${searchParams.page === 0 ? "border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed" : "border-gray-300 bg-white text-gray-700 hover:bg-gray-100 cursor-pointer"}
-                  `}
-                >
-                  <span className="material-symbols-outlined text-base">chevron_left</span>
-                </button>
-
-                {/* Page Numbers */}
-                {renderPaginationNumbers().map((p) => (
-                  <button
-                    key={p}
-                    onClick={() => handlePageChange(p)}
-                    className={`w-9 h-9 rounded-lg flex justify-center items-center text-sm font-medium 
-                      border ${searchParams.page === p
-                        ? "border-indigo-500 bg-indigo-50 text-indigo-700"
-                        : "border-gray-300 bg-white text-gray-700 hover:bg-gray-100"
-                      }
-                    `}
-                  >
-                    {p + 1}
-                  </button>
-                ))}
-
-                {/* Next Page Button */}
-                <button
-                  disabled={searchParams.page === totalPages - 1}
-                  onClick={() => handlePageChange(searchParams.page + 1)}
-                  className={`w-9 h-9 rounded-lg flex justify-center items-center 
-                    border ${searchParams.page === totalPages - 1 ? "border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed" : "border-gray-300 bg-white text-gray-700 hover:bg-gray-100 cursor-pointer"}
-                  `}
-                >
-                  <span className="material-symbols-outlined text-base">chevron_right</span>
-                </button>
-              </div>
+              <Pagination
+                currentPage={searchParams.page || 0}
+                totalItems={total}
+                pageSize={searchParams.size || DEFAULT_PAGE_SIZE}
+                onPageChange={handlePageChange}
+              />
             </div>
           </div>
         </div>
