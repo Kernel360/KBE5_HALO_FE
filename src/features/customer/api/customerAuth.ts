@@ -1,14 +1,32 @@
-import api from '@/services/axios';
-import type { CustomerSignupReq } from '../types/CustomerSignupType';
+import api from "@/services/axios";
+import type { CustomerSignupReq, CustomerSignupReqDTO } from '../types/CustomerSignupType';
+
+// CustomerSignupReq를 CustomerSignupReqDTO로 변환하는 함수
+const transformToCustomerSignupReqDTO = (signupData: CustomerSignupReq): CustomerSignupReqDTO => {
+  return {
+    userSignupReqDTO: {
+      phone: signupData.phone,
+      userName: signupData.userName,
+      email: signupData.email,
+      password: signupData.password,
+    },
+    userInfoSignupReqDTO: {
+      birthDate: signupData.birthDate,
+      gender: signupData.gender,
+      latitude: signupData.latitude,
+      longitude: signupData.longitude,
+      roadAddress: signupData.roadAddress,
+      detailAddress: signupData.detailAddress
+    }
+  };
+};
 
 // 수요자 회원가입
 export const signupCustomer = async (signupData: CustomerSignupReq) => {
-  const res = await api.post('/customers/auth/signup', signupData);
+  
+  const customerSignupReqDTO = transformToCustomerSignupReqDTO(signupData);
 
-  if (!res.data.success) {
-    alert(res.data.message);
-    throw new Error(res.data.message || '회원가입에 실패했습니다.');
-  }
+  const res = await api.post('/customers/auth/signup', customerSignupReqDTO);
 
   return res;
 };
@@ -44,5 +62,3 @@ export const getCustomerInfo = async () => {
   const res = await api.get("/customers/auth/my");
   return res.data;
 };
-
-

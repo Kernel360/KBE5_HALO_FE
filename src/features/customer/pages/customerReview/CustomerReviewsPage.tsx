@@ -5,6 +5,8 @@ import { getFormattedDate, formatTimeRange, formatDateWithDay } from "@/shared/u
 import { Star, Pencil } from "lucide-react";
 import { REVIEW_PAGE_SIZE } from "@/shared/constants/constants";
 import { useNavigate } from "react-router-dom";
+import Pagination from "@/shared/components/Pagination";
+import { useAuthStore } from "@/store/useAuthStore";
 
 const pageSize = REVIEW_PAGE_SIZE;
 
@@ -15,13 +17,17 @@ export const CustomerReviewsPage = () => {
   const [totalReviews, setTotalReviews] = useState(0);
 
   useEffect(() => {
+    const { accessToken } = useAuthStore.getState();
+    if (!accessToken) return;
+    
     const fetchReviews = async () => {
       try {
         const data = await searchCustomerReviews({ page: currentPage, size: REVIEW_PAGE_SIZE });
         setReviews(data.content);
         setTotalReviews(data.page.totalElements);
-      } catch (error) {
-        alert("리뷰 목록을 조회하는데 실패하였습니다.");
+      } catch (error: any) {
+        const errorMessage = error.response?.data?.message || error.message || "리뷰 목록을 조회하는데 실패하였습니다.";
+        alert(errorMessage);
       }
     };
 
@@ -70,9 +76,6 @@ export const CustomerReviewsPage = () => {
   return (
     <div className="p-6">
       <h2 className="text-xl font-bold">리뷰 내역</h2>
-      <p className="text-sm text-gray-500 mb-4">
-        작성하신 리뷰 내역을 확인하고 관리할 수 있습니다.
-      </p>
       <div className="flex gap-2 mb-4">
         {["전체", "리뷰 작성 필요", "5점", "4점", "3점 이하"].map((label, idx) => {
           let isActive = false;
@@ -112,53 +115,24 @@ export const CustomerReviewsPage = () => {
 
       {/* 리뷰 카드 */}
       <div className="space-y-4">
-        {filteredReviews.map((review, idx) => (
-          <ReviewCard key={idx} {...review} />
-        ))}
+        {filteredReviews.length === 0 ? (
+          <div className="text-center py-16 text-gray-500">
+            <p>조회한 리뷰 내역이 없습니다.</p>
+          </div>
+        ) : (
+          filteredReviews.map((review, idx) => (
+            <ReviewCard key={idx} {...review} />
+          ))
+        )}
       </div>
 
       {/* 페이지네이션 */}
-      {totalReviews > 0 && (
-        <div className="flex justify-center gap-2 pt-4">
-          {/* Previous Page Button */}
-          <button
-            disabled={currentPage === 0}
-            onClick={() => setCurrentPage(currentPage - 1)}
-            className={`w-9 h-9 rounded-lg flex justify-center items-center
-              border ${currentPage === 0 ? "border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed" : "border-gray-300 bg-white text-gray-700 hover:bg-gray-100 cursor-pointer"}
-            `}
-          >
-            <span className="material-symbols-outlined text-base">chevron_left</span>
-          </button>
-
-          {/* Page Numbers */}
-          {Array.from({ length: Math.ceil(totalReviews / pageSize) }).map((_, i) => (
-            <button
-              key={i}
-              onClick={() => setCurrentPage(i)}
-              className={`w-9 h-9 rounded-lg flex justify-center items-center text-sm font-medium cursor-pointer
-                border ${currentPage === i
-                  ? "border-indigo-500 bg-indigo-50 text-indigo-700"
-                  : "border-gray-300 bg-white text-gray-700 hover:bg-gray-100"
-                }
-              `}
-            >
-              {i + 1}
-            </button>
-          ))}
-
-          {/* Next Page Button */}
-          <button
-            disabled={currentPage === Math.ceil(totalReviews / pageSize) - 1}
-            onClick={() => setCurrentPage(currentPage + 1)}
-            className={`w-9 h-9 rounded-lg flex justify-center items-center
-              border ${currentPage === Math.ceil(totalReviews / pageSize) - 1 ? "border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed" : "border-gray-300 bg-white text-gray-700 hover:bg-gray-100 cursor-pointer"}
-            `}
-          >
-            <span className="material-symbols-outlined text-base">chevron_right</span>
-          </button>
-        </div>
-      )}
+      <Pagination
+        currentPage={currentPage}
+        totalItems={totalReviews}
+        pageSize={pageSize}
+        onPageChange={setCurrentPage}
+      />
       
     </div>
   );

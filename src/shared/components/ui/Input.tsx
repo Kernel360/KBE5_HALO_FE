@@ -4,8 +4,10 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   className?: string;
 }
 
-export const Input = ({ className = "", ...rest }: InputProps) => (
-  <input className={className} {...rest} />
+export const Input = React.forwardRef<HTMLInputElement, InputProps>(
+  ({ className = "", ...rest }, ref) => (
+    <input ref={ref} className={className} {...rest} />
+  ),
 );
 
-export default Input; 
+export default Input;

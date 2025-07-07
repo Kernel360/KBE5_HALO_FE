@@ -12,9 +12,6 @@ export const CustomerProfileCard: React.FC = () => {
         <h3 className="text-zinc-800 text-xl sm:text-3xl font-bold">
           환영합니다, {userName}님!
         </h3>
-        <p className="text-stone-500 text-sm sm:text-base">
-          HaloCare와 함께 편안한 일상을 만들어보세요.
-        </p>
       </div>
     </div>
   );

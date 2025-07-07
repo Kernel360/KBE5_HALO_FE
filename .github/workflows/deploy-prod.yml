@@ -1,0 +1,52 @@
+name: Build & Deploy main
+
+on:
+  push:
+    branches: main
+
+jobs:
+  build-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run build
+        run: npm run build
+
+
+  deploy-to-vercel:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Generate output directory
+        run: sh ./build.sh
+
+      - name: Push to Vercel-linked repo
+        uses: cpina/github-action-push-to-another-repository@main
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.AUTO_ACTIONS }}
+        with:
+          source-directory: 'output'
+          destination-github-username: SujeongJeong
+          destination-repository-name: KBE5_HALO_FE
+          user-email: ${{ secrets.GIT_EMAIL_SUJEONG }}
+          commit-message: ${{ github.event.commits[0].message }}
+          target-branch: main

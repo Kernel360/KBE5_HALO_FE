@@ -43,22 +43,28 @@ export interface ServiceCategoryTreeType {
   // 예약 확정 응답 타입
   export interface ReservationConfirmRspType {
     reservationId: number;
-    managerName: string;
-    reservationStatus: string;
-    serviceName: string;
+    serviceCategoryId: number;
     requestDate: string;
     startTime: string;
     turnaround: number;
     roadAddress: string;
     detailAddress: string;
+    managerName: string;
+    serviceName: string;
+
+    reservationStatus: string;
+
     extraServices : ServiceCategoryTreeType
     price: number;
 }
   
   // 예약 확정 요청 타입
 export interface ReservationConfirmReqType {
+    payReqDTO: {
+      paymentMethod: "POINT",
+      amount: number;
+    }
     selectedManagerId: number;
-    matchedManagerIds: number[];
   }
 
 // 예약 매칭 응답 타입
@@ -74,6 +80,7 @@ export interface ManagerMatchingRspType {
     managerName: string;
     averageRating: number;
     reviewCount: number;
+    reservationCount : number;
     profileImageId: number;
     bio: string;
     feedbackType: 'GOOD' | 'BAD' | null; // enum 값에 맞게 조정
@@ -87,7 +94,6 @@ export interface PreCancelReqType {
 
 // 예약 확정 후 취소 요청 타입
 export interface CustomerReservationCancelReqType{
-    reservationId: number;
     cancelReason: string;
 }
 
@@ -107,38 +113,59 @@ export interface CustomerReservationListRspType {
     reviewId?: number;
 }
 
-// 예약 상세 조회
+
+// 추가서비스
+export interface ExtraService {
+  extraServiceId: number;
+  extraServiceName: string;
+  extraServicePrice: number;
+  extraServiceTime: number;
+}
+
+// 매니저 통계
+export interface ManagerStatistic {
+  reviewCount: number;
+  reservationCount: number;
+  averageRating: number;
+}
+
+// 예약 상세 타입
 export interface CustomerReservationDetailRspType {
   reservationId: number;
+  serviceCategoryId: number;
+  price: number;
+  reservationStatus: ReservationStatus;
+  memo: string;
   phone: string;
+  serviceName: string;
+  serviceTime: number;
   roadAddress: string;
   detailAddress: string;
-  reservationStatus: ReservationStatus;
-  requestDate: string;
-  startTime: string;
+  requestDate: string; // YYYY-MM-DD
+  startTime: string;   // HH:mm:ss
   turnaround: number;
-  totalPrice: number;
-  serviceId: number;
-  serviceName: string;
-  memo: string;
-  serviceTime: number;
-  extraServices: {
-    extraServiceId: number;
-    extraServiceName: string;
-    extraServicePrice: number;
-    extraServiceTime: number;
-  }[];
-  managerName: string | null;
-  bio: string | null;
-  averageRating: number;
-  reviewCount: number;
-  cancelReason: string | null;
-  cancelDate: string | null;
-  reviewId: number | null;
-  reviewContent: string | null;
-  reviewRating: number | null;
-  reviewDate: string | null;
+  extraServices: ExtraService[];
+  managerName: string;
+  bio: string;
+  mangerStatistic: ManagerStatistic;
+  reservationCancel: ReservationCancel | null;
+  review: Review | null;
 }
+
+//예약 취소
+export interface ReservationCancel {
+  cancelReason: string;
+  cancelDate: string; // 'YYYY-MM-DDTHH:mm:ss'
+}
+
+// 리뷰
+export interface Review {
+  reviewId: number;
+  content: string;
+  rating: number;
+  reviewDate: string; // ISO 형식
+}
+
 
 // 예약 상태
 export type ReservationStatus = 'PRE_CANCELED' | 'REQUESTED' | 'IN_PROGRESS' | 'COMPLETED' | 'CONFIRMED' | 'CANCELED'| 'REJECTED';

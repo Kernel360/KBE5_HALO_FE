@@ -6,34 +6,51 @@ interface TabsProps {
   children: React.ReactNode;
   className?: string;
 }
-export const Tabs = ({ value, onValueChange, children, className = "" }: TabsProps) => {
+export const Tabs = ({
+  value,
+  onValueChange,
+  children,
+  className = "",
+}: TabsProps) => {
   // 재귀적으로 TabsTrigger에 props를 주입
   const injectPropsToTriggers = (child: React.ReactNode): React.ReactNode => {
     if (!React.isValidElement(child)) return child;
     if ((child.type as any).displayName === "TabsTrigger") {
-      return React.cloneElement(child as React.FunctionComponentElement<TabsTriggerProps>, {
-        selected: value === (child.props as any).value,
-        onValueChange,
-      });
+      return React.cloneElement(
+        child as React.FunctionComponentElement<TabsTriggerProps>,
+        {
+          selected: value === (child.props as any).value,
+          onValueChange,
+        },
+      );
     }
     // 자식이 또 자식을 가진 경우 (TabsList 등)
     if (child.props && (child.props as any).children) {
       return React.cloneElement(child, {
         ...(child.props as any),
-        children: React.Children.map((child.props as any).children, injectPropsToTriggers),
+        children: React.Children.map(
+          (child.props as any).children,
+          injectPropsToTriggers,
+        ),
       });
     }
     return child;
   };
 
-  return <div className={className}>{React.Children.map(children, injectPropsToTriggers)}</div>;
+  return (
+    <div className={className}>
+      {React.Children.map(children, injectPropsToTriggers)}
+    </div>
+  );
 };
 
 interface TabsListProps {
   children: React.ReactNode;
   className?: string;
 }
-export const TabsList = ({ children, className = "" }: TabsListProps) => <div className={className}>{children}</div>;
+export const TabsList = ({ children, className = "" }: TabsListProps) => (
+  <div className={className}>{children}</div>
+);
 
 interface TabsTriggerProps {
   value: string;
@@ -65,4 +82,4 @@ export const TabsTrigger = ({
     <span>{children}</span>
   </button>
 );
-TabsTrigger.displayName = "TabsTrigger"; 
+TabsTrigger.displayName = "TabsTrigger";

@@ -1,68 +1,108 @@
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useEffect, useState, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { DEFAULT_PAGE_SIZE } from "@/shared/constants/constants";
 import { fetchAdminManagers } from "@/features/admin/api/adminManager";
 import type { AdminManager } from "@/features/admin/types/AdminManagerType";
+import { AdminPageHeader } from "@/features/admin/components/AdminPageHeader";
+import { AdminTabs } from "@/features/admin/components/AdminTabs";
+import { AdminTable } from "@/features/admin/components/AdminTable";
+import { AdminPagination } from "@/features/admin/components/AdminPagination";
+import { ContractStatusBadge } from "@/shared/components/ui/ContractStatusBadge";
+import { AdminSearchForm } from "@/features/admin/components/AdminSearchForm";
+import { TableSection } from "@/features/admin/components/TableSection";
+import ErrorToast from "@/shared/components/ui/toast/ErrorToast";
+import SuccessToast from "@/shared/components/ui/toast/SuccessToast";
+import Toast from "@/shared/components/ui/toast/Toast";
 
 export const AdminManagers = () => {
   const location = useLocation();
-  const initialTab = location.state?.tab === 'applied' ? 'applied' : 'all';
-  const [activeTab, setActiveTab] = useState<'all' | 'active' | 'applied'>(initialTab);
-  const [nameKeyword, setNameKeyword] = useState('');
-  const [phoneKeyword, setPhoneKeyword] = useState('');
-  const [emailKeyword, setEmailKeyword] = useState('');
-  const [statusKeyword, setStatusKeyword] = useState('');
-  const [ratingMinKeyword, setRatingMinKeyword] = useState('');
-  const [ratingMaxKeyword, setRatingMaxKeyword] = useState('');
+  const initialTab = location.state?.tab === "applied" ? "applied" : "all";
+  const [activeTab, setActiveTab] = useState<"all" | "applied" | "termination">(
+    initialTab,
+  );
   const [page, setPage] = useState(0);
   const [managers, setManagers] = useState<AdminManager[]>([]);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [searchParams, setSearchParams] = useState({
-    nameKeyword: '',
-    phoneKeyword: '',
-    emailKeyword: '',
-    statusKeyword: '',
-    ratingMinKeyword: '',
-    ratingMaxKeyword: '',
+    nameKeyword: "",
+    phoneKeyword: "",
+    emailKeyword: "",
+    statusKeyword: "",
+    ratingMinKeyword: "",
+    ratingMaxKeyword: "",
   });
+  const [ratingSort, setRatingSort] = useState<"asc" | "desc" | null>(null);
+  const [reservationSort, setReservationSort] = useState<"asc" | "desc" | null>(
+    null,
+  );
+  const [reviewSort, setReviewSort] = useState<"asc" | "desc" | null>(null);
+  const [selectedContractStatuses, setSelectedContractStatuses] = useState<
+    string[]
+  >(["APPROVED"]);
+  const [contractStatusDropdownOpen, setContractStatusDropdownOpen] =
+    useState(false);
+  const contractStatusDropdownRef = useRef<HTMLDivElement>(null);
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const [errorToastMsg, setErrorToastMsg] = useState<string | null>(null);
+  const [successToastMsg, setSuccessToastMsg] = useState<string | null>(null);
 
   const navigate = useNavigate();
 
+  // 서버 정렬 파라미터 생성
+  const getSortParam = () => {
+    if (ratingSort) return `averageRating,${ratingSort}`;
+    if (reservationSort) return `reservationCount,${reservationSort}`;
+    if (reviewSort) return `reviewCount,${reviewSort}`;
+    return undefined;
+  };
+
   const fetchData = async () => {
     setLoading(true);
-    setError(null);
     try {
       let res;
-      if (activeTab === 'active') {
-        // 신고된 매니저
-        const mappedParams: any = {
-          userName: searchParams.nameKeyword || undefined,
-          phone: searchParams.phoneKeyword || undefined,
-          email: searchParams.emailKeyword || undefined,
-          status: undefined, // 상태 필터는 사용하지 않음
-          minRating: searchParams.ratingMinKeyword ? Number(searchParams.ratingMinKeyword) : undefined,
-          maxRating: searchParams.ratingMaxKeyword ? Number(searchParams.ratingMaxKeyword) : undefined,
-          page: page,
-          size: DEFAULT_PAGE_SIZE,
-          excludeStatus: ['ACTIVE', 'PENDING', 'TERMINATION_PENDING', 'TERMINATED', 'DELETED', 'REJECTED'],
-        };
-        res = await fetchAdminManagers(mappedParams);
-        setManagers(res.content || res || []);
-        setTotalPages(res.totalPages || 1);
-      } else if (activeTab === 'applied') {
+      const contractStatusParam =
+        selectedContractStatuses.length > 0
+          ? selectedContractStatuses
+          : undefined;
+      if (activeTab === "applied") {
         // 매니저 신청 내역
         const mappedParams: any = {
           userName: searchParams.nameKeyword || undefined,
           phone: searchParams.phoneKeyword || undefined,
           email: searchParams.emailKeyword || undefined,
           status: searchParams.statusKeyword || undefined,
-          minRating: searchParams.ratingMinKeyword ? Number(searchParams.ratingMinKeyword) : undefined,
-          maxRating: searchParams.ratingMaxKeyword ? Number(searchParams.ratingMaxKeyword) : undefined,
+          minRating: searchParams.ratingMinKeyword
+            ? Number(searchParams.ratingMinKeyword)
+            : undefined,
+          maxRating: searchParams.ratingMaxKeyword
+            ? Number(searchParams.ratingMaxKeyword)
+            : undefined,
           page: page,
           size: DEFAULT_PAGE_SIZE,
-          excludeStatus: ['ACTIVE', 'SUSPENDED', 'TERMINATION_PENDING', 'TERMINATED', 'DELETED'],
+          contractStatus: contractStatusParam,
+          sort: getSortParam(),
+        };
+        res = await fetchAdminManagers(mappedParams);
+        setManagers(res.content || res || []);
+        setTotalPages(res.totalPages || 1);
+      } else if (activeTab === "termination") {
+        // 매니저 해지 신청 내역
+        const mappedParams: any = {
+          userName: searchParams.nameKeyword || undefined,
+          phone: searchParams.phoneKeyword || undefined,
+          email: searchParams.emailKeyword || undefined,
+          status: searchParams.statusKeyword || undefined,
+          minRating: searchParams.ratingMinKeyword
+            ? Number(searchParams.ratingMinKeyword)
+            : undefined,
+          maxRating: searchParams.ratingMaxKeyword
+            ? Number(searchParams.ratingMaxKeyword)
+            : undefined,
+          page: page,
+          size: DEFAULT_PAGE_SIZE,
+          contractStatus: contractStatusParam,
+          sort: getSortParam(),
         };
         res = await fetchAdminManagers(mappedParams);
         setManagers(res.content || res || []);
@@ -74,18 +114,23 @@ export const AdminManagers = () => {
           phone: searchParams.phoneKeyword || undefined,
           email: searchParams.emailKeyword || undefined,
           status: searchParams.statusKeyword || undefined,
-          minRating: searchParams.ratingMinKeyword ? Number(searchParams.ratingMinKeyword) : undefined,
-          maxRating: searchParams.ratingMaxKeyword ? Number(searchParams.ratingMaxKeyword) : undefined,
+          minRating: searchParams.ratingMinKeyword
+            ? Number(searchParams.ratingMinKeyword)
+            : undefined,
+          maxRating: searchParams.ratingMaxKeyword
+            ? Number(searchParams.ratingMaxKeyword)
+            : undefined,
           page: page,
           size: DEFAULT_PAGE_SIZE,
-          excludeStatus: ['SUSPENDED', 'PENDING', 'REJECTED'],
+          contractStatus: contractStatusParam,
+          sort: getSortParam(),
         };
         res = await fetchAdminManagers(mappedParams);
         setManagers(res.content || res || []);
         setTotalPages(res.totalPages || 1);
       }
     } catch (err: any) {
-      setError(err.message || '매니저 목록 조회 실패');
+      console.error("매니저 목록 조회 실패", err);
     } finally {
       setLoading(false);
     }
@@ -93,341 +138,656 @@ export const AdminManagers = () => {
 
   useEffect(() => {
     fetchData();
-  }, [activeTab, page, searchParams]);
+  }, [
+    activeTab,
+    page,
+    searchParams,
+    ratingSort,
+    reservationSort,
+    reviewSort,
+    selectedContractStatuses,
+  ]);
 
-  // 탭 변경 시 검색 조건 및 searchParams 초기화
+  // 탭 변경 시 검색 조건 및 searchParams, 계약상태 초기화
   useEffect(() => {
-    setNameKeyword("");
-    setPhoneKeyword("");
-    setEmailKeyword("");
-    setStatusKeyword("");
-    setRatingMinKeyword("");
-    setRatingMaxKeyword("");
     setPage(0);
     setSearchParams({
-      nameKeyword: '',
-      phoneKeyword: '',
-      emailKeyword: '',
-      statusKeyword: '',
-      ratingMinKeyword: '',
-      ratingMaxKeyword: '',
+      nameKeyword: "",
+      phoneKeyword: "",
+      emailKeyword: "",
+      statusKeyword: "",
+      ratingMinKeyword: "",
+      ratingMaxKeyword: "",
     });
+    // 탭에 따라 contractStatus 초기값 다르게
+    if (activeTab === "applied") {
+      setSelectedContractStatuses(["PENDING"]);
+    } else if (activeTab === "termination") {
+      setSelectedContractStatuses(["TERMINATION_PENDING"]);
+    } else {
+      setSelectedContractStatuses(["APPROVED"]);
+    }
   }, [activeTab]);
+
+  // 필터링된 매니저 목록 (정렬은 서버에서만 처리)
+  const filteredManagers = managers;
+
+  useEffect(() => {
+    if (!contractStatusDropdownOpen) return;
+    const handleClick = (e: MouseEvent) => {
+      if (
+        contractStatusDropdownRef.current &&
+        !contractStatusDropdownRef.current.contains(e.target as Node)
+      ) {
+        setContractStatusDropdownOpen(false);
+      }
+    };
+    document.addEventListener("click", handleClick, true);
+    return () => document.removeEventListener("click", handleClick, true);
+  }, [contractStatusDropdownOpen]);
+
+  const CONTRACT_STATUS_OPTIONS = [
+    { value: "APPROVED", label: "활성" },
+    { value: "REJECTED", label: "승인거절" },
+    { value: "TERMINATED", label: "계약해지" },
+  ];
+
+  const handleContractStatusCheckbox = (status: string) => {
+    setSelectedContractStatuses((prev) =>
+      prev.includes(status)
+        ? prev.filter((s) => s !== status)
+        : [...prev, status],
+    );
+    setPage(0);
+  };
+
+  const toggleContractStatusDropdown = () => {
+    setContractStatusDropdownOpen((open) => !open);
+  };
 
   return (
     <Fragment>
       <div className="w-full flex flex-col">
-        {/* 제목 */}
-        <div className="h-16 px-6 bg-white border-b border-gray-200 flex items-center">
-          <div className="text-gray-900 text-xl font-bold">매니저 정보 관리</div>
-        </div>
-
-        {/* 내용 */}
+        <AdminPageHeader title="매니저 정보 관리" />
         <div className="p-6 flex flex-col gap-6">
-          {/* 탭 */}
-          <div className="border-b border-gray-200 flex">
-            {[
-              { key: 'all', label: '전체 매니저' },
-              { key: 'active', label: '신고된 매니저' },
-              { key: 'applied', label: '매니저 신청 내역' },
-            ].map((tab) => (
-              <div
-                key={tab.key}
-                onClick={() => setActiveTab(tab.key as typeof activeTab)}
-                className={`w-40 h-10 px-4 flex justify-center items-center cursor-pointer ${
-                  activeTab === tab.key ? 'border-b-2 border-indigo-600' : ''
-                }`}
-              >
-                <span
-                  className={`text-sm ${
-                    activeTab === tab.key ? 'text-indigo-600 font-semibold' : 'text-gray-500 font-medium'
-                  }`}
-                >
-                  {tab.label}
-                </span>
-              </div>
-            ))}
-          </div>
-
-          {/* 검색 */}
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              setSearchParams({
-                nameKeyword,
-                phoneKeyword,
-                emailKeyword,
-                statusKeyword,
-                ratingMinKeyword,
-                ratingMaxKeyword,
-              });
-              setPage(0);
-            }}
-            className="w-full p-6 bg-white rounded-xl shadow flex flex-col gap-4"
-          >
-            <div className="text-slate-800 text-lg font-semibold">검색 조건</div>
-            <div className="flex flex-col gap-4">
-              <div className="flex gap-4">
-                <div className="flex-1 flex flex-col gap-2">
-                  <label className="text-slate-700 text-sm font-medium">이름</label>
-                  <div className="h-12 px-4 bg-slate-50 rounded-lg outline outline-1 outline-slate-200 flex items-center">
-                    <input
-                      type="text"
-                      placeholder="이름 입력"
-                      value={nameKeyword}
-                      onChange={(e) => setNameKeyword(e.target.value)}
-                      className="w-full bg-transparent outline-none text-sm placeholder:text-slate-400"
-                    />
-                  </div>
-                </div>
-                <div className="flex-1 flex flex-col gap-2">
-                  <label className="text-slate-700 text-sm font-medium">연락처</label>
-                  <div className="h-12 px-4 bg-slate-50 rounded-lg outline outline-1 outline-slate-200 flex items-center">
-                    <input
-                      type="text"
-                      placeholder="연락처 입력"
-                      value={phoneKeyword}
-                      onChange={(e) => setPhoneKeyword(e.target.value)}
-                      className="w-full bg-transparent outline-none text-sm placeholder:text-slate-400"
-                    />
-                  </div>
-                </div>
-                <div className="flex-1 flex flex-col gap-2">
-                  <label className="text-slate-700 text-sm font-medium">이메일</label>
-                  <div className="h-12 px-4 bg-slate-50 rounded-lg outline outline-1 outline-slate-200 flex items-center">
-                    <input
-                      type="text"
-                      placeholder="이메일 입력"
-                      value={emailKeyword}
-                      onChange={(e) => setEmailKeyword(e.target.value)}
-                      className="w-full bg-transparent outline-none text-sm placeholder:text-slate-400"
-                    />
-                  </div>
-                </div>
-                <div className="flex-1"></div>
-              </div>
-              <div className="flex gap-4">
-                <div className="flex-1 flex flex-col gap-2">
-                  <label className="text-slate-700 text-sm font-medium">평점</label>
-                  <div className="h-12 px-4 bg-slate-50 rounded-lg outline outline-1 outline-slate-200 flex items-center gap-2">
-                    <input
-                      type="number"
-                      min="1"
-                      max="5"
-                      step="0.1"
-                      placeholder="최소"
-                      value={ratingMinKeyword}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        if ((/^\d*\.?\d*$/.test(value) || value === "") && (value === "" || (Number(value) >= 1 && Number(value) <= 5))) {
-                          setRatingMinKeyword(value);
-                        }
-                      }}
-                      className="w-full bg-transparent outline-none text-sm placeholder:text-slate-400"
-                    />
-                    <span className="mx-1 text-slate-400">~</span>
-                    <input
-                      type="number"
-                      min="1"
-                      max="5"
-                      step="0.1"
-                      placeholder="최대"
-                      value={ratingMaxKeyword}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        if ((/^\d*\.?\d*$/.test(value) || value === "") && (value === "" || (Number(value) >= 1 && Number(value) <= 5))) {
-                          setRatingMaxKeyword(value);
-                        }
-                      }}
-                      className="w-full bg-transparent outline-none text-sm placeholder:text-slate-400"
-                    />
-                  </div>
-                </div>
-                <div className="flex-1 flex flex-col gap-2">
-                  {activeTab === 'all' && (
-                    <>
-                      <label className="text-slate-700 text-sm font-medium">계약 상태</label>
-                      <div className="h-12 px-4 bg-slate-50 rounded-lg outline outline-1 outline-slate-200 flex items-center">
-                        <select
-                          value={statusKeyword}
-                          onChange={(e) => setStatusKeyword(e.target.value)}
-                          className="w-full bg-transparent outline-none text-sm text-slate-700"
-                        >
-                          <option value="">전체</option>
-                          <option value="ACTIVE">활성</option>
-                          <option value="TERMINATION_PENDING">계약해지대기</option>
-                          <option value="TERMINATED">계약해지</option>
-                          <option value="DELETED">탈퇴</option>
-                        </select>
-                      </div>
-                    </>
-                  )}
-                  {activeTab === 'applied' && (
-                    <>
-                      <label className="text-slate-700 text-sm font-medium">계약 상태</label>
-                      <div className="h-12 px-4 bg-slate-50 rounded-lg outline outline-1 outline-slate-200 flex items-center">
-                        <select
-                          value={statusKeyword}
-                          onChange={(e) => setStatusKeyword(e.target.value)}
-                          className="w-full bg-transparent outline-none text-sm text-slate-700"
-                        >
-                          <option value="">전체</option>
-                          <option value="PENDING">승인대기</option>
-                          <option value="REJECTED">승인거절</option>
-                        </select>
-                      </div>
-                    </>
-                  )}
-                </div>
-                <div className="flex-1"></div>
-                <div className="flex-1"></div>
-              </div>
-            </div>
-            <div className="flex justify-end gap-2">
-              <button
-                type="button"
-                className="w-28 h-12 bg-slate-100 rounded-lg text-slate-500 text-sm font-medium hover:bg-slate-200 cursor-pointer"
-                onClick={() => {
-                  setNameKeyword("");
-                  setPhoneKeyword("");
-                  setEmailKeyword("");
-                  setStatusKeyword("");
-                  setRatingMinKeyword("");
-                  setRatingMaxKeyword("");
-                  setPage(0);
+          {/* 탭 + 검색 폼 한 줄 배치 */}
+          <div className="w-full flex flex-row items-center justify-between mb-2 gap-2">
+            <AdminTabs
+              tabs={[
+                { key: "all", label: "전체 매니저" },
+                { key: "applied", label: "매니저 신청 내역" },
+                { key: "termination", label: "매니저 해지 신청 내역" },
+              ]}
+              activeKey={activeTab}
+              onTabChange={(key) => setActiveTab(key as typeof activeTab)}
+              className="w-fit min-w-0"
+            />
+            <div className="flex-shrink-0">
+              <AdminSearchForm
+                fields={[
+                  {
+                    type: "select",
+                    name: "type",
+                    options: [
+                      { value: "name", label: "이름" },
+                      { value: "phone", label: "연락처" },
+                      { value: "email", label: "이메일" },
+                    ],
+                  },
+                  { type: "text", name: "keyword", placeholder: "검색어 입력" },
+                ]}
+                initialValues={{ type: "name", keyword: "" }}
+                onSearch={({ type, keyword }) => {
                   setSearchParams({
-                    nameKeyword: '',
-                    phoneKeyword: '',
-                    emailKeyword: '',
-                    statusKeyword: '',
-                    ratingMinKeyword: '',
-                    ratingMaxKeyword: '',
+                    nameKeyword: type === "name" ? keyword : "",
+                    phoneKeyword: type === "phone" ? keyword : "",
+                    emailKeyword: type === "email" ? keyword : "",
+                    statusKeyword: "",
+                    ratingMinKeyword: "",
+                    ratingMaxKeyword: "",
                   });
+                  setPage(0);
                 }}
-              >
-                초기화
-              </button>
-              <button
-                type="submit"
-                className="w-28 h-12 bg-indigo-600 rounded-lg text-white text-sm font-medium hover:bg-indigo-700 cursor-pointer"
-              >
-                검색
-              </button>
+              />
             </div>
-          </form>
-
-          {/* 테이블 */}
-          <div className="w-full bg-white rounded-lg shadow flex flex-col">
-            {/* 헤더 */}
-            <div className="h-12 px-6 bg-gray-50 border-b border-gray-200 flex items-center text-sm font-semibold text-gray-700 space-x-4">
-              <div className="w-[20%] flex justify-center items-center">이름</div>
-              <div className="w-[20%] flex justify-center items-center">연락처</div>
-              <div className="w-[20%] flex justify-center items-center">이메일</div>
-              <div className="w-[20%] flex justify-center items-center">평점</div>
-              <div className="w-[20%] flex justify-center items-center">계약 상태</div>
-            </div>
-
-            {/* 리스트 */}
-            {loading ? (
-              <div className="w-full h-32 flex items-center justify-center text-gray-400">로딩 중...</div>
-            ) : error ? (
-              <div className="w-full h-32 flex items-center justify-center text-red-400">{error}</div>
-            ) : managers.length === 0 ? (
-              <div className="w-full h-32 flex items-center justify-center text-gray-400">등록된 매니저가 없습니다.</div>
-            ) : (
-              managers.map((manager) => (
-                <div
-                  key={manager.managerId}
-                  className="w-full px-6 h-16 border-b border-gray-200 flex items-center text-sm space-x-4 hover:bg-slate-50 cursor-pointer"
-                  onClick={() => navigate(`/admin/managers/${manager.managerId}`)}
-                >
-                  <div className="w-[20%] text-gray-900 font-medium flex justify-center">{manager.userName}</div>
-                  <div className="w-[20%] text-gray-500 flex justify-center">{manager.phone}</div>
-                  <div className="w-[20%] text-gray-500 flex justify-center">{manager.email}</div>
-                  <div className="w-[20%] text-gray-500 flex justify-center items-center">
-                    {manager.averageRating != null ? (
-                      <span className="w-full text-center text-gray-500 text-sm">{Number(manager.averageRating).toFixed(1)}</span>
-                    ) : (
-                      '-' 
-                    )}
-                  </div>
-                  <div className="w-[20%] flex justify-center">
-                    {(() => {
-                      let label = '';
-                      let color = '';
-                      switch (manager.userstatus) {
-                        case 'ACTIVE':
-                          label = '활성';
-                          color = 'bg-emerald-50 text-emerald-500';
-                          break;
-                        case 'PENDING':
-                          label = '승인대기';
-                          color = 'bg-yellow-50 text-yellow-600';
-                          break;
-                        case 'TERMINATION_PENDING':
-                          label = '계약해지대기';
-                          color = 'bg-yellow-50 text-yellow-600';
-                          break;
-                        case 'SUSPENDED':
-                          label = '정지';
-                          color = 'bg-red-50 text-red-500';
-                          break;
-                        case 'DELETED':
-                          label = '탈퇴';
-                          color = 'bg-red-50 text-red-500';
-                          break;
-                        case 'REJECTED':
-                          label = '승인거절';
-                          color = 'bg-red-50 text-red-500';
-                          break;
-                        case 'TERMINATED':
-                          label = '계약해지';
-                          color = 'bg-red-50 text-red-500';
-                          break;
-                        default:
-                          label = manager.userstatus;
-                          color = 'bg-gray-100 text-gray-500';
-                      }
-                      return (
-                        <div className={`px-2 py-0.5 rounded-xl text-xs font-medium inline-block ${color}`}>{label}</div>
-                      );
-                    })()}
-                  </div>
-                </div>
-              ))
-            )}
           </div>
-
-          {/* 페이지네이션 - ManagerInquiries에 있는거 가져다가 쓰기... 묘하게 다르네요... */}
-          {totalPages > 1 && (
-            <div className="self-stretch flex justify-center gap-1 pt-4">
-              <div
-                className="w-8 h-8 rounded-md flex justify-center items-center cursor-pointer bg-slate-100 text-slate-500"
-                onClick={() => setPage((prev) => Math.max(prev - 1, 0))}
-              >
-                <div className="text-sm font-medium">이전</div>
-              </div>
-              {Array.from({ length: totalPages }, (_, i) => i).map((p) => (
-                <div
-                  key={p}
-                  className={`w-8 h-8 rounded-md flex justify-center items-center cursor-pointer ${
-                    page === p ? "bg-indigo-600 text-white" : "bg-slate-100 text-slate-500"
-                  }`}
-                  onClick={() => setPage(p)}
-                >
-                  <div className="text-sm font-medium">{p + 1}</div>
-                </div>
-              ))}
-              <div
-                className="w-8 h-8 rounded-md flex justify-center items-center cursor-pointer bg-slate-100 text-slate-500"
-                onClick={() => setPage((prev) => Math.min(prev + 1, totalPages - 1))}
-              >
-                <div className="text-sm font-medium">다음</div>
+          {/* 테이블 + 페이지네이션 + 타이틀/카운트 공통 영역 */}
+          <TableSection title="매니저 정보" total={managers.length}>
+            {/* 데스크탑: 테이블 */}
+            <div className="hidden md:block">
+              <AdminTable
+                loading={loading}
+                columns={
+                  activeTab === "applied"
+                    ? [
+                        {
+                          key: "userName",
+                          header: "이름",
+                          className: "w-[20%] text-center",
+                        },
+                        {
+                          key: "phone",
+                          header: "연락처",
+                          className: "w-[20%] text-center",
+                        },
+                        {
+                          key: "email",
+                          header: "이메일",
+                          className: "w-[20%] text-center",
+                        },
+                        {
+                          key: "contractStatus",
+                          header: "계약 상태",
+                          className: "w-[20%] text-center",
+                          render: (row) => (
+                            <ContractStatusBadge status={row.contractStatus} />
+                          ),
+                        },
+                      ]
+                    : activeTab === "termination"
+                      ? [
+                          {
+                            key: "userName",
+                            header: "이름",
+                            className: "w-[14%] text-center",
+                          },
+                          {
+                            key: "phone",
+                            header: "연락처",
+                            className: "w-[14%] text-center",
+                          },
+                          {
+                            key: "email",
+                            header: "이메일",
+                            className: "w-[18%] text-center",
+                          },
+                          {
+                            key: "averageRating",
+                            header: (
+                              <div
+                                className="flex items-center justify-center gap-1 cursor-pointer select-none"
+                                onClick={() => {
+                                  setRatingSort((prev) =>
+                                    prev === null
+                                      ? "desc"
+                                      : prev === "desc"
+                                        ? "asc"
+                                        : null,
+                                  );
+                                  setReservationSort(null);
+                                  setReviewSort(null);
+                                }}
+                              >
+                                평점
+                                <span className="text-xs flex flex-col ml-1">
+                                  <span
+                                    style={{
+                                      color:
+                                        ratingSort === "desc"
+                                          ? "#6366f1"
+                                          : "#cbd5e1",
+                                      fontWeight:
+                                        ratingSort === "desc"
+                                          ? "bold"
+                                          : "normal",
+                                      lineHeight: "0.9",
+                                    }}
+                                  >
+                                    ▲
+                                  </span>
+                                  <span
+                                    style={{
+                                      color:
+                                        ratingSort === "asc"
+                                          ? "#6366f1"
+                                          : "#cbd5e1",
+                                      fontWeight:
+                                        ratingSort === "asc"
+                                          ? "bold"
+                                          : "normal",
+                                      lineHeight: "0.9",
+                                    }}
+                                  >
+                                    ▼
+                                  </span>
+                                </span>
+                              </div>
+                            ),
+                            className: "w-[10%] text-center",
+                            render: (row) => row.averageRating ?? "-",
+                          },
+                          {
+                            key: "reservationCount",
+                            header: (
+                              <div
+                                className="flex items-center justify-center gap-1 cursor-pointer select-none"
+                                onClick={() => {
+                                  setReservationSort((prev) =>
+                                    prev === null
+                                      ? "desc"
+                                      : prev === "desc"
+                                        ? "asc"
+                                        : null,
+                                  );
+                                  setRatingSort(null);
+                                  setReviewSort(null);
+                                }}
+                              >
+                                예약 수
+                                <span className="text-xs flex flex-col ml-1">
+                                  <span
+                                    style={{
+                                      color:
+                                        reservationSort === "desc"
+                                          ? "#6366f1"
+                                          : "#cbd5e1",
+                                      fontWeight:
+                                        reservationSort === "desc"
+                                          ? "bold"
+                                          : "normal",
+                                      lineHeight: "0.9",
+                                    }}
+                                  >
+                                    ▲
+                                  </span>
+                                  <span
+                                    style={{
+                                      color:
+                                        reservationSort === "asc"
+                                          ? "#6366f1"
+                                          : "#cbd5e1",
+                                      fontWeight:
+                                        reservationSort === "asc"
+                                          ? "bold"
+                                          : "normal",
+                                      lineHeight: "0.9",
+                                    }}
+                                  >
+                                    ▼
+                                  </span>
+                                </span>
+                              </div>
+                            ),
+                            className: "w-[12%] text-center",
+                            render: (row) => row.reservationCount ?? "-",
+                          },
+                          {
+                            key: "reviewCount",
+                            header: (
+                              <div
+                                className="flex items-center justify-center gap-1 cursor-pointer select-none"
+                                onClick={() => {
+                                  setReviewSort((prev) =>
+                                    prev === null
+                                      ? "desc"
+                                      : prev === "desc"
+                                        ? "asc"
+                                        : null,
+                                  );
+                                  setRatingSort(null);
+                                  setReservationSort(null);
+                                }}
+                              >
+                                리뷰 수
+                                <span className="text-xs flex flex-col ml-1">
+                                  <span
+                                    style={{
+                                      color:
+                                        reviewSort === "desc"
+                                          ? "#6366f1"
+                                          : "#cbd5e1",
+                                      fontWeight:
+                                        reviewSort === "desc"
+                                          ? "bold"
+                                          : "normal",
+                                      lineHeight: "0.9",
+                                    }}
+                                  >
+                                    ▲
+                                  </span>
+                                  <span
+                                    style={{
+                                      color:
+                                        reviewSort === "asc"
+                                          ? "#6366f1"
+                                          : "#cbd5e1",
+                                      fontWeight:
+                                        reviewSort === "asc"
+                                          ? "bold"
+                                          : "normal",
+                                      lineHeight: "0.9",
+                                    }}
+                                  >
+                                    ▼
+                                  </span>
+                                </span>
+                              </div>
+                            ),
+                            className: "w-[12%] text-center",
+                            render: (row) => row.reviewCount ?? "-",
+                          },
+                          {
+                            key: "contractStatus",
+                            header: "계약 상태",
+                            className: "w-[20%] text-center",
+                            render: (row) => (
+                              <ContractStatusBadge
+                                status={row.contractStatus}
+                              />
+                            ),
+                          },
+                        ]
+                      : [
+                          {
+                            key: "userName",
+                            header: "이름",
+                            className: "w-[14%] text-center",
+                          },
+                          {
+                            key: "phone",
+                            header: "연락처",
+                            className: "w-[14%] text-center",
+                          },
+                          {
+                            key: "email",
+                            header: "이메일",
+                            className: "w-[18%] text-center",
+                          },
+                          {
+                            key: "averageRating",
+                            header: (
+                              <div
+                                className="flex items-center justify-center gap-1 cursor-pointer select-none"
+                                onClick={() => {
+                                  setRatingSort((prev) =>
+                                    prev === null
+                                      ? "desc"
+                                      : prev === "desc"
+                                        ? "asc"
+                                        : null,
+                                  );
+                                  setReservationSort(null);
+                                  setReviewSort(null);
+                                }}
+                              >
+                                평점
+                                <span className="text-xs flex flex-col ml-1">
+                                  <span
+                                    style={{
+                                      color:
+                                        ratingSort === "desc"
+                                          ? "#6366f1"
+                                          : "#cbd5e1",
+                                      fontWeight:
+                                        ratingSort === "desc"
+                                          ? "bold"
+                                          : "normal",
+                                      lineHeight: "0.9",
+                                    }}
+                                  >
+                                    ▲
+                                  </span>
+                                  <span
+                                    style={{
+                                      color:
+                                        ratingSort === "asc"
+                                          ? "#6366f1"
+                                          : "#cbd5e1",
+                                      fontWeight:
+                                        ratingSort === "asc"
+                                          ? "bold"
+                                          : "normal",
+                                      lineHeight: "0.9",
+                                    }}
+                                  >
+                                    ▼
+                                  </span>
+                                </span>
+                              </div>
+                            ),
+                            className: "w-[10%] text-center",
+                            render: (row) => row.averageRating ?? "-",
+                          },
+                          {
+                            key: "reservationCount",
+                            header: (
+                              <div
+                                className="flex items-center justify-center gap-1 cursor-pointer select-none"
+                                onClick={() => {
+                                  setReservationSort((prev) =>
+                                    prev === null
+                                      ? "desc"
+                                      : prev === "desc"
+                                        ? "asc"
+                                        : null,
+                                  );
+                                  setRatingSort(null);
+                                  setReviewSort(null);
+                                }}
+                              >
+                                예약 수
+                                <span className="text-xs flex flex-col ml-1">
+                                  <span
+                                    style={{
+                                      color:
+                                        reservationSort === "desc"
+                                          ? "#6366f1"
+                                          : "#cbd5e1",
+                                      fontWeight:
+                                        reservationSort === "desc"
+                                          ? "bold"
+                                          : "normal",
+                                      lineHeight: "0.9",
+                                    }}
+                                  >
+                                    ▲
+                                  </span>
+                                  <span
+                                    style={{
+                                      color:
+                                        reservationSort === "asc"
+                                          ? "#6366f1"
+                                          : "#cbd5e1",
+                                      fontWeight:
+                                        reservationSort === "asc"
+                                          ? "bold"
+                                          : "normal",
+                                      lineHeight: "0.9",
+                                    }}
+                                  >
+                                    ▼
+                                  </span>
+                                </span>
+                              </div>
+                            ),
+                            className: "w-[12%] text-center",
+                            render: (row) => row.reservationCount ?? "-",
+                          },
+                          {
+                            key: "reviewCount",
+                            header: (
+                              <div
+                                className="flex items-center justify-center gap-1 cursor-pointer select-none"
+                                onClick={() => {
+                                  setReviewSort((prev) =>
+                                    prev === null
+                                      ? "desc"
+                                      : prev === "desc"
+                                        ? "asc"
+                                        : null,
+                                  );
+                                  setRatingSort(null);
+                                  setReservationSort(null);
+                                }}
+                              >
+                                리뷰 수
+                                <span className="text-xs flex flex-col ml-1">
+                                  <span
+                                    style={{
+                                      color:
+                                        reviewSort === "desc"
+                                          ? "#6366f1"
+                                          : "#cbd5e1",
+                                      fontWeight:
+                                        reviewSort === "desc"
+                                          ? "bold"
+                                          : "normal",
+                                      lineHeight: "0.9",
+                                    }}
+                                  >
+                                    ▲
+                                  </span>
+                                  <span
+                                    style={{
+                                      color:
+                                        reviewSort === "asc"
+                                          ? "#6366f1"
+                                          : "#cbd5e1",
+                                      fontWeight:
+                                        reviewSort === "asc"
+                                          ? "bold"
+                                          : "normal",
+                                      lineHeight: "0.9",
+                                    }}
+                                  >
+                                    ▼
+                                  </span>
+                                </span>
+                              </div>
+                            ),
+                            className: "w-[12%] text-center",
+                            render: (row) => row.reviewCount ?? "-",
+                          },
+                          {
+                            key: "contractStatus",
+                            header: (
+                              <div className="relative select-none">
+                                <div
+                                  className="flex items-center justify-center gap-1 cursor-pointer"
+                                  onClick={toggleContractStatusDropdown}
+                                >
+                                  계약 상태
+                                  <span className="ml-1 text-xs">▼</span>
+                                </div>
+                                {contractStatusDropdownOpen && (
+                                  <div
+                                    ref={contractStatusDropdownRef}
+                                    className="absolute z-10 bg-white border rounded shadow-md mt-2 left-1/2 -translate-x-1/2 min-w-[140px] p-2"
+                                  >
+                                    {CONTRACT_STATUS_OPTIONS.map((opt) => (
+                                      <label
+                                        key={opt.value}
+                                        className="flex items-center gap-2 py-1 cursor-pointer"
+                                      >
+                                        <input
+                                          type="checkbox"
+                                          checked={selectedContractStatuses.includes(
+                                            opt.value,
+                                          )}
+                                          onChange={() =>
+                                            handleContractStatusCheckbox(
+                                              opt.value,
+                                            )
+                                          }
+                                        />
+                                        <span>{opt.label}</span>
+                                      </label>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            ),
+                            className: "w-[20%] text-center",
+                            render: (row) => (
+                              <ContractStatusBadge
+                                status={row.contractStatus}
+                              />
+                            ),
+                          },
+                        ]
+                }
+                data={filteredManagers}
+                rowKey={(row) => row.managerId}
+                emptyMessage={"조회된 매니저가 없습니다."}
+                onRowClick={(row) =>
+                  navigate(`/admin/managers/${row.managerId}`)
+                }
+              />
+              <div className="w-full flex justify-center py-4">
+                <AdminPagination
+                  page={page}
+                  totalPages={totalPages}
+                  onChange={setPage}
+                />
               </div>
             </div>
-          )}
+            {/* 모바일: 카드형 리스트 */}
+            <div className="block md:hidden">
+              {filteredManagers.length === 0 ? (
+                <div className="text-center text-gray-400 py-8">
+                  조회된 매니저가 없습니다.
+                </div>
+              ) : (
+                <div className="flex flex-col gap-3">
+                  {filteredManagers.map((row) => (
+                    <div
+                      key={row.managerId}
+                      className="border rounded-lg p-4 bg-white shadow-sm flex flex-col gap-2 cursor-pointer"
+                      onClick={() =>
+                        navigate(`/admin/managers/${row.managerId}`)
+                      }
+                    >
+                      <div className="flex justify-between items-center">
+                        <div className="font-semibold text-base text-gray-900">
+                          {row.userName}
+                        </div>
+                        <ContractStatusBadge status={row.contractStatus} />
+                      </div>
+                      <div className="text-sm text-gray-700 break-all">
+                        연락처: {row.phone}
+                      </div>
+                      <div className="text-sm text-gray-700 break-all">
+                        이메일: {row.email}
+                      </div>
+                      <div className="text-sm text-gray-700 break-all">
+                        평점: {row.averageRating ?? "-"}
+                      </div>
+                      <div className="text-sm text-gray-700 break-all">
+                        예약 수: {row.reservationCount ?? "-"}
+                      </div>
+                      <div className="text-sm text-gray-700 break-all">
+                        리뷰 수: {row.reviewCount ?? "-"}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <div className="w-full flex justify-center py-4">
+                <AdminPagination
+                  page={page}
+                  totalPages={totalPages}
+                  onChange={setPage}
+                />
+              </div>
+            </div>
+          </TableSection>
         </div>
       </div>
+      <SuccessToast
+        open={!!successToastMsg}
+        message={successToastMsg || ""}
+        onClose={() => setSuccessToastMsg(null)}
+      />
+      <ErrorToast
+        open={!!errorToastMsg}
+        message={errorToastMsg || ""}
+        onClose={() => setErrorToastMsg(null)}
+      />
+      <Toast
+        open={!!toastMsg}
+        message={toastMsg || ""}
+        onClose={() => setToastMsg(null)}
+      />
     </Fragment>
   );
 };
