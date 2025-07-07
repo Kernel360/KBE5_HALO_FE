@@ -1,29 +1,31 @@
 // 매니저 나의 정보 조회
 export interface ManagerInfo {
-  managerId: number;
+  userName: string;
   phone: string;
   email: string;
-  userName: string;
   birthDate: string;
-  gender: 'MALE' | 'FEMALE';
+  gender: "MALE" | "FEMALE";
   genderName: string;
-  latitude: number;
-  longitude: number;
   roadAddress: string;
   detailAddress: string;
+  latitude: number;
+  longitude: number;
   bio: string;
   profileImageId: number | null;
-  fileId: number | null;
-  status: 'ACTIVE' | 'PENDING' | 'REJECTED' | 'TERMINATION_PENDING' | string;
+  fileId?: number;
+  fileName?: string;
+  fileUrl?: string;
+  status: string;
   statusName: string;
-  availableTimes: AvailableTime[];
+  availableTimes: Array<{ dayOfWeek: string; time: string }>;
   contractAt: string;
-  terminationReason: string;
-  terminatedAt: string;
+  terminationReason?: string;
+  terminatedAt?: string;
+  specialty?: string;
 }
 
 // 업무가능시간
 export interface AvailableTime {
-  dayOfWeek: string;  // ex: "MONDAY"
-  time: string;       // ex: "09:00"
+  dayOfWeek: string // ex: "MONDAY"
+  time: string // ex: "09:00"
 }
