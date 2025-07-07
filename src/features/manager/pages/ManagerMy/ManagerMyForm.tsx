@@ -65,27 +65,27 @@ export const ManagerMyForm = () => {
         confirmPassword: "",
         specialty: data.specialty || "",
         availableTimes: data.availableTimes || [],
-      })
+      });
 
       const dayMap: Record<string, string> = {
-        MONDAY: '월',
-        TUESDAY: '화',
-        WEDNESDAY: '수',
-        THURSDAY: '목',
-        FRIDAY: '금',
-        SATURDAY: '토',
-        SUNDAY: '일'
-      }
+        MONDAY: "월",
+        TUESDAY: "화",
+        WEDNESDAY: "수",
+        THURSDAY: "목",
+        FRIDAY: "금",
+        SATURDAY: "토",
+        SUNDAY: "일",
+      };
 
-      const initSelectedTimes: Record<string, Set<string>> = {}
+      const initSelectedTimes: Record<string, Set<string>> = {};
       for (const { dayOfWeek, time } of data.availableTimes || []) {
-        const hour = `${time.slice(0, 2)}시`
-        const korDay = dayMap[dayOfWeek] // 영어 요일을 한글로 변환
+        const hour = `${time.slice(0, 2)}시`;
+        const korDay = dayMap[dayOfWeek]; // 영어 요일을 한글로 변환
 
-        if (!korDay) continue // 매핑 실패한 경우 무시
+        if (!korDay) continue; // 매핑 실패한 경우 무시
 
-        if (!initSelectedTimes[korDay]) initSelectedTimes[korDay] = new Set()
-        initSelectedTimes[korDay].add(hour)
+        if (!initSelectedTimes[korDay]) initSelectedTimes[korDay] = new Set();
+        initSelectedTimes[korDay].add(hour);
       }
       setSelectedTimes(initSelectedTimes);
     };
@@ -121,10 +121,10 @@ export const ManagerMyForm = () => {
         latitude,
         longitude,
         roadAddress,
-        detailAddress
-      }
-    })
-  }, [roadAddress, latitude, longitude, detailAddress])
+        detailAddress,
+      };
+    });
+  }, [roadAddress, latitude, longitude, detailAddress]);
 
   // 업무 가능 시간 선택/해제 토글
   const toggleTimeSlot = (day: string, hour: string) => {
@@ -160,9 +160,9 @@ export const ManagerMyForm = () => {
 
   // 선택된 시간 텍스트 포맷 (예: "월요일: 09시, 10시")
   const formatSelectedTimeText = (day: string, hours: Set<string>) => {
-    const sorted = Array.from(hours).sort()
-    return `${day}요일: ${sorted.join(', ')}`
-  }
+    const sorted = Array.from(hours).sort();
+    return `${day}요일: ${sorted.join(", ")}`;
+  };
 
   // 한글 요일 → 영문 ENUM 매핑
   const convertToEnum = (dayKor: string): string => {
@@ -184,7 +184,7 @@ export const ManagerMyForm = () => {
       default:
         return "";
     }
-  }
+  };
 
   // 필수 입력 필드
   const requiredFields = [
@@ -202,29 +202,29 @@ export const ManagerMyForm = () => {
       const key = field.name as keyof ManagerUpdateForm;
       const value = form[key];
       // 문자열인 경우: 공백 제거하고 비어있으면 invalid
-      if (typeof value === 'string' && value.trim() === '') {
-        alert(`${field.label}을(를) 입력해주세요.`)
-        return false
+      if (typeof value === "string" && value.trim() === "") {
+        alert(`${field.label}을(를) 입력해주세요.`);
+        return false;
       }
       // null 또는 undefined 체크
       if (value === null || value === undefined) {
-        alert(`${field.label}을(를) 입력해주세요.`)
-        return false
+        alert(`${field.label}을(를) 입력해주세요.`);
+        return false;
       }
     }
-    return true
-  }
+    return true;
+  };
 
   // 추가 필수 입력 validate
   const validateExtraFields = () => {
     if (!form) return
     if (!form.roadAddress.trim()) {
-      alert('도로명 주소를 입력해주세요.')
-      return
+      alert("도로명 주소를 입력해주세요.");
+      return;
     }
     if (!form.detailAddress.trim()) {
-      alert('상세 주소를 입력해주세요.')
-      return
+      alert("상세 주소를 입력해주세요.");
+      return;
     }
     if (
       form.latitude == null ||
@@ -244,8 +244,8 @@ export const ManagerMyForm = () => {
     //   return false;
     // }
     if (form.availableTimes.length === 0) {
-      alert('업무 가능 시간을 1개 이상 선택해주세요.')
-      return false
+      alert("업무 가능 시간을 1개 이상 선택해주세요.");
+      return false;
     }
     return true;
   }
@@ -261,8 +261,8 @@ export const ManagerMyForm = () => {
 
     // 이메일 유효성 검사
     if (!isValidEmail(form.email)) {
-      alert('이메일 형식이 올바르지 않습니다.')
-      return
+      alert("이메일 형식이 올바르지 않습니다.");
+      return;
     }
     // 비밀번호 유효성 검사
     if (!isValidPassword(form.password)) {
@@ -273,8 +273,8 @@ export const ManagerMyForm = () => {
     }
     // 비밀번호 확인
     if (form.password !== form.confirmPassword) {
-      alert('비밀번호가 일치하지 않습니다.')
-      return
+      alert("비밀번호가 일치하지 않습니다.");
+      return;
     }
 
     // 최종 요청 객체 생성
@@ -300,11 +300,11 @@ export const ManagerMyForm = () => {
     }
 
     try {
-      await updateManager(requestBody)
-      alert('정보 수정이 완료되었습니다.')
-      navigate('/managers/my')
+      await updateManager(requestBody);
+      alert("정보 수정이 완료되었습니다.");
+      navigate("/managers/my");
     } catch (err: any) {
-      alert(err.message || '매니저 수정 실패')
+      alert(err.message || "매니저 수정 실패");
     }
   }
 
