@@ -12,7 +12,7 @@ import { signupManager } from '@/features/manager/api/managerAuth'
 import { createFileGroup } from "@/shared/utils/fileUpload";
 import { getServiceCategories } from "@/features/manager/api/managerMy";
 import type { ServiceCategoryTreeType } from "@/features/customer/types/reservation/ServiceCategoryTreeType";
-import FormField from "@/shared/components/ui/FormField";
+import { Eye, EyeOff } from "lucide-react";
 
 interface ManagerSignupForm {
   phone: string;
@@ -95,7 +95,7 @@ export const ManagerSignup = () => {
 
   // 공통 입력값 변경 핸들러 (checkbox 포함)
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, checked } = e.target
+    const { name, value, type, checked } = e.target;
     setForm((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
@@ -257,6 +257,9 @@ export const ManagerSignup = () => {
     setErrors((prev) => ({ ...prev, specialty: "" }));
   };
 
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   return (
     <Fragment>
       <div className="flex min-h-screen w-full items-start justify-center bg-slate-50 p-10">
@@ -281,31 +284,49 @@ export const ManagerSignup = () => {
                     ※ 숫자만 입력하면 하이픈(-)이 자동으로 추가됩니다.
                   </span>
                 </div>
-                <FormField
-                  label="연락처"
-                  name="phone"
-                  type="tel"
-                  value={form.phone}
-                  onChange={handlePhoneChange}
-                  placeholder="010-0000-0000"
-                  required
-                  error={errors.phone || errors.phoneFormat}
-                />
+                <div className={`relative h-12 w-full rounded-md border ${errors.phone || errors.phoneFormat ? "border-red-400 ring-1 ring-red-100 focus-within:border-red-500" : "border-gray-200 focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-200"} bg-slate-50 px-4 flex items-center`}>
+                  <input
+                    name="phone"
+                    type="tel"
+                    value={form.phone}
+                    onChange={handlePhoneChange}
+                    placeholder="숫자만 입력하세요. (ex:01000000000)"
+                    required
+                    className="flex-1 bg-transparent border-none outline-none text-sm text-slate-700 placeholder-slate-400 pr-2"
+                  />
+                </div>
+                {(errors.phone || errors.phoneFormat) && (
+                  <div className="relative mt-1">
+                    <div className="w-fit max-w-full rounded-xl border border-red-200 bg-white px-3 py-1 text-xs text-red-500 shadow">
+                      {errors.phone || errors.phoneFormat}
+                    </div>
+                    <div className="absolute -top-2 left-4 h-0 w-0 border-x-8 border-t-0 border-b-8 border-x-transparent border-b-white"></div>
+                  </div>
+                )}
               </div>
               <div className="flex flex-1 flex-col gap-2">
                 <label className="font-['Inter'] text-sm leading-none font-medium text-slate-700">
                   이메일 *
                 </label>
-                <FormField
-                  label="이메일"
-                  name="email"
-                  type="email"
-                  value={form.email}
-                  onChange={handleChange}
-                  placeholder="이메일 주소"
-                  required
-                  error={errors.email || errors.emailFormat}
-                />
+                <div className={`relative h-12 w-full rounded-md border ${errors.email || errors.emailFormat ? "border-red-400 ring-1 ring-red-100 focus-within:border-red-500" : "border-gray-200 focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-200"} bg-slate-50 px-4 flex items-center`}>
+                  <input
+                    name="email"
+                    type="email"
+                    value={form.email}
+                    onChange={handleChange}
+                    placeholder="example@example.com"
+                    required
+                    className="flex-1 bg-transparent border-none outline-none text-sm text-slate-700 placeholder-slate-400 pr-2"
+                  />
+                </div>
+                {(errors.email || errors.emailFormat) && (
+                  <div className="relative mt-1">
+                    <div className="w-fit max-w-full rounded-xl border border-red-200 bg-white px-3 py-1 text-xs text-red-500 shadow">
+                      {errors.email || errors.emailFormat}
+                    </div>
+                    <div className="absolute -top-2 left-4 h-0 w-0 border-x-8 border-t-0 border-b-8 border-x-transparent border-b-white"></div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -319,31 +340,75 @@ export const ManagerSignup = () => {
                     ※ 8~20자, 대/소문자·숫자·특수문자 중 3가지 이상 포함
                   </span>
                 </div>
-                <FormField
-                  label="비밀번호"
-                  name="password"
-                  type="password"
-                  value={form.password}
-                  onChange={handleChange}
-                  placeholder="비밀번호"
-                  required
-                  error={errors.password}
-                />
+                <div className={`relative h-12 w-full rounded-md border ${errors.password ? "border-red-400 ring-1 ring-red-100 focus-within:border-red-500" : "border-gray-200 focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-200"} bg-slate-50 px-4 flex items-center`}> 
+                  <input
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    value={form.password}
+                    onChange={handleChange}
+                    placeholder="비밀번호"
+                    required
+                    className="flex-1 bg-transparent border-none outline-none text-sm text-slate-700 placeholder-slate-400 pr-8"
+                  />
+                  <button
+                    type="button"
+                    tabIndex={-1}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    aria-label={showPassword ? "비밀번호 숨기기" : "비밀번호 보기"}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="w-5 h-5 text-gray-500" />
+                    ) : (
+                      <Eye className="w-5 h-5 text-gray-500" />
+                    )}
+                  </button>
+                </div>
+                {errors.password && (
+                  <div className="relative mt-1">
+                    <div className="w-fit max-w-full rounded-xl border border-red-200 bg-white px-3 py-1 text-xs text-red-500 shadow">
+                      {errors.password}
+                    </div>
+                    <div className="absolute -top-2 left-4 h-0 w-0 border-x-8 border-t-0 border-b-8 border-x-transparent border-b-white"></div>
+                  </div>
+                )}
               </div>
               <div className="flex flex-1 flex-col gap-2">
                 <label className="font-['Inter'] text-sm leading-none font-medium text-slate-700">
                   비밀번호 확인 *
                 </label>
-                <FormField
-                  label="비밀번호 확인"
-                  name="confirmPassword"
-                  type="password"
-                  value={form.confirmPassword}
-                  onChange={handleChange}
-                  placeholder="비밀번호"
-                  required
-                  error={errors.confirmPassword}
-                />
+                <div className={`relative h-12 w-full rounded-md border ${errors.confirmPassword ? "border-red-400 ring-1 ring-red-100 focus-within:border-red-500" : "border-gray-200 focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-200"} bg-slate-50 px-4 flex items-center`}>
+                  <input
+                    name="confirmPassword"
+                    type={showConfirmPassword ? "text" : "password"}
+                    value={form.confirmPassword}
+                    onChange={handleChange}
+                    placeholder="비밀번호"
+                    required
+                    className="flex-1 bg-transparent border-none outline-none text-sm text-slate-700 placeholder-slate-400 pr-8"
+                  />
+                  <button
+                    type="button"
+                    tabIndex={-1}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700"
+                    onClick={() => setShowConfirmPassword((prev) => !prev)}
+                    aria-label={showConfirmPassword ? "비밀번호 숨기기" : "비밀번호 보기"}
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff className="w-5 h-5 text-gray-500" />
+                    ) : (
+                      <Eye className="w-5 h-5 text-gray-500" />
+                    )}
+                  </button>
+                </div>
+                {errors.confirmPassword && (
+                  <div className="relative mt-1">
+                    <div className="w-fit max-w-full rounded-xl border border-red-200 bg-white px-3 py-1 text-xs text-red-500 shadow">
+                      {errors.confirmPassword}
+                    </div>
+                    <div className="absolute -top-2 left-4 h-0 w-0 border-x-8 border-t-0 border-b-8 border-x-transparent border-b-white"></div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -352,30 +417,48 @@ export const ManagerSignup = () => {
                 <label className="font-['Inter'] text-sm leading-none font-medium text-slate-700">
                   이름 *
                 </label>
-                <FormField
-                  label="이름"
-                  name="userName"
-                  type="text"
-                  value={form.userName}
-                  onChange={handleChange}
-                  placeholder="이름"
-                  required
-                  error={errors.userName}
-                />
+                <div className={`relative h-12 w-full rounded-md border ${errors.userName ? "border-red-400 ring-1 ring-red-100 focus-within:border-red-500" : "border-gray-200 focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-200"} bg-slate-50 px-4 flex items-center`}>
+                  <input
+                    name="userName"
+                    type="text"
+                    value={form.userName}
+                    onChange={handleChange}
+                    placeholder="이름"
+                    required
+                    className="flex-1 bg-transparent border-none outline-none text-sm text-slate-700 placeholder-slate-400 pr-2"
+                  />
+                </div>
+                {errors.userName && (
+                  <div className="relative mt-1">
+                    <div className="w-fit max-w-full rounded-xl border border-red-200 bg-white px-3 py-1 text-xs text-red-500 shadow">
+                      {errors.userName}
+                    </div>
+                    <div className="absolute -top-2 left-4 h-0 w-0 border-x-8 border-t-0 border-b-8 border-x-transparent border-b-white"></div>
+                  </div>
+                )}
               </div>
               <div className="flex flex-1 flex-col gap-2">
                 <label className="font-['Inter'] text-sm leading-none font-medium text-slate-700">
                   생년월일 *
                 </label>
-                <FormField
-                  label="생년월일"
-                  name="birthDate"
-                  type="date"
-                  value={form.birthDate}
-                  onChange={handleChange}
-                  required
-                  error={errors.birthDate}
-                />
+                <div className={`relative h-12 w-full rounded-md border ${errors.birthDate ? "border-red-400 ring-1 ring-red-100 focus-within:border-red-500" : "border-gray-200 focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-200"} bg-slate-50 px-4 flex items-center`}>
+                  <input
+                    name="birthDate"
+                    type="date"
+                    value={form.birthDate}
+                    onChange={handleChange}
+                    required
+                    className="flex-1 bg-transparent border-none outline-none text-sm text-slate-700 placeholder-slate-400 pr-2"
+                  />
+                </div>
+                {errors.birthDate && (
+                  <div className="relative mt-1">
+                    <div className="w-fit max-w-full rounded-xl border border-red-200 bg-white px-3 py-1 text-xs text-red-500 shadow">
+                      {errors.birthDate}
+                    </div>
+                    <div className="absolute -top-2 left-4 h-0 w-0 border-x-8 border-t-0 border-b-8 border-x-transparent border-b-white"></div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -569,16 +652,25 @@ export const ManagerSignup = () => {
               <label className="font-['Inter'] text-sm leading-none font-medium text-slate-700">
                 한줄소개 *
               </label>
-              <FormField
-                label="한줄소개"
-                name="bio"
-                type="text"
-                value={form.bio}
-                onChange={handleChange}
-                placeholder="자신을 소개하는 한 줄을 작성해주세요"
-                required
-                error={errors.bio}
-              />
+              <div className={`relative h-12 w-full rounded-md border ${errors.bio ? "border-red-400 ring-1 ring-red-100 focus-within:border-red-500" : "border-gray-200 focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-200"} bg-slate-50 px-4 flex items-center`}>
+                <input
+                  name="bio"
+                  type="text"
+                  value={form.bio}
+                  onChange={handleChange}
+                  placeholder="자신을 소개하는 한 줄을 작성해주세요"
+                  required
+                  className="flex-1 bg-transparent border-none outline-none text-sm text-slate-700 placeholder-slate-400 pr-2"
+                />
+              </div>
+              {errors.bio && (
+                <div className="relative mt-1">
+                  <div className="w-fit max-w-full rounded-xl border border-red-200 bg-white px-3 py-1 text-xs text-red-500 shadow">
+                    {errors.bio}
+                  </div>
+                  <div className="absolute -top-2 left-4 h-0 w-0 border-x-8 border-t-0 border-b-8 border-x-transparent border-b-white"></div>
+                </div>
+              )}
             </div>
 
             {/* 업무 가능 시간 */}

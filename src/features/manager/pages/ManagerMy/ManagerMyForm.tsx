@@ -12,12 +12,13 @@ import {
 } from "@/features/manager/api/managerMy";
 import { isValidEmail, isValidPassword } from "@/shared/utils/validation";
 import type { ServiceCategoryTreeType } from "@/features/customer/types/reservation/ServiceCategoryTreeType";
+import { Eye, EyeOff } from "lucide-react";
 
 // form 상태에 사용할 타입 확장 (기본 필드 + 비밀번호 확인 + 약관 동의 + 특기)
 interface ManagerUpdateForm extends ManagerInfo {
-  password: string
-  confirmPassword: string
-  specialty: string
+  password: string;
+  confirmPassword: string;
+  specialty: string;
 }
 
 // 요일, 시간대 정의 (업무 가능 시간표용)
@@ -28,133 +29,130 @@ const hours = Array.from(
 );
 
 export const ManagerMyForm = () => {
-  const navigate = useNavigate()
-
+  const navigate = useNavigate();
   // 파일 업로드 상태
-  const [files, setFiles] = useState<File[]>([])
-
+  const [files, setFiles] = useState<File[]>([]);
   // 서비스 카테고리 상태
-  const [serviceCategories, setServiceCategories] = useState<ServiceCategoryTreeType[]>([])
-
+  const [serviceCategories, setServiceCategories] = useState<
+    ServiceCategoryTreeType[]
+  >([]);
   // 업무 가능 시간 (요일-시간 Set)
   const [selectedTimes, setSelectedTimes] = useState<
     Record<string, Set<string>>
-  >({})
-
+  >({});
   // 주소 정보 상태 (Zustand에서 관리)
-  const { roadAddress, latitude, longitude, detailAddress } = useAddressStore()
-
+  const { roadAddress, latitude, longitude, detailAddress } = useAddressStore();
   // form 입력 상태 초기값
-  const [form, setForm] = useState<ManagerUpdateForm | null>(null)
+  const [form, setForm] = useState<ManagerUpdateForm | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   useEffect(() => {
     const fetchManagerInfo = async () => {
-      const data = await getManager()
+      const data = await getManager();
       useAddressStore
         .getState()
         .setAddress(
           data.roadAddress,
           data.latitude,
           data.longitude,
-          data.detailAddress
-        )
+          data.detailAddress,
+        );
 
       setForm({
         ...data,
-        password: '',
-        confirmPassword: '',
-        specialty: data.specialty || '',
+        password: "",
+        confirmPassword: "",
+        specialty: data.specialty || "",
         availableTimes: data.availableTimes || [],
-      })
+      });
 
       const dayMap: Record<string, string> = {
-        MONDAY: '월',
-        TUESDAY: '화',
-        WEDNESDAY: '수',
-        THURSDAY: '목',
-        FRIDAY: '금',
-        SATURDAY: '토',
-        SUNDAY: '일'
-      }
+        MONDAY: "월",
+        TUESDAY: "화",
+        WEDNESDAY: "수",
+        THURSDAY: "목",
+        FRIDAY: "금",
+        SATURDAY: "토",
+        SUNDAY: "일",
+      };
 
-      const initSelectedTimes: Record<string, Set<string>> = {}
+      const initSelectedTimes: Record<string, Set<string>> = {};
       for (const { dayOfWeek, time } of data.availableTimes || []) {
-        const hour = `${time.slice(0, 2)}시`
-        const korDay = dayMap[dayOfWeek] // 영어 요일을 한글로 변환
+        const hour = `${time.slice(0, 2)}시`;
+        const korDay = dayMap[dayOfWeek]; // 영어 요일을 한글로 변환
 
-        if (!korDay) continue // 매핑 실패한 경우 무시
+        if (!korDay) continue; // 매핑 실패한 경우 무시
 
-        if (!initSelectedTimes[korDay]) initSelectedTimes[korDay] = new Set()
-        initSelectedTimes[korDay].add(hour)
+        if (!initSelectedTimes[korDay]) initSelectedTimes[korDay] = new Set();
+        initSelectedTimes[korDay].add(hour);
       }
-      setSelectedTimes(initSelectedTimes)
-    }
-    fetchManagerInfo()
+      setSelectedTimes(initSelectedTimes);
+    };
+    fetchManagerInfo();
 
     // 서비스 카테고리 불러오기
     const fetchCategories = async () => {
       try {
-        const categories = await getServiceCategories()
-        setServiceCategories(categories)
-      } catch (error) {
+        const categories = await getServiceCategories();
+        setServiceCategories(categories);
+      } catch {
         // TODO: toast로 변경
-        alert('서비스 카테고리 조회에 실패했습니다.')
+        alert("서비스 카테고리 조회에 실패했습니다.");
       }
-    }
-    fetchCategories()
-  }, [])
+    };
+    fetchCategories();
+  }, []);
 
   // 주소 정보가 바뀔 때 form에도 자동 반영
   useEffect(() => {
     if (latitude == null || longitude == null) return
 
-    setForm(prev => {
-      if (!prev) return prev
-
+    setForm((prev) => {
+      if (!prev) return prev;
       const isSame =
         prev.roadAddress === roadAddress &&
         prev.latitude === latitude &&
         prev.longitude === longitude &&
-        prev.detailAddress === detailAddress
-
-      if (isSame) return prev // 값이 같으면 업데이트 안 함
-
+        prev.detailAddress === detailAddress;
+      if (isSame) return prev;
       return {
         ...prev,
         latitude,
         longitude,
         roadAddress,
-        detailAddress
-      }
-    })
-  }, [roadAddress, latitude, longitude, detailAddress])
+        detailAddress,
+      };
+    });
+  }, [roadAddress, latitude, longitude, detailAddress]);
 
   // 업무 가능 시간 선택/해제 토글
   const toggleTimeSlot = (day: string, hour: string) => {
-    setSelectedTimes(prev => {
-      const updated = { ...prev }
-      const currentSet = new Set(updated[day] || [])
-      currentSet.has(hour) ? currentSet.delete(hour) : currentSet.add(hour)
-      updated[day] = currentSet
-
+    setSelectedTimes((prev) => {
+      const updated = { ...prev };
+      const currentSet = new Set(updated[day] || []);
+      if (currentSet.has(hour)) {
+        currentSet.delete(hour);
+      } else {
+        currentSet.add(hour);
+      }
+      updated[day] = currentSet;
       const newAvailableTimes = Object.entries(updated).flatMap(
         ([korDay, hours]) =>
-          Array.from(hours).map(h => ({
+          Array.from(hours).map((h) => ({
             dayOfWeek: convertToEnum(korDay),
-            time: h.replace('시', ':00')
-          }))
-      )
-
+            time: h.replace("시", ":00"),
+          })),
+      );
       setForm((prev): ManagerUpdateForm | null => {
-        if (!prev) return null
+        if (!prev) return null;
         return {
           ...prev,
-          availableTimes: newAvailableTimes
-        }
-      })
-
-      return updated
-    })
+          availableTimes: newAvailableTimes,
+        };
+      });
+      return updated;
+    });
   }
 
   // 모든 선택된 시간 초기화
@@ -162,73 +160,71 @@ export const ManagerMyForm = () => {
 
   // 선택된 시간 텍스트 포맷 (예: "월요일: 09시, 10시")
   const formatSelectedTimeText = (day: string, hours: Set<string>) => {
-    const sorted = Array.from(hours).sort()
-    return `${day}요일: ${sorted.join(', ')}`
-  }
+    const sorted = Array.from(hours).sort();
+    return `${day}요일: ${sorted.join(", ")}`;
+  };
 
   // 한글 요일 → 영문 ENUM 매핑
   const convertToEnum = (dayKor: string): string => {
     switch (dayKor) {
-      case '월':
-        return 'MONDAY'
-      case '화':
-        return 'TUESDAY'
-      case '수':
-        return 'WEDNESDAY'
-      case '목':
-        return 'THURSDAY'
-      case '금':
-        return 'FRIDAY'
-      case '토':
-        return 'SATURDAY'
-      case '일':
-        return 'SUNDAY'
+      case "월":
+        return "MONDAY";
+      case "화":
+        return "TUESDAY";
+      case "수":
+        return "WEDNESDAY";
+      case "목":
+        return "THURSDAY";
+      case "금":
+        return "FRIDAY";
+      case "토":
+        return "SATURDAY";
+      case "일":
+        return "SUNDAY";
       default:
-        return ''
+        return "";
     }
-  }
+  };
 
   // 필수 입력 필드
   const requiredFields = [
-    { name: 'email', label: '이메일' },
-    { name: 'password', label: '비밀번호' },
-    { name: 'confirmPassword', label: '비밀번호 확인' },
-    { name: 'bio', label: '한줄소개' }
-  ]
+    { name: "email", label: "이메일" },
+    { name: "password", label: "비밀번호" },
+    { name: "confirmPassword", label: "비밀번호 확인" },
+    { name: "bio", label: "한줄소개" },
+  ];
 
   // 필수 입력 validate
   const validateRequiredFields = () => {
     if (!form) return
 
     for (const field of requiredFields) {
-      const key = field.name as keyof ManagerUpdateForm
-      const value = form[key]
-
+      const key = field.name as keyof ManagerUpdateForm;
+      const value = form[key];
       // 문자열인 경우: 공백 제거하고 비어있으면 invalid
-      if (typeof value === 'string' && value.trim() === '') {
-        alert(`${field.label}을(를) 입력해주세요.`)
-        return false
+      if (typeof value === "string" && value.trim() === "") {
+        alert(`${field.label}을(를) 입력해주세요.`);
+        return false;
       }
-
       // null 또는 undefined 체크
       if (value === null || value === undefined) {
-        alert(`${field.label}을(를) 입력해주세요.`)
-        return false
+        alert(`${field.label}을(를) 입력해주세요.`);
+        return false;
       }
     }
-    return true
-  }
+    return true;
+  };
 
   // 추가 필수 입력 validate
   const validateExtraFields = () => {
     if (!form) return
     if (!form.roadAddress.trim()) {
-      alert('도로명 주소를 입력해주세요.')
-      return
+      alert("도로명 주소를 입력해주세요.");
+      return;
     }
     if (!form.detailAddress.trim()) {
-      alert('상세 주소를 입력해주세요.')
-      return
+      alert("상세 주소를 입력해주세요.");
+      return;
     }
     if (
       form.latitude == null ||
@@ -236,8 +232,8 @@ export const ManagerMyForm = () => {
       form.longitude == null ||
       isNaN(form.longitude)
     ) {
-      alert('잘못된 주소입니다. 다시 입력해주세요.')
-      return
+      alert("잘못된 주소입니다. 다시 입력해주세요.");
+      return;
     }
     // if (form.profileImageId === null) {
     //   alert("프로필 사진을 업로드해주세요.");
@@ -248,10 +244,10 @@ export const ManagerMyForm = () => {
     //   return false;
     // }
     if (form.availableTimes.length === 0) {
-      alert('업무 가능 시간을 1개 이상 선택해주세요.')
-      return false
+      alert("업무 가능 시간을 1개 이상 선택해주세요.");
+      return false;
     }
-    return true
+    return true;
   }
 
   // 나의 정보 수정
@@ -265,20 +261,20 @@ export const ManagerMyForm = () => {
 
     // 이메일 유효성 검사
     if (!isValidEmail(form.email)) {
-      alert('이메일 형식이 올바르지 않습니다.')
-      return
+      alert("이메일 형식이 올바르지 않습니다.");
+      return;
     }
     // 비밀번호 유효성 검사
     if (!isValidPassword(form.password)) {
       alert(
-        '비밀번호는 8~20자, 대소문자/숫자/특수문자 중 3가지 이상 포함해야 합니다.'
-      )
-      return
+        "비밀번호는 8~20자, 대소문자/숫자/특수문자 중 3가지 이상 포함해야 합니다."
+      );
+      return;
     }
     // 비밀번호 확인
     if (form.password !== form.confirmPassword) {
-      alert('비밀번호가 일치하지 않습니다.')
-      return
+      alert("비밀번호가 일치하지 않습니다.");
+      return;
     }
 
     // 업무 가능 시간 포맷 변환 (요일, 시간 → ENUM + hh:mm)
@@ -288,7 +284,7 @@ export const ManagerMyForm = () => {
           dayOfWeek: convertToEnum(day),
           time: hour.replace("시", ":00"),
         })),
-    )
+    );
 
     // 최종 요청 객체 생성
     const requestBody = {
@@ -313,11 +309,11 @@ export const ManagerMyForm = () => {
     }
 
     try {
-      await updateManager(requestBody)
-      alert('정보 수정이 완료되었습니다.')
-      navigate('/managers/my')
+      await updateManager(requestBody);
+      alert("정보 수정이 완료되었습니다.");
+      navigate("/managers/my");
     } catch (err: any) {
-      alert(err.message || '매니저 수정 실패')
+      alert(err.message || "매니저 수정 실패");
     }
   }
 
@@ -412,37 +408,65 @@ export const ManagerMyForm = () => {
                         ※ 8~20자, 대/소문자·숫자·특수문자 중 3가지 이상 포함
                       </span>
                     </div>
-                    <input
-                      type="password"
-                      name="password"
-                      value={form.password}
-                      onChange={e =>
-                        setForm(prev =>
-                          prev ? { ...prev, password: e.target.value } : prev
-                        )
-                      }
-                      placeholder="비밀번호"
-                      className="h-12 rounded-lg bg-slate-50 px-4 text-sm text-slate-700 placeholder-slate-400 outline outline-1 outline-slate-200"
-                    />
+                    <div className="relative">
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        name="password"
+                        value={form.password}
+                        onChange={e =>
+                          setForm(prev =>
+                            prev ? { ...prev, password: e.target.value } : prev
+                          )
+                        }
+                        placeholder="비밀번호"
+                        className="h-12 rounded-lg bg-slate-50 px-4 text-sm text-slate-700 placeholder-slate-400 outline outline-1 outline-slate-200 w-full pr-10"
+                      />
+                      <button
+                        type="button"
+                        tabIndex={-1}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700"
+                        onClick={() => setShowPassword(prev => !prev)}
+                        aria-label={showPassword ? "비밀번호 숨기기" : "비밀번호 보기"}
+                      >
+                        {showPassword ? (
+                          <EyeOff className="w-5 h-5 text-gray-500" />
+                        ) : (
+                          <Eye className="w-5 h-5 text-gray-500" />
+                        )}
+                      </button>
+                    </div>
                   </div>
                   <div className="flex flex-1 flex-col gap-2">
                     <label className="font-['Inter'] text-sm leading-none font-medium text-slate-700">
                       비밀번호 확인 *
                     </label>
-                    <input
-                      type="password"
-                      name="confirmPassword"
-                      value={form.confirmPassword}
-                      onChange={e =>
-                        setForm(prev =>
-                          prev
-                            ? { ...prev, confirmPassword: e.target.value }
-                            : prev
-                        )
-                      }
-                      placeholder="비밀번호"
-                      className="h-12 rounded-lg bg-slate-50 px-4 text-sm text-slate-700 placeholder-slate-400 outline outline-1 outline-slate-200"
-                    />
+                    <div className="relative">
+                      <input
+                        type={showConfirmPassword ? "text" : "password"}
+                        name="confirmPassword"
+                        value={form.confirmPassword}
+                        onChange={e =>
+                          setForm(prev =>
+                            prev ? { ...prev, confirmPassword: e.target.value } : prev
+                          )
+                        }
+                        placeholder="비밀번호"
+                        className="h-12 rounded-lg bg-slate-50 px-4 text-sm text-slate-700 placeholder-slate-400 outline outline-1 outline-slate-200 w-full pr-10"
+                      />
+                      <button
+                        type="button"
+                        tabIndex={-1}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700"
+                        onClick={() => setShowConfirmPassword(prev => !prev)}
+                        aria-label={showConfirmPassword ? "비밀번호 숨기기" : "비밀번호 보기"}
+                      >
+                        {showConfirmPassword ? (
+                          <EyeOff className="w-5 h-5 text-gray-500" />
+                        ) : (
+                          <Eye className="w-5 h-5 text-gray-500" />
+                        )}
+                      </button>
+                    </div>
                   </div>
                   <div className="flex flex-1 flex-col gap-2">
                     <label className="font-['Inter'] text-sm leading-none font-medium text-slate-700">
@@ -641,3 +665,4 @@ export const ManagerMyForm = () => {
     </Fragment>
   )
 }
+

@@ -9,6 +9,8 @@ import { CardContent } from '@/shared/components/ui/CardContent'
 import { Button } from '@/shared/components/ui/Button'
 import ErrorToast from '@/shared/components/ui/toast/ErrorToast'
 import FormField from '@/shared/components/ui/FormField'
+import { Input } from "@/shared/components/ui/Input";
+import { Eye, EyeOff } from "lucide-react";
 
 export const ManagerLogin = () => {
   const phoneRef = useRef<HTMLInputElement>(null)
@@ -20,6 +22,7 @@ export const ManagerLogin = () => {
   const [openFeatureIndex, setOpenFeatureIndex] = useState<number | null>(null)
   const cardRef = useRef<HTMLDivElement>(null)
   const navigate = useNavigate()
+  const [showPassword, setShowPassword] = useState(false);
 
   // 매니저 주요 기능 설명
   const featureDetails = [
@@ -166,17 +169,48 @@ export const ManagerLogin = () => {
                   required
                   error={errors.phone}
                 />
-                {/* 비밀번호 */}
-                <FormField
-                  label="비밀번호"
-                  name="manager-login-password"
-                  type="password"
-                  value={loginPassword}
-                  onChange={e => setPassword(e.target.value)}
-                  placeholder="비밀번호를 입력하세요"
-                  required
-                  error={errors.password}
-                />
+                {/* 비밀번호 (커스텀 구현) */}
+                <div className="mb-4">
+                  <label className="mb-1 block font-medium text-gray-700">
+                    비밀번호 <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <Input
+                      name="manager-login-password"
+                      type={showPassword ? "text" : "password"}
+                      value={loginPassword}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="비밀번호를 입력하세요"
+                      required
+                      className={`appearance-none invalid:shadow-none invalid:outline-none focus:outline-none h-11 w-full rounded-md border bg-gray-50 px-4 text-sm text-gray-900 transition ${
+                        errors.password
+                          ? "border-red-400 ring-1 ring-red-100 focus:border-red-500"
+                          : "border-gray-200 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-200"
+                      }`}
+                    />
+                    <button
+                      type="button"
+                      tabIndex={-1}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700"
+                      onClick={() => setShowPassword((prev) => !prev)}
+                      aria-label={showPassword ? "비밀번호 숨기기" : "비밀번호 보기"}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="w-5 h-5 text-gray-500" />
+                      ) : (
+                        <Eye className="w-5 h-5 text-gray-500" />
+                      )}
+                    </button>
+                  </div>
+                  {errors.password && (
+                    <div className="relative mt-1">
+                      <div className="w-fit max-w-full rounded-xl border border-red-200 bg-white px-3 py-1 text-xs text-red-500 shadow">
+                        {errors.password}
+                      </div>
+                      <div className="absolute -top-2 left-4 h-0 w-0 border-x-8 border-t-0 border-b-8 border-x-transparent border-b-white"></div>
+                    </div>
+                  )}
+                </div>
                 {/* 로그인 버튼 */}
                 <Button
                   type="submit"
