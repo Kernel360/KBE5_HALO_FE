@@ -109,8 +109,8 @@ export const PointChargingModal: React.FC<PointChargingModalProps> = ({
   return (
     <>
       <div className="fixed inset-0 bg-opacity-30 backdrop-blur-sm flex items-center justify-center z-50">
-        <div className="bg-white rounded-3xl w-[400px] overflow-hidden">
-          {/* Header */}
+        <div className="bg-white rounded-3xl w-[400px] overflow-hidden border border-indigo-300">        
+            {/* Header */}
           <div className="bg-[#6366F1] text-white px-6 py-4 flex justify-between items-center">
             <h2 className="text-lg font-bold">포인트 충전</h2>
             <button onClick={handleClose} className="text-white hover:text-gray-200">
@@ -134,31 +134,6 @@ export const PointChargingModal: React.FC<PointChargingModalProps> = ({
             {/* 충전 금액 선택 */}
             <div className="mb-6">
               <div className="text-sm font-medium text-gray-700 mb-3">충전할 포인트를 선택해주세요</div>
-              
-              {/* 미리 정의된 금액들 */}
-              <div className="grid grid-cols-3 gap-2 mb-4">
-                {presetAmounts.map((amount) => {
-                  const isDisabled = amount > maxChargeAmount;
-                  const isSelected = !isCustomInput && chargeAmount === amount;
-                  
-                  return (
-                    <button
-                      key={amount}
-                      onClick={() => handlePresetClick(amount)}
-                      disabled={isDisabled}
-                      className={`py-2 px-3 text-sm rounded-lg border transition-colors ${
-                        isDisabled
-                          ? "border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed"
-                          : isSelected
-                            ? "border-indigo-500 bg-indigo-50 text-indigo-600"
-                            : "border-gray-200 text-gray-700 hover:border-indigo-300 hover:bg-indigo-50 cursor-pointer"
-                      }`}
-                    >
-                      {amount.toLocaleString()}P
-                    </button>
-                  );
-                })}
-              </div>
 
               {/* 직접 입력 */}
               <div className="mb-4">
