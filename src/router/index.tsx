@@ -242,19 +242,8 @@ export const router = createBrowserRouter([
 
               // 상세
               {
-                path: "customer/:inquiryId",
-                element: <AdminInquiryDetail activeTab="customer" />,
+                path: ":inquiryId", element: <AdminInquiryDetail />,
               },
-              {
-                path: "manager/:inquiryId",
-                element: <AdminInquiryDetail activeTab="manager" />,
-              },
-
-              // 삭제
-
-              // 답변 등록
-
-              // 답변 수정
             ],
           },
           // // 공지/이벤트 목록

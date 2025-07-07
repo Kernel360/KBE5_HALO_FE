@@ -17,7 +17,8 @@ const Pagination: React.FC<PaginationProps> = ({
 }) => {
   const totalPages = Math.ceil(totalItems / pageSize);
   
-  if (totalPages <= 1) return null;
+  // 총 아이템이 0개이거나 페이지 사이즈가 0일 때만 숨김
+  if (totalItems === 0 || pageSize === 0) return null;
 
   const renderPaginationNumbers = () => {
     const pagesToShow = maxVisiblePages;

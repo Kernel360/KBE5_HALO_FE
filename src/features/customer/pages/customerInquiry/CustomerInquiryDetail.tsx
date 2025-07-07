@@ -2,20 +2,39 @@ import { Fragment, useEffect, useState } from "react";
 import { PenLine, Trash2 } from "lucide-react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { getCustomerInquiry, deleteCustomerInquiry } from "@/features/customer/api/CustomerInquiries";
-import type { CustomerInquiryDetail as CustomerInquiryType } from "@/features/customer/types/CustomerInquiryType";
+import type { InquiryDetail } from "@/shared/types/InquiryType";
+import { useAuthStore } from "@/store/useAuthStore";
 
 
 
 export const CustomerInquiryDetail = () => {
   const { inquiryId } = useParams();
-  const [inquiry, setInquiry] = useState<CustomerInquiryType | null>(null);
+  const [inquiry, setInquiry] = useState<InquiryDetail | null>(null);
   const navigate = useNavigate();
 
   // 문의사항 조회
   useEffect(() => {
     if (!inquiryId) return;
-    getCustomerInquiry(Number(inquiryId)).then(setInquiry);
-  }, [inquiryId]);
+    
+    const { accessToken } = useAuthStore.getState();
+    if (!accessToken) {
+      alert("로그인이 필요합니다.");
+      navigate("/auth/login");
+      return;
+    }
+
+    const fetchInquiry = async () => {
+      try {
+        const data = await getCustomerInquiry(Number(inquiryId));
+        setInquiry(data);
+      } catch (error: any) {
+        const errorMessage = error.response?.data?.message || error.message || "문의사항을 조회하는데 실패하였습니다.";
+        alert(errorMessage);
+      }
+    };
+
+    fetchInquiry();
+  }, [inquiryId, navigate]);
   if (!inquiry) {
     return (
       <div className="w-full h-screen flex justify-center items-center">
@@ -29,7 +48,7 @@ export const CustomerInquiryDetail = () => {
   const handleEdit = () => {
     if (!inquiryId) return;
     navigate(`/my/inquiries/${inquiryId}/edit`, {
-      state: { inquiry: { ...inquiry, categoryId: inquiry.categoryId } },
+      state: { inquiry },
     });
   };
 
@@ -39,13 +58,20 @@ export const CustomerInquiryDetail = () => {
     const confirmDelete = window.confirm("정말로 삭제하시겠습니까?");
     if (!confirmDelete) return;
 
+    const { accessToken } = useAuthStore.getState();
+    if (!accessToken) {
+      alert("로그인이 필요합니다.");
+      navigate("/auth/login");
+      return;
+    }
+
     try {
       await deleteCustomerInquiry(Number(inquiryId));
       alert("삭제가 완료되었습니다.");
       navigate("/my/inquiries");
-    } catch (error) {
-      console.error(error);
-      alert("삭제 중 오류가 발생했습니다.");
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || error.message || "삭제 중 오류가 발생했습니다.";
+      alert(errorMessage);
     }
   };
 
@@ -84,7 +110,7 @@ export const CustomerInquiryDetail = () => {
               </div>
               <div className="flex flex-col">
                 <div className="font-semibold text-sm text-slate-500 mb-1">문의 내용</div>
-                <div className="p-4 bg-slate-50 rounded-lg text-slate-800 text-sm whitespace-pre-wrap">
+                <div className="p-4 bg-slate-50 rounded-lg text-slate-800 text-sm whitespace-pre-wrap h-48 overflow-y-auto">
                   {inquiry.content}
                 </div>
               </div>
@@ -141,7 +167,7 @@ export const CustomerInquiryDetail = () => {
                 </div>
               </div>
               <div className="h-px bg-slate-200" />
-              <div className="p-4 bg-blue-50 rounded-lg text-slate-800 text-sm whitespace-pre-wrap">
+              <div className="p-4 bg-blue-50 rounded-lg text-slate-800 text-sm whitespace-pre-wrap h-48 overflow-y-auto">
                 {inquiry.reply.content}
               </div>
 
