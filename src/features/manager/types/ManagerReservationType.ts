@@ -18,26 +18,26 @@ export interface ManagerReservationSummary {
   isReviewed: boolean;
 }
 
-
 // 예약 상세 조회
 export interface ManagerReservationDetail {
   // 예약 정보
-  reservationId: string;
+  reservationId: number;
   requestDate: string;
   startTime: string;
   turnaround: number;
   serviceName: string;
   status: string;
-  statusName: string;
+  statusName?: string;
 
   // 고객 정보
-  customerName: string;
-  customerPhone: string;
-  customerAddress: string;
+  customerId: number | null;
+  userName: string;
+  roadAddress: string;
+  detailAddress: string;
 
   // 서비스 상세
-  extraServiceName?: string; 
-  memo?: string;
+  extraServiceName?: string | null;
+  memo?: string | null;
 
   // 체크인/체크아웃
   checkId?: number | null;
@@ -51,10 +51,20 @@ export interface ManagerReservationDetail {
   customerRating?: number | null;
   customerContent?: string | null;
   customerCreateAt?: string | null;
+  customerReviewContent?: string | null;
+  customerReviewRating?: number | null;
 
   // 매니저 리뷰
   managerReviewId?: number | null;
   managerRating?: number | null;
   managerContent?: string | null;
   managerCreateAt?: string | null;
+  managerReviewContent?: string | null;
+  managerReviewRating?: number | null;
+
+  // 예약 취소 정보
+  cancelDate?: string | null;
+  cancelReason?: string | null;
+  canceledByName?: string | null;
+  canceledByRole?: string | null;
 }
