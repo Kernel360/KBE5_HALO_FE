@@ -53,8 +53,8 @@ export const AdminMain = () => {
         });
         setNewManagers(data.content || []);
         setNewManagersTotal(data.page.totalElements || 0);
-      } catch (e) {
-        // 에러 핸들링
+      } catch (error) {
+        console.error('매니저 목록 조회 실패:', error);
         setNewManagers([]);
         setNewManagersTotal(0);
       } finally {
@@ -69,13 +69,15 @@ export const AdminMain = () => {
       setPendingInquiriesLoading(true);
       try {
         const [customer, manager] = await Promise.all([
-          searchAdminInquiries("customer", {
-            replyStatus: "PENDING",
+          searchAdminInquiries({
+            authorType: "customer",
+            replyStatus: false,
             page: 0,
             size: 3,
           }),
-          searchAdminInquiries("manager", {
-            replyStatus: "PENDING",
+          searchAdminInquiries({
+            authorType: "manager", 
+            replyStatus: false,
             page: 0,
             size: 3,
           }),
@@ -91,7 +93,7 @@ export const AdminMain = () => {
           })),
         ];
         combined.sort((a, b) => {
-          if (a.createdAt === b.createdAt) return b.id - a.id;
+          if (a.createdAt === b.createdAt) return (b.inquiryId || 0) - (a.inquiryId || 0);
           return (
             new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
           );
@@ -101,7 +103,8 @@ export const AdminMain = () => {
           (customer.page?.totalElements || 0) +
             (manager.page?.totalElements || 0),
         );
-      } catch (e) {
+      } catch (error) {
+        console.error('문의사항 목록 조회 실패:', error);
         setPendingInquiries([]);
         setTotalPendingInquiries(0);
       } finally {
@@ -344,7 +347,7 @@ export const AdminMain = () => {
                                   .split(" ")
                                   .map((n: string) => n[0])
                                   .join("")
-                              : ""}
+                              : "?"}
                           </div>
                         </div>
                         <div className="inline-flex flex-col justify-start items-start gap-0.5">
@@ -388,7 +391,7 @@ export const AdminMain = () => {
                       className="self-stretch p-3 bg-gray-50 rounded-lg inline-flex justify-between items-center cursor-pointer transition-colors hover:bg-indigo-50"
                       onClick={() =>
                         navigate(
-                          `/admin/inquiries/${inquiry.type}/${inquiry.inquiryId}`,
+                          `/admin/inquiries/${inquiry.inquiryId}`,
                           { state: { authorId: inquiry.authorId } },
                         )
                       }

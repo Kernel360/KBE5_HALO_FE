@@ -1,9 +1,7 @@
 import { Fragment, useEffect, useState, useRef } from "react";
-import { useNavigate, useParams, Link, useLocation } from "react-router-dom";
-import { PenLine, Trash2 } from "lucide-react";
+import { useParams, Link } from "react-router-dom";
 import {
   getAdminInquiry,
-  deleteAdminInquiry,
   answerAdminInquiry,
 } from "@/features/admin/api/adminInquiry";
 import Loading from "@/shared/components/ui/Loading";
@@ -14,10 +12,7 @@ import type { InquiryDetail } from "@/features/admin/types/AdminInquiryType";
 
 export const AdminInquiryDetail = () => {
   const { inquiryId } = useParams();
-  const location = useLocation();
-  const authorId = location.state?.authorId;
   const [inquiry, setInquiry] = useState<InquiryDetail | null>(null);
-  const navigate = useNavigate();
   const answerTextareaRef = useRef<HTMLTextAreaElement | null>(null);
   const [answer, setAnswer] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
@@ -78,8 +73,7 @@ export const AdminInquiryDetail = () => {
         }
       },
     ).catch((error) => {
-      console.error("문의사항 조회 실패:", error);
-      setErrorToastMsg("문의사항을 불러오는 중 오류가 발생했습니다.");
+      setErrorToastMsg(error.message || "문의사항을 불러오는 중 오류가 발생했습니다.");
     });
   }, [inquiryId]);
   
@@ -96,24 +90,6 @@ export const AdminInquiryDetail = () => {
 
   // 답변 상태 구분
   const isAnswered = !!inquiry.replyDetail;
-
-  // 문의사항 삭제
-  const handleDelete = async () => {
-    if (!inquiryId) return;
-    const confirmDelete = window.confirm("정말로 삭제하시겠습니까?");
-    if (!confirmDelete) return;
-
-    try {
-      await deleteAdminInquiry("customer", Number(inquiryId));
-      setSuccessToastMsg("삭제가 완료되었습니다.");
-      setTimeout(() => {
-        navigate("/admin/inquiries");
-      }, 1000);
-    } catch (error) {
-      console.error(error);
-      setErrorToastMsg("삭제 중 오류가 발생했습니다.");
-    }
-  };
 
   // 답변 등록
   const handleAnswer = async () => {
@@ -140,48 +116,38 @@ export const AdminInquiryDetail = () => {
         {/* 상단 헤더 */}
         <div className="h-16 px-6 bg-white border-b border-gray-200 flex justify-between items-center">
           <div className="text-gray-900 text-xl font-bold">문의사항 상세</div>
-          <div className="flex justify-end gap-2">
-            {!inquiry.replyDetail && (
-              <Fragment>
-                <button
-                  onClick={handleDelete}
-                  className="h-9 px-3 flex items-center gap-2 text-red-500 border border-red-500 bg-white rounded-md text-sm font-semibold hover:bg-red-50"
-                >
-                  <Trash2 size={16} />
-                  삭제
-                </button>
-              </Fragment>
-            )}
-            <Link
-              to="/admin/inquiries"
-              className="h-9 px-3 flex items-center gap-2 text-gray-500 border border-gray-300 bg-white rounded-md text-sm font-semibold hover:bg-gray-50"
-            >
-              목록으로
-            </Link>
-          </div>
         </div>
 
         {/* 본문 */}
-        <div className="p-6 flex flex-col gap-6">
+        <div className="p-6 flex flex-col gap-4">
           {/* 문의 내용 카드 */}
-          <div className="p-8 bg-white rounded-xl shadow flex flex-col gap-6">
-               <div className="flex items-center gap-2 text-sm text-slate-500">
-                  {/* 상태 뱃지 */}
-                  <div
-                    className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                      inquiry.replyDetail
-                        ? 'bg-gray-100 text-gray-600'
-                        : 'bg-yellow-100 text-orange-600'
-                    }`}
-                  >
-                    {inquiry.replyDetail ? '답변 완료' : '답변 대기'}
+          <div className="p-8 bg-white rounded-xl shadow flex flex-col gap-4">
+               <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-sm text-slate-500">
+                    {/* 상태 뱃지 */}
+                    <div
+                      className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                        inquiry.replyDetail
+                          ? 'bg-gray-100 text-gray-600'
+                          : 'bg-yellow-100 text-orange-600'
+                      }`}
+                    >
+                      {inquiry.replyDetail ? '답변 완료' : '답변 대기'}
+                    </div>
+                    {/* 접수일 */}
+                    <span>
+                      작성 일자 :{" "}
+                      <span className="text-slate-700">{formatDate(inquiry.createdAt)}</span>
+                    </span>
                   </div>
-
-                  {/* 접수일 */}
-                  <span>
-                    접수일:{" "}
-                    <span className="text-slate-700">{formatDate(inquiry.createdAt)}</span>
-                  </span>
+                  <div className="flex gap-2">
+                    <Link
+                      to="/admin/inquiries"
+                      className="h-9 px-3 flex items-center gap-2 text-gray-500 border border-gray-300 bg-white rounded-md text-sm font-semibold hover:bg-gray-50"
+                    >
+                      목록으로
+                    </Link>
+                  </div>
                 </div>
             
             <div className="h-px bg-slate-200" />
@@ -255,6 +221,15 @@ export const AdminInquiryDetail = () => {
                 <div className="text-slate-800 text-xl font-bold">답변</div>
                 <div className="flex gap-4 text-sm text-slate-500">
                   <div>
+                    <span>
+                      답변자 :{" "}
+                    </span>
+                    <span className="text-slate-700">
+                      {inquiry.replyDetail?.userName || "관리자"}
+                    </span>
+                    <span>
+                      {" "}작성 일자 :{" "}
+                    </span>
                     <span className="text-slate-700">
                       {inquiry.replyDetail?.createdAt ? formatDate(inquiry.replyDetail.createdAt) : ""}
                     </span>

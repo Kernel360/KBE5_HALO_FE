@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useState, useRef } from "react";
 import { Link } from "react-router-dom";
-import { Search, RefreshCw } from "lucide-react";
+import { Search } from "lucide-react";
 import { searchAdminInquiries, getAllInquiryCategories, 
     getAllInquiryAuthorTypes, type EnumValue } from "@/features/admin/api/adminInquiry";
 import ErrorToast from "@/shared/components/ui/toast/ErrorToast";
@@ -15,6 +15,8 @@ import { isValidDateRange } from "@/shared/utils/validation";
 import { DEFAULT_PAGE_SIZE } from "@/shared/constants/constants";
 import { TableSection } from "../../components/TableSection";
 import { AdminPagination } from "@/features/admin/components/AdminPagination";
+import { ResetButton } from "@/shared/components/ui/ResetButton";
+import { SearchButton } from "@/shared/components/ui/SearchButton";
 
 export const AdminInquiries = () => {
   const [fadeKey, setFadeKey] = useState(0);
@@ -199,74 +201,85 @@ export const AdminInquiries = () => {
   return (
     <Fragment>
       <div className="w-full flex flex-col">
-        <div className="self-stretch h-16 px-6 bg-white border-b border-gray-200 inline-flex justify-between items-center">
-          <div className="justify-start text-gray-900 text-xl font-bold font-['Inter'] leading-normal">
+        <div className="self-stretch h-16 px-4 sm:px-6 bg-white border-b border-gray-200 inline-flex justify-between items-center">
+          <div className="justify-start text-gray-900 text-lg sm:text-xl font-bold font-['Inter'] leading-normal">
             문의사항
           </div>
         </div>
 
         {/* 내용 */}
-        <div className="p-6 flex flex-col gap-6">
+        <div className="p-4 sm:p-6 flex flex-col gap-4 sm:gap-6">
           {/* 검색 폼 */}
-          <div className="w-full flex flex-row items-center justify-start mb-2 gap-2">
-            {/* 인라인 compact 검색 폼 */}
+          <div className="w-full">
             <form
               onSubmit={(e) => {
                 e.preventDefault();
                 handleSearch();
               }}
-              className="flex flex-row items-center gap-2 bg-transparent p-0"
+              className="space-y-4"
             >
-              <input
-                type="date"
-                ref={fromDateRef}
-                value={fromCreatedAt}
-                onChange={(e) => setFromCreatedAt(e.target.value)}
-                className="h-10 px-3 bg-white rounded border border-gray-200 text-base text-slate-700 min-w-[140px]"
-              />
-              <span className="text-slate-500 text-base flex items-center">~</span>
-              <input
-                type="date"
-                value={toCreatedAt}
-                onChange={(e) => setToCreatedAt(e.target.value)}
-                className="h-10 px-3 bg-white rounded border border-gray-200 text-base text-slate-700 min-w-[140px]"
-              />
-              <input
-                type="text"
-                value={titleKeyword}
-                onChange={(e) => setTitleKeyword(e.target.value)}
-                placeholder="제목 검색"
-                className="h-10 px-3 bg-white rounded border border-gray-200 text-base text-slate-700 min-w-[140px]"
-              />
-              <input
-                type="text"
-                value={contentKeyword}
-                onChange={(e) => setContentKeyword(e.target.value)}
-                placeholder="내용 검색"
-                className="h-10 px-3 bg-white rounded border border-gray-200 text-base text-slate-700 min-w-[140px]"
-              />
-              <input
-                type="text"
-                value={userName}
-                onChange={(e) => setUserName(e.target.value)}
-                placeholder="작성자 이름"
-                className="h-10 px-3 bg-white rounded border border-gray-200 text-base text-slate-700 min-w-[140px]"
-              />
-              <button
-                type="button"
-                onClick={handleReset}
-                className="h-10 px-6 bg-white border border-gray-300 rounded text-slate-600 text-base font-medium hover:bg-gray-50 cursor-pointer flex items-center justify-center gap-2"
-              >
-                <span>초기화</span>
-                <RefreshCw size={16} strokeWidth={2} />
-              </button>
-              <button
-                type="submit"
-                className="h-10 px-6 bg-indigo-600 rounded text-white text-base font-medium hover:bg-indigo-700 cursor-pointer flex items-center justify-center gap-2"
-              >
-                <span>검색</span>
-                <Search size={16} strokeWidth={2} />
-              </button>
+              {/* 검색 조건들과 버튼들을 한 줄에 배치 */}
+              <div className="flex flex-wrap items-center gap-2">
+                {/* 날짜 범위 */}
+                <div className="flex items-center gap-1">
+                  <input
+                    type="date"
+                    ref={fromDateRef}
+                    value={fromCreatedAt}
+                    onChange={(e) => setFromCreatedAt(e.target.value)}
+                    className="h-9 px-2.5 bg-white rounded border border-gray-200 text-sm text-slate-700 min-w-[125px]"
+                  />
+                  <span className="text-slate-500 text-sm flex items-center">~</span>
+                  <input
+                    type="date"
+                    value={toCreatedAt}
+                    onChange={(e) => setToCreatedAt(e.target.value)}
+                    className="h-9 px-2.5 bg-white rounded border border-gray-200 text-sm text-slate-700 min-w-[125px]"
+                  />
+                </div>
+                
+                {/* 제목 검색 */}
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-1/2 transform -translate-y-1/2 text-gray-400" size={15} />
+                  <input
+                    type="text"
+                    value={titleKeyword}
+                    onChange={(e) => setTitleKeyword(e.target.value)}
+                    placeholder="제목"
+                    className="h-9 pl-8 pr-2.5 bg-white rounded border border-gray-200 text-sm text-slate-700 min-w-[120px]"
+                  />
+                </div>
+                
+                {/* 내용 검색 */}
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-1/2 transform -translate-y-1/2 text-gray-400" size={15} />
+                  <input
+                    type="text"
+                    value={contentKeyword}
+                    onChange={(e) => setContentKeyword(e.target.value)}
+                    placeholder="내용"
+                    className="h-9 pl-8 pr-2.5 bg-white rounded border border-gray-200 text-sm text-slate-700 min-w-[120px]"
+                  />
+                </div>
+                
+                {/* 작성자 이름 */}
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-1/2 transform -translate-y-1/2 text-gray-400" size={15} />
+                  <input
+                    type="text"
+                    value={userName}
+                    onChange={(e) => setUserName(e.target.value)}
+                    placeholder="작성자"
+                    className="h-9 pl-8 pr-2.5 bg-white rounded border border-gray-200 text-sm text-slate-700 min-w-[120px]"
+                  />
+                </div>
+                
+                {/* 버튼들 */}
+                <div className="flex gap-2">
+                  <ResetButton onClick={handleReset} />
+                  <SearchButton type="submit" />
+                </div>
+              </div>
             </form>
           </div>
 
@@ -279,209 +292,123 @@ export const AdminInquiries = () => {
             selectedCategories={selectedCategories}
             categories={categories}
           >
-            <div className="self-stretch h-12 px-4 bg-slate-50 border-b border-slate-200 inline-flex justify-start items-center">
-              <div className="flex-1 flex justify-center items-center">
-                <div className="flex-1 flex justify-center items-center">
-                  <div className="flex-1 flex justify-center items-center gap-4">
-                    <div className="w-[5%] text-center text-sm font-semibold text-slate-700 font-semibold font-['Inter'] leading-none">
-                      번호
-                    </div>
-                    <div className="w-[8%] text-center text-sm font-semibold text-slate-700 font-semibold font-['Inter'] leading-none relative author-type-dropdown">
-                      <div className="flex items-center justify-center gap-1">
-                        <span className="cursor-pointer hover:text-indigo-600" onClick={handleAuthorTypeHeaderClick}>
-                          작성자 타입
-                        </span>
-                        <span 
-                          className="ml-1 text-xs cursor-pointer hover:text-indigo-600" 
-                          onClick={handleAuthorTypeHeaderClick}
-                        >
-                          ▼
-                        </span>
-                      </div>
-                      {showAuthorTypeSelect && (
-                        <div className="absolute top-6 left-0 w-full bg-white rounded border border-indigo-500 z-10 shadow-lg">
-                          <div 
-                            className="px-2 py-1 text-sm text-slate-700 hover:bg-indigo-50 cursor-pointer text-center"
-                            onClick={() => handleAuthorTypeChange("")}
-                          >
-                            전체
-                          </div>
-                          <div 
-                            className="px-2 py-1 text-sm text-slate-700 hover:bg-indigo-50 cursor-pointer text-center border-t border-gray-100"
-                            onClick={() => handleAuthorTypeChange("customer")}
-                          >
-                            수요자
-                          </div>
-                          <div 
-                            className="px-2 py-1 text-sm text-slate-700 hover:bg-indigo-50 cursor-pointer text-center border-t border-gray-100"
-                            onClick={() => handleAuthorTypeChange("manager")}
-                          >
-                            매니저
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                    <div className="w-[18%] text-center text-sm font-semibold text-slate-700 font-semibold font-['Inter'] leading-none relative category-dropdown">
-                      <div className="flex items-center justify-center gap-1">
-                        <span className="cursor-pointer hover:text-indigo-600" onClick={handleCategoryHeaderClick}>
-                          문의유형
-                        </span>
-                        <span 
-                          className="ml-1 text-xs cursor-pointer hover:text-indigo-600" 
-                          onClick={handleCategoryHeaderClick}
-                        >
-                          ▼
-                        </span>
-                      </div>
-                      {showCategorySelect && (
-                        <div className="absolute top-6 left-0 w-full bg-white rounded border border-indigo-500 z-10 shadow-lg max-h-48 overflow-y-auto">
-                          <div 
-                            className="px-2 py-1 text-sm text-slate-700 hover:bg-indigo-50 cursor-pointer text-center border-b border-gray-100"
-                            onClick={() => {
-                              setSelectedCategories([]);
-                              setPage(0);
-                              fetchInquiries({ page: 0 });
-                            }}
-                          >
-                            전체 선택 해제
-                          </div>
-                          {categories.map((category) => (
-                            <div 
-                              key={category.code}
-                              className="px-2 py-1 text-sm text-slate-700 hover:bg-indigo-50 cursor-pointer text-center border-t border-gray-100 flex items-center gap-2"
-                              onClick={() => handleCategoryChange(category.code)}
-                            >
-                              <input
-                                type="checkbox"
-                                checked={selectedCategories.includes(category.code)}
-                                onChange={() => {}}
-                                className="w-3 h-3"
-                              />
-                              <span className="flex-1">{category.label}</span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                    <div className="w-[44%] text-center text-sm font-semibold text-slate-700 font-semibold font-['Inter'] leading-none">
-                      제목
-                    </div>
-                    <div className="w-[12%] text-center text-sm font-semibold text-slate-700 font-semibold font-['Inter'] leading-none">
-                      작성자
-                    </div>
-                    <div className="w-[15%] text-center text-sm font-semibold text-slate-700 font-semibold font-['Inter'] leading-none">
-                      작성일시
-                    </div>
-                    <div className="w-[8%] text-center text-sm font-semibold text-slate-700 font-semibold font-['Inter'] leading-none relative reply-status-dropdown">
-                      <div className="flex items-center justify-center gap-1">
-                        <span className="cursor-pointer hover:text-indigo-600" onClick={handleReplyStatusHeaderClick}>
-                          답변 상태
-                        </span>
-                        <span 
-                          className="ml-1 text-xs cursor-pointer hover:text-indigo-600" 
-                          onClick={handleReplyStatusHeaderClick}
-                        >
-                          ▼
-                        </span>
-                      </div>
-                      {showReplyStatusSelect && (
-                        <div className="absolute top-6 left-0 w-full bg-white rounded border border-indigo-500 z-10 shadow-lg">
-                          <div 
-                            className="px-2 py-1 text-sm text-slate-700 hover:bg-indigo-50 cursor-pointer text-center"
-                            onClick={() => handleReplyStatusChange("")}
-                          >
-                            전체
-                          </div>
-                          <div 
-                            className="px-2 py-1 text-sm text-slate-700 hover:bg-indigo-50 cursor-pointer text-center border-t border-gray-100"
-                            onClick={() => handleReplyStatusChange("PENDING")}
-                          >
-                            답변 대기
-                          </div>
-                          <div 
-                            className="px-2 py-1 text-sm text-slate-700 hover:bg-indigo-50 cursor-pointer text-center border-t border-gray-100"
-                            onClick={() => handleReplyStatusChange("ANSWERED")}
-                          >
-                            답변 완료
-                          </div>
-                        </div>
-                      )}
-                    </div>
+            {/* 데스크톱 테이블 헤더 */}
+            <div className="hidden lg:block self-stretch h-12 px-4 bg-slate-50 border-b border-slate-200">
+              <div className="h-full flex items-center gap-4">
+                <div className="w-[5%] text-center text-sm font-semibold text-slate-700">번호</div>
+                <div className="w-[8%] text-center text-sm font-semibold text-slate-700 relative author-type-dropdown">
+                  <div className="flex items-center justify-center gap-1">
+                    <span className="cursor-pointer hover:text-indigo-600" onClick={handleAuthorTypeHeaderClick}>작성자 타입</span>
+                    <span className="ml-1 text-xs cursor-pointer hover:text-indigo-600" onClick={handleAuthorTypeHeaderClick}>▼</span>
                   </div>
+                  {showAuthorTypeSelect && (
+                    <div className="absolute top-6 left-0 w-full bg-white rounded border border-indigo-500 z-10 shadow-lg">
+                      <div className="px-2 py-1 text-sm text-slate-700 hover:bg-indigo-50 cursor-pointer text-center" onClick={() => handleAuthorTypeChange("")}>전체</div>
+                      <div className="px-2 py-1 text-sm text-slate-700 hover:bg-indigo-50 cursor-pointer text-center border-t border-gray-100" onClick={() => handleAuthorTypeChange("customer")}>수요자</div>
+                      <div className="px-2 py-1 text-sm text-slate-700 hover:bg-indigo-50 cursor-pointer text-center border-t border-gray-100" onClick={() => handleAuthorTypeChange("manager")}>매니저</div>
+                    </div>
+                  )}
+                </div>
+                <div className="w-[18%] text-center text-sm font-semibold text-slate-700 relative category-dropdown">
+                  <div className="flex items-center justify-center gap-1">
+                    <span className="cursor-pointer hover:text-indigo-600" onClick={handleCategoryHeaderClick}>문의유형</span>
+                    <span className="ml-1 text-xs cursor-pointer hover:text-indigo-600" onClick={handleCategoryHeaderClick}>▼</span>
+                  </div>
+                  {showCategorySelect && (
+                    <div className="absolute top-6 left-0 w-full bg-white rounded border border-indigo-500 z-10 shadow-lg max-h-48 overflow-y-auto">
+                      <div className="px-2 py-1 text-sm text-slate-700 hover:bg-indigo-50 cursor-pointer text-center border-b border-gray-100" onClick={() => { setSelectedCategories([]); setPage(0); fetchInquiries({ page: 0 }); }}>전체 선택 해제</div>
+                      {categories.map((category) => (
+                        <div key={category.code} className="px-2 py-1 text-sm text-slate-700 hover:bg-indigo-50 cursor-pointer text-center border-t border-gray-100 flex items-center gap-2" onClick={() => handleCategoryChange(category.code)}>
+                          <input type="checkbox" checked={selectedCategories.includes(category.code)} onChange={() => {}} className="w-3 h-3" />
+                          <span className="flex-1">{category.label}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div className="w-[44%] text-center text-sm font-semibold text-slate-700">제목</div>
+                <div className="w-[12%] text-center text-sm font-semibold text-slate-700">작성자</div>
+                <div className="w-[15%] text-center text-sm font-semibold text-slate-700">작성일시</div>
+                <div className="w-[8%] text-center text-sm font-semibold text-slate-700 relative reply-status-dropdown">
+                  <div className="flex items-center justify-center gap-1">
+                    <span className="cursor-pointer hover:text-indigo-600" onClick={handleReplyStatusHeaderClick}>답변 상태</span>
+                    <span className="ml-1 text-xs cursor-pointer hover:text-indigo-600" onClick={handleReplyStatusHeaderClick}>▼</span>
+                  </div>
+                  {showReplyStatusSelect && (
+                    <div className="absolute top-6 left-0 w-full bg-white rounded border border-indigo-500 z-10 shadow-lg">
+                      <div className="px-2 py-1 text-sm text-slate-700 hover:bg-indigo-50 cursor-pointer text-center" onClick={() => handleReplyStatusChange("")}>전체</div>
+                      <div className="px-2 py-1 text-sm text-slate-700 hover:bg-indigo-50 cursor-pointer text-center border-t border-gray-100" onClick={() => handleReplyStatusChange("PENDING")}>답변 대기</div>
+                      <div className="px-2 py-1 text-sm text-slate-700 hover:bg-indigo-50 cursor-pointer text-center border-t border-gray-100" onClick={() => handleReplyStatusChange("ANSWERED")}>답변 완료</div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
 
-            <div key={fadeKey} className="w-full fade-in h-[640px] overflow-y-auto">
+            <div key={fadeKey} className="w-full fade-in h-[400px] sm:h-[500px] lg:h-[640px] overflow-y-auto">
               {inquiries.length === 0 ? (
                 <div className="self-stretch h-16 px-4 border-b border-slate-200 flex items-center justify-center text-center">
-                  <div className="w-full text-sm text-slate-500">
-                    조회된 문의사항이 없습니다.
-                  </div>
+                  <div className="w-full text-sm text-slate-500">조회된 문의사항이 없습니다.</div>
                 </div>
               ) : (
                 inquiries.map((inquiry, index) => (
                   <Link
                     key={inquiry.inquiryId}
                     to={`/admin/inquiries/${inquiry.inquiryId}`}
-                    state={{
-                      authorId: inquiry.userName ? undefined : inquiry.inquiryId,
-                    }}
-                    className="self-stretch h-16 px-4 border-b border-slate-200 flex items-center text-center gap-4"
+                    state={{ authorId: inquiry.userName ? undefined : inquiry.inquiryId }}
+                    className="block"
                   >
-                    <div className="w-[5%] text-center text-sm text-slate-700 font-medium font-['Inter'] leading-none">
-                      {page * DEFAULT_PAGE_SIZE + index + 1}
-                    </div>
-                    <div className="w-[8%] text-center text-sm text-slate-700 font-medium font-['Inter'] leading-none">
-                      {inquiry.authorType}
-                    </div>
-                    <div className="w-[18%] flex justify-center">
-                      <div
-                        className={`h-7 px-3 rounded-2xl flex items-center font-medium font-['Inter'] leading-none ${
-                          inquiry.categoryName === "일반문의"
-                            ? "bg-blue-100"
-                            : inquiry.categoryName === "불만 및 불편사항"
-                              ? "bg-red-100"
-                              : inquiry.categoryName === "기타"
-                                ? "bg-gray-200"
-                                : "bg-slate-100"
-                        }`}
-                      >
-                        <div
-                          className={`text-sm font-medium ${
-                            inquiry.categoryName === "일반문의"
-                              ? "text-blue-800"
-                              : inquiry.categoryName === "불만 및 불편사항"
-                                ? "text-red-800"
-                                : inquiry.categoryName === "기타"
-                                  ? "text-gray-700"
-                                  : "text-slate-500"
-                          }`}
-                        >
-                          {inquiry.categoryName || "-"}
+                    {/* 데스크톱 뷰 */}
+                    <div className="hidden lg:flex self-stretch h-16 px-4 border-b border-slate-200 items-center gap-4 hover:bg-gray-50">
+                      <div className="w-[5%] text-center text-sm text-slate-700 font-medium">{page * DEFAULT_PAGE_SIZE + index + 1}</div>
+                      <div className="w-[8%] text-center text-sm text-slate-700 font-medium">{inquiry.authorType}</div>
+                      <div className="w-[18%] flex justify-center">
+                        <div className={`h-7 px-3 rounded-2xl flex items-center font-medium ${
+                          inquiry.categoryName === "일반문의" ? "bg-blue-100 text-blue-800" :
+                          inquiry.categoryName === "불만 및 불편사항" ? "bg-red-100 text-red-800" :
+                          inquiry.categoryName === "기타" ? "bg-gray-200 text-gray-700" : "bg-slate-100 text-slate-500"
+                        }`}>
+                          <div className="text-sm font-medium">{inquiry.categoryName || "-"}</div>
+                        </div>
+                      </div>
+                      <div className="w-[44%] flex items-center text-sm text-slate-700 text-left font-medium truncate">{inquiry.title}</div>
+                      <div className="w-[12%] text-center text-sm text-slate-700 font-medium">{inquiry.userName}</div>
+                      <div className="w-[15%] text-center text-sm text-slate-700 font-medium">
+                        <div className="flex flex-col">
+                          <div>{inquiry.createdAt.split(' ')[0]}</div>
+                          <div>{inquiry.createdAt.split(' ')[1]}</div>
+                        </div>
+                      </div>
+                      <div className="w-[8%] text-center flex justify-center">
+                        <div className={`h-7 px-3 rounded-2xl flex items-center font-medium ${inquiry.isReplied ? "bg-gray-100 text-gray-600" : "bg-yellow-100 text-yellow-800"}`}>
+                          <div className="text-sm font-medium">{inquiry.isReplied ? "답변 완료" : "답변 대기"}</div>
                         </div>
                       </div>
                     </div>
-                    <div className="w-[44%] flex items-center text-sm text-slate-700 text-left font-medium font-['Inter'] leading-none">
-                      {inquiry.title}
-                    </div>
-                    <div className="w-[12%] text-center text-sm text-slate-700 font-medium font-['Inter'] leading-none">
-                      {inquiry.userName }
-                    </div>
-                    <div className="w-[15%] text-center text-sm text-slate-700 font-medium font-['Inter'] leading-tight">
-                      <div className="flex flex-col">
-                        <div>{inquiry.createdAt.split(' ')[0]}</div>
-                        <div>{inquiry.createdAt.split(' ')[1]}</div>
+                    
+                    {/* 모바일/태블릿 뷰 */}
+                    <div className="lg:hidden p-4 border-b border-slate-200 space-y-3 hover:bg-gray-50">
+                      <div className="flex justify-between items-start">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-gray-500">#{page * DEFAULT_PAGE_SIZE + index + 1}</span>
+                          <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">{inquiry.authorType}</span>
+                        </div>
+                        <div className={`text-xs px-2 py-1 rounded-full ${inquiry.isReplied ? "bg-gray-100 text-gray-600" : "bg-yellow-100 text-yellow-800"}`}>
+                          {inquiry.isReplied ? "답변완료" : "답변대기"}
+                        </div>
                       </div>
-                    </div>
-                    <div className="w-[8%] text-center flex justify-center">
-                      <div
-                        className={`h-7 px-3 rounded-2xl flex items-center font-medium font-['Inter'] leading-none ${inquiry.isReplied ? "bg-gray-100" : "bg-yellow-100"}`}
-                      >
-                        <div
-                          className={`text-sm font-medium ${inquiry.isReplied ? "text-gray-600" : "text-yellow-800"}`}
-                        >
-                          {inquiry.isReplied ? "답변 완료" : "답변 대기"}
+                      <div className="space-y-2">
+                        <div className={`inline-block px-2 py-1 rounded text-xs ${
+                          inquiry.categoryName === "일반문의" ? "bg-blue-100 text-blue-800" :
+                          inquiry.categoryName === "불만 및 불편사항" ? "bg-red-100 text-red-800" :
+                          inquiry.categoryName === "기타" ? "bg-gray-200 text-gray-700" : "bg-slate-100 text-slate-500"
+                        }`}>
+                          {inquiry.categoryName || "미지정"}
+                        </div>
+                        <h3 className="font-medium text-gray-900 line-clamp-2">{inquiry.title}</h3>
+                        <div className="flex justify-between text-sm text-gray-500">
+                          <span>작성자: {inquiry.userName || "익명"}</span>
+                          <span>{inquiry.createdAt.split(' ')[0]}</span>
                         </div>
                       </div>
                     </div>

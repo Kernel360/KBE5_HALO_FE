@@ -63,16 +63,6 @@ export const getAdminInquiry = async (
   return res.data.body;
 };
 
-// 문의사항 삭제
-export const deleteAdminInquiry = async (
-  type: "customer" | "manager",
-  inquiryId: number,
-) => {
-  const res = await api.delete(`/admin/inquiries/${type}/${inquiryId}`);
-  if (!res.data.success)
-    throw new Error(res.data.message || "문의사항 삭제에 실패했습니다.");
-  return res.data.body;
-};
 
 // 문의사항 답변 등록
 export const answerAdminInquiry = async (
