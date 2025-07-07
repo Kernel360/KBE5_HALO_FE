@@ -1,5 +1,6 @@
 import api from "@/services/axios";
-import type { CustomerSignupReq, CustomerSignupReqDTO } from '../types/CustomerSignupType';
+import type { CustomerSignupReq, CustomerSignupReqDTO, } from '../types/CustomerSignupType';
+import type { ChargePointsType, UserInfoUpdateInfoType } from '../types/CustomerInfoType';
 
 // CustomerSignupReq를 CustomerSignupReqDTO로 변환하는 함수
 const transformToCustomerSignupReqDTO = (signupData: CustomerSignupReq): CustomerSignupReqDTO => {
@@ -61,4 +62,28 @@ export const logoutCustomer = async () => {
 export const getCustomerInfo = async () => {
   const res = await api.get("/customers/auth/my");
   return res.data;
+};
+
+// 수요자 포인트 충전
+export const chargePoints = async (
+  data: ChargePointsType
+) => {
+  const res = await api.patch("/customers/auth/my/point", data);
+
+  if (!res.data.success) {
+    if (res.data.message?.trim()) alert(res.data.message);
+    throw new Error(res.data.message || "포인트 충전에 실패했습니다.");
+  }
+
+  return res.data.body;
+};
+
+// 회원정보 수정
+export const updateCustomerInfo = async (data: UserInfoUpdateInfoType) => {
+  const res = await api.patch("/customers/auth/my", data);
+  if (!res.data.success) {
+    if (res.data.message?.trim()) alert(res.data.message);
+    throw new Error(res.data.message || "회원정보 수정에 실패했습니다.");
+  }
+  return res.data.body;
 };
