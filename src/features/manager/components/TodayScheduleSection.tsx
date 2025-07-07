@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import { searchManagerReservations } from "@/features/manager/api/managerReservation";
 import { useNavigate } from "react-router-dom";
 import type { ManagerReservationSummary as ManagerReservationType } from "@/features/manager/types/ManagerReservationType";
@@ -24,7 +24,6 @@ export const TodayScheduleSection = () => {
   const [weekStats, setWeekStats] = useState<{ day: string; count: number }[]>([]);
   const [weekReservations, setWeekReservations] = useState<ManagerReservationType[]>([]);
   const [expandedDayIdx, setExpandedDayIdx] = useState<number | null>(null);
-  const [prevExpandedDayIdx, setPrevExpandedDayIdx] = useState<number | null>(null);
   const [animatingIdx, setAnimatingIdx] = useState<number | null>(null); // 현재 애니메이션 중인 인덱스
   const [animationType, setAnimationType] = useState<"down" | "up" | null>(null); // 애니메이션 방향
   const [loading, setLoading] = useState(false);
@@ -43,6 +42,7 @@ export const TodayScheduleSection = () => {
     searchManagerReservations({
       fromRequestDate: today,
       toRequestDate: today,
+      reservationStatus: "CONFIRMED",
       page: 0,
       size: 100,
     })
@@ -56,6 +56,7 @@ export const TodayScheduleSection = () => {
     searchManagerReservations({
       fromRequestDate: weekDates[0],
       toRequestDate: weekDates[6],
+      reservationStatus: "CONFIRMED,COMPLETED,IN_PROGRESS",
       page: 0,
       size: 200,
     })
@@ -66,7 +67,9 @@ export const TodayScheduleSection = () => {
         const counts = Array(7).fill(0);
         reservations.forEach((r) => {
           const reqDate = r.requestDate;
-          const idx = weekDates.findIndex((d) => reqDate && reqDate.startsWith(d));
+          const idx = weekDates.findIndex(
+            (d) => reqDate && reqDate.startsWith(d),
+          );
           if (idx >= 0) counts[idx]++;
         });
         setWeekStats(weekDays.map((day, i) => ({ day, count: counts[i] })));
@@ -84,7 +87,11 @@ export const TodayScheduleSection = () => {
   // 확장된 요일의 예약 목록 필터링
   const expandedReservations =
     expandedDayIdx !== null
-      ? weekReservations.filter((r) => r.requestDate && r.requestDate.startsWith(weekDates[expandedDayIdx]))
+      ? weekReservations.filter(
+          (r) =>
+            r.requestDate &&
+            r.requestDate.startsWith(weekDates[expandedDayIdx]),
+        )
       : [];
 
   // 확장/축소 핸들러
