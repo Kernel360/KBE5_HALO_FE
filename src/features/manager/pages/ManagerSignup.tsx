@@ -198,7 +198,7 @@ export const ManagerSignup = () => {
 
   // 유효성 검사
   const validate = () => {
-    const newErrors: Record<string, string> = {}
+    const newErrors: Record<string, string> = {};
 
     if (!form.phone.trim()) newErrors.phone = "연락처를 입력해주세요.";
     if (!newErrors.phone && !isValidPhone(form.phone))
@@ -229,8 +229,8 @@ export const ManagerSignup = () => {
     if (form.availableTimes.length === 0)
       newErrors.availableTimes = "업무 가능 시간을 1개 이상 선택해주세요.";
 
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   // 회원가입 제출 처리
