@@ -45,12 +45,22 @@ export function ReviewSection({
         <div className="justify-start self-stretch font-['Inter'] text-lg leading-snug font-semibold text-slate-800">
           매니저 리뷰
         </div>
-        {reservation.managerReviewId ? (
-          <ReviewCard
-            rating={reservation.managerRating ?? 0}
-            content={reservation.managerContent || ""}
-            createdAt={reservation.managerCreateAt || ""}
-          />
+        {reservation.managerReviewContent || reservation.managerReviewRating ? (
+          <>
+            <div className="flex items-center gap-3 mb-2">
+              <StarRating
+                rating={reservation.managerReviewRating ?? 0}
+                showValue
+                className="!text-yellow-500 !text-2xl"
+              />
+              <span className="text-xs text-slate-500">
+                {reservation.managerCreateAt}
+              </span>
+            </div>
+            <blockquote className="italic text-lg text-indigo-900 border-l-4 border-indigo-300 pl-4 bg-indigo-100/60 rounded min-h-[32px]">
+              {reservation.managerReviewContent}
+            </blockquote>
+          </>
         ) : (
           <ReviewForm
             rating={rating}
@@ -118,11 +128,11 @@ export function ReviewSection({
               매니저 리뷰
             </span>
           </div>
-          {reservation.managerReviewId ? (
+          {reservation.managerReviewContent || reservation.managerReviewRating ? (
             <>
               <div className="flex items-center gap-3 mb-2">
                 <StarRating
-                  rating={reservation.managerRating ?? 0}
+                  rating={reservation.managerReviewRating ?? 0}
                   showValue
                   className="!text-yellow-500 !text-2xl"
                 />
@@ -131,7 +141,7 @@ export function ReviewSection({
                 </span>
               </div>
               <blockquote className="italic text-lg text-indigo-900 border-l-4 border-indigo-300 pl-4 bg-indigo-100/60 rounded min-h-[32px]">
-                {reservation.managerContent}
+                {reservation.managerReviewContent}
               </blockquote>
             </>
           ) : (
