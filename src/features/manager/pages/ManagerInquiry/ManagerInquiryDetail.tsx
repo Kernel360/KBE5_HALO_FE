@@ -133,6 +133,9 @@ export const ManagerInquiryDetail = () => {
                 <div className="flex gap-4 text-sm text-slate-500">
                   <div>
                     <span className="text-slate-700">
+                      작성 일자 :
+                    </span>
+                    <span className="text-slate-700">
                       {inquiry.reply.createdAt}
                     </span>
                   </div>

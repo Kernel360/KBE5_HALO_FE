@@ -16,6 +16,7 @@ export const ManagerInquiries = () => {
   const [titleKeyword, setTitleKeyword] = useState("");
   const [contentKeyword, setContentKeyword] = useState("");
   const [, setCategories] = useState<InquiryCategory[]>([]);
+  const [showReplyStatusSelect, setShowReplyStatusSelect] = useState(false);
   const fromDateRef = useRef<HTMLInputElement>(null);
 
   const fetchInquiries = (paramsOverride?: Partial<ReturnType<typeof getCurrentParams>>) => {
@@ -50,6 +51,20 @@ export const ManagerInquiries = () => {
     fetchInquiries();
     fetchCategories();
   }, [page]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (!target.closest('.reply-status-dropdown')) {
+        setShowReplyStatusSelect(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const fetchCategories = async () => {
     try {
@@ -91,7 +106,7 @@ export const ManagerInquiries = () => {
     <Fragment>
       <div className="flex-1 flex flex-col justify-start items-start w-full min-w-0">
         <div className="self-stretch h-16 px-6 bg-white border-b border-gray-200 inline-flex justify-between items-center">
-          <div className="justify-start text-gray-900 text-xl font-bold font-['Inter'] leading-normal">문의사항</div>
+          <div className="justify-start text-gray-900 text-xl font-bold font-['Inter'] leading-normal">문의사항 내역</div>
           <Link
             to="/managers/inquiries/new"
             className="h-10 px-4 bg-indigo-600 rounded-md flex justify-center items-center gap-2 cursor-pointer hover:bg-indigo-700 transition"
@@ -103,72 +118,71 @@ export const ManagerInquiries = () => {
         
         <div className="self-stretch p-6 flex flex-col justify-start items-start gap-6">
           <div className="self-stretch p-6 bg-white rounded-xl shadow-[0px_2px_12px_0px_rgba(0,0,0,0.04)] flex flex-col justify-start items-start gap-4">
-            <div className="self-stretch inline-flex justify-between items-center">
-              <div className="justify-start text-slate-800 text-lg font-semibold font-['Inter'] leading-snug">문의사항 내역</div>
-              <div className="flex items-center gap-4">
-                <div className="justify-start text-slate-500 text-sm font-normal font-['Inter'] leading-none">총 {total}건</div>
-                {/* 인라인 compact 검색 폼 */}
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    handleSearch();
-                  }}
-                  className="flex flex-row items-center gap-2 bg-transparent p-0"
+            <div className="self-stretch flex justify-start items-center">
+              {/* 인라인 compact 검색 폼 */}
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleSearch();
+                }}
+                className="flex flex-row items-center gap-2 bg-transparent p-0"
+              >
+                <input
+                  type="date"
+                  ref={fromDateRef}
+                  value={fromCreatedAt}
+                  onChange={(e) => setFromCreatedAt(e.target.value)}
+                  max={new Date().toISOString().split('T')[0]}
+                  className="h-8 px-2 bg-white rounded border border-gray-200 text-sm text-slate-700 min-w-[120px]"
+                />
+                <span className="text-slate-500 text-xs">~</span>
+                <input
+                  type="date"
+                  value={toCreatedAt}
+                  onChange={(e) => setToCreatedAt(e.target.value)}
+                  max={new Date().toISOString().split('T')[0]}
+                  className="h-8 px-2 bg-white rounded border border-gray-200 text-sm text-slate-700 min-w-[120px]"
+                />
+                <select
+                  value={replyStatus}
+                  onChange={(e) => setReplyStatus(e.target.value)}
+                  className="h-8 px-2 bg-white rounded border border-gray-200 text-sm text-slate-700 min-w-[100px]"
                 >
-                  <input
-                    type="date"
-                    ref={fromDateRef}
-                    value={fromCreatedAt}
-                    onChange={(e) => setFromCreatedAt(e.target.value)}
-                    max={new Date().toISOString().split('T')[0]}
-                    className="h-8 px-2 bg-white rounded border border-gray-200 text-sm text-slate-700 min-w-[120px]"
-                  />
-                  <span className="text-slate-500 text-xs">~</span>
-                  <input
-                    type="date"
-                    value={toCreatedAt}
-                    onChange={(e) => setToCreatedAt(e.target.value)}
-                    max={new Date().toISOString().split('T')[0]}
-                    className="h-8 px-2 bg-white rounded border border-gray-200 text-sm text-slate-700 min-w-[120px]"
-                  />
-                  <select
-                    value={replyStatus}
-                    onChange={(e) => setReplyStatus(e.target.value)}
-                    className="h-8 px-2 bg-white rounded border border-gray-200 text-sm text-slate-700 min-w-[100px]"
-                  >
-                    <option value="">전체</option>
-                    <option value="PENDING">답변 대기</option>
-                    <option value="ANSWERED">답변 완료</option>
-                  </select>
-                  <input
-                    type="text"
-                    value={titleKeyword}
-                    onChange={(e) => setTitleKeyword(e.target.value)}
-                    placeholder="제목 검색"
-                    className="h-8 px-2 bg-white rounded border border-gray-200 text-sm text-slate-700 min-w-[120px]"
-                  />
-                  <input
-                    type="text"
-                    value={contentKeyword}
-                    onChange={(e) => setContentKeyword(e.target.value)}
-                    placeholder="내용 검색"
-                    className="h-8 px-2 bg-white rounded border border-gray-200 text-sm text-slate-700 min-w-[120px]"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleReset}
-                    className="h-8 px-4 bg-slate-100 rounded text-slate-500 text-xs font-medium hover:bg-slate-200 cursor-pointer"
-                  >
-                    초기화
-                  </button>
-                  <button
-                    type="submit"
-                    className="h-8 px-4 bg-indigo-600 rounded text-white text-xs font-medium hover:bg-indigo-700 cursor-pointer"
-                  >
-                    검색
-                  </button>
-                </form>
-              </div>
+                  <option value="">전체</option>
+                  <option value="PENDING">답변 대기</option>
+                  <option value="ANSWERED">답변 완료</option>
+                </select>
+                <input
+                  type="text"
+                  value={titleKeyword}
+                  onChange={(e) => setTitleKeyword(e.target.value)}
+                  placeholder="제목 검색"
+                  className="h-8 px-2 bg-white rounded border border-gray-200 text-sm text-slate-700 min-w-[120px]"
+                />
+                <input
+                  type="text"
+                  value={contentKeyword}
+                  onChange={(e) => setContentKeyword(e.target.value)}
+                  placeholder="내용 검색"
+                  className="h-8 px-2 bg-white rounded border border-gray-200 text-sm text-slate-700 min-w-[120px]"
+                />
+                <button
+                  type="button"
+                  onClick={handleReset}
+                  className="h-8 px-4 bg-slate-100 rounded text-slate-500 text-xs font-medium hover:bg-slate-200 cursor-pointer"
+                >
+                  초기화
+                </button>
+                <button
+                  type="submit"
+                  className="h-8 px-4 bg-indigo-600 rounded text-white text-xs font-medium hover:bg-indigo-700 cursor-pointer"
+                >
+                  검색
+                </button>
+              </form>
+            </div>
+            <div className="self-stretch inline-flex justify-end items-center">
+              <div className="justify-start text-slate-500 text-sm font-normal font-['Inter'] leading-none">총 {total}건</div>
             </div>
             <div className="self-stretch h-12 px-4 bg-slate-50 border-b border-slate-200 inline-flex justify-start items-center">
               <div className="flex-1 flex justify-center items-center">
@@ -178,7 +192,56 @@ export const ManagerInquiries = () => {
                     <div className="w-[15%] text-center text-sm font-semibold text-slate-700 font-semibold font-['Inter'] leading-none">카테고리</div>
                     <div className="w-[35%] text-center text-sm font-semibold text-slate-700 font-semibold font-['Inter'] leading-none">제목</div>
                     <div className="w-[15%] text-center text-sm font-semibold text-slate-700 font-semibold font-['Inter'] leading-none">작성일시</div>
-                    <div className="w-[30%] text-center text-sm font-semibold text-slate-700 font-semibold font-['Inter'] leading-none">답변 상태</div>
+                    <div className="w-[30%] text-center text-sm font-semibold text-slate-700 font-semibold font-['Inter'] leading-none relative reply-status-dropdown">
+                      <div className="flex items-center justify-center gap-1">
+                        <span className="cursor-pointer hover:text-indigo-600" onClick={() => setShowReplyStatusSelect(!showReplyStatusSelect)}>
+                          답변 상태
+                        </span>
+                        <span 
+                          className="ml-1 text-xs cursor-pointer hover:text-indigo-600" 
+                          onClick={() => setShowReplyStatusSelect(!showReplyStatusSelect)}
+                        >
+                          ▼
+                        </span>
+                      </div>
+                      {showReplyStatusSelect && (
+                        <div className="absolute top-6 left-0 w-full bg-white rounded border border-indigo-500 z-10 shadow-lg">
+                          <div 
+                            className="px-2 py-1 text-sm text-slate-700 hover:bg-indigo-50 cursor-pointer text-center"
+                            onClick={() => {
+                              setReplyStatus("");
+                              setShowReplyStatusSelect(false);
+                              setPage(0);
+                              fetchInquiries({ page: 0 });
+                            }}
+                          >
+                            전체
+                          </div>
+                          <div 
+                            className="px-2 py-1 text-sm text-slate-700 hover:bg-indigo-50 cursor-pointer text-center border-t border-gray-100"
+                            onClick={() => {
+                              setReplyStatus("PENDING");
+                              setShowReplyStatusSelect(false);
+                              setPage(0);
+                              fetchInquiries({ page: 0 });
+                            }}
+                          >
+                            답변 대기
+                          </div>
+                          <div 
+                            className="px-2 py-1 text-sm text-slate-700 hover:bg-indigo-50 cursor-pointer text-center border-t border-gray-100"
+                            onClick={() => {
+                              setReplyStatus("ANSWERED");
+                              setShowReplyStatusSelect(false);
+                              setPage(0);
+                              fetchInquiries({ page: 0 });
+                            }}
+                          >
+                            답변 완료
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
