@@ -28,19 +28,6 @@ export const PointChargingModal: React.FC<PointChargingModalProps> = ({
   // 최대 충전 가능 금액 (1,000,000 - 현재 포인트)
   const maxChargeAmount = 1000000 - currentPoints;
 
-  // 미리 정의된 충전 금액들
-  const presetAmounts = [10000, 30000, 50000, 100000, 300000, 500000];
-
-  const handlePresetClick = (amount: number) => {
-    // 충전 가능 금액을 초과하는 경우 클릭 차단
-    if (amount > maxChargeAmount) {
-      return;
-    }
-    
-    setChargeAmount(amount);
-    setIsCustomInput(false);
-    setCustomAmount("");
-  };
 
   const handleCustomAmountChange = (value: string) => {
     const numValue = parseInt(value.replace(/[^0-9]/g, "")) || 0;
