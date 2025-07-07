@@ -88,37 +88,6 @@ export const ManagerReviews = () => {
     // eslint-disable-next-line
   }, [showFilterBar, reviews]);
 
-  // After collapse transition, hide the bar
-  const handleTransitionEnd = () => {
-    if (!showFilterBar) {
-      setIsFilterBarVisible(false);
-    }
-  };
-
-  // Handle expand/collapse with smooth transition
-  useEffect(() => {
-    if (showFilterBar) {
-      setIsFilterBarVisible(true);
-      setTimeout(() => {
-        if (filterBarRef.current) {
-          setFilterBarMaxHeight(`${filterBarRef.current.scrollHeight}px`);
-        }
-      }, 10); // allow DOM to render
-    } else {
-      if (filterBarRef.current) {
-        setFilterBarMaxHeight("0px");
-      }
-    }
-    // eslint-disable-next-line
-  }, [showFilterBar, reviews]);
-
-  // After collapse transition, hide the bar
-  const handleTransitionEnd = () => {
-    if (!showFilterBar) {
-      setIsFilterBarVisible(false);
-    }
-  };
-
   const totalPages = Math.max(Math.ceil(total / REVIEW_PAGE_SIZE), 1)
 
   const getToday = () => {
@@ -199,7 +168,6 @@ export const ManagerReviews = () => {
           {(isFilterBarVisible || window.innerWidth >= 768) && (
             <div
               ref={filterBarRef}
-              onTransitionEnd={handleTransitionEnd}
               className={`w-full mb-4 md:max-h-none md:opacity-100 md:pointer-events-auto md:block`}
               style={{
                 maxHeight: window.innerWidth < 768 ? filterBarMaxHeight : undefined,
