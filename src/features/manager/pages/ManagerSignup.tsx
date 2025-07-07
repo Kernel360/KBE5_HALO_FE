@@ -11,7 +11,7 @@ import { useNavigate } from "react-router-dom";
 import { signupManager } from "@/features/manager/api/managerAuth";
 import { createFileGroup } from "@/shared/utils/fileUpload";
 import { getServiceCategories } from "@/features/manager/api/managerMy";
-import type { ServiceCategoryTreeType } from "@/features/customer/types/reservation/ServiceCategoryTreeType";
+import type { ServiceCategoryTreeType } from "@/features/customer/types/CustomerReservationType";
 import { Eye, EyeOff } from "lucide-react";
 import { FileUploadSection } from "@/shared/components/FileUploadSection";
 

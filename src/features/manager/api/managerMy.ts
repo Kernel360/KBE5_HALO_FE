@@ -1,5 +1,5 @@
 import api from '@/services/axios'
-import type { ServiceCategoryTreeType } from "@/features/customer/types/reservation/ServiceCategoryTreeType";
+import type { ServiceCategoryTreeType } from "@/features/customer/types/CustomerReservationType";
 
 // 매니저 정보 조회
 export const getManager = async () => {

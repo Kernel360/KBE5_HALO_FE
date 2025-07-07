@@ -11,7 +11,7 @@ import {
   getServiceCategories,
 } from "@/features/manager/api/managerMy";
 import { isValidEmail, isValidPassword } from "@/shared/utils/validation";
-import type { ServiceCategoryTreeType } from "@/features/customer/types/reservation/ServiceCategoryTreeType";
+import type { ServiceCategoryTreeType } from "@/features/customer/types/CustomerReservationType";
 import { Eye, EyeOff } from "lucide-react";
 
 // form 상태에 사용할 타입 확장 (기본 필드 + 비밀번호 확인 + 약관 동의 + 특기)
