@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { searchManagerReservations } from "@/features/manager/api/managerReservation";
+import { searchManagerReservations, checkIn, checkOut } from "@/features/manager/api/managerReservation";
 import { useNavigate } from "react-router-dom";
 import type { ManagerReservationSummary as ManagerReservationType } from "@/features/manager/types/ManagerReservationType";
 import { formatTimeRange } from "@/shared/utils/format";
+import { CleanignLogModal } from "../components/ManagerCleaningLogModal";
+import { createFileGroup, uploadFilesAndGetUrls, updateFileGroup } from "@/shared/utils/fileUpload";
+import SuccessToast from "@/shared/components/ui/toast/SuccessToast";
 
 // 이번주 월~일 날짜 배열 생성
 function getThisWeekDates() {
@@ -29,6 +32,17 @@ export const TodayScheduleSection = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+  // Add modal and check state for check-in/out
+  const [modalOpen, setModalOpen] = useState(false);
+  const [checkType, setCheckType] = useState<"IN" | "OUT">("IN");
+  const [selectedReservation, setSelectedReservation] = useState<ManagerReservationType | null>(null);
+  // File upload state for modal
+  const [files, setFiles] = useState<File[]>([]);
+  const [fileId, setFileId] = useState<number | null>(null);
+  const [uploadedFiles, setUploadedFiles] = useState<{ name: string; url: string; size?: number }[]>([]);
+  const [modalLoading, setModalLoading] = useState(false);
+  const [modalError, setModalError] = useState<string | null>(null);
+  const [successToastMessage, setSuccessToastMessage] = useState<string | null>(null);
 
   // 오늘 날짜
   const today = new Date().toISOString().slice(0, 10);
@@ -38,16 +52,22 @@ export const TodayScheduleSection = () => {
   useEffect(() => {
     setLoading(true);
     setError(null);
-    // 1. 오늘 예약
+    // 1. 오늘 예약 (fetch all, filter in code)
     searchManagerReservations({
       fromRequestDate: today,
       toRequestDate: today,
-      reservationStatus: "CONFIRMED",
+      reservationStatus: "CONFIRMED,IN_PROGRESS",
       page: 0,
       size: 100,
     })
       .then((data) => {
-        setTodayReservations(data.content || []);
+        // Filter for only CONFIRMED or IN_PROGRESS
+        setTodayReservations(
+          (data.content || []).filter(
+            (r: ManagerReservationType) =>
+              r.status === "CONFIRMED" || r.status === "IN_PROGRESS"
+          )
+        );
       })
       .catch((err) => {
         setError(err.message || "예약 데이터를 불러오지 못했습니다.");
@@ -110,6 +130,67 @@ export const TodayScheduleSection = () => {
       setExpandedDayIdx(idx);
       setAnimatingIdx(idx);
       setAnimationType("down");
+    }
+  };
+
+  // Reset modal state when opening
+  useEffect(() => {
+    if (modalOpen) {
+      setFiles([]);
+      setFileId(null);
+      setUploadedFiles([]);
+      setModalError(null);
+    }
+  }, [modalOpen, checkType, selectedReservation]);
+
+  // Handle file upload and check-in/out
+  const handleCheck = async (type: "IN" | "OUT") => {
+    setModalLoading(true);
+    setModalError(null);
+    try {
+      if (!selectedReservation) throw new Error("예약 정보가 없습니다.");
+      if (files.length === 0 && !fileId) throw new Error("파일을 첨부해주세요.");
+      let usedFileId = fileId;
+      if (files.length > 0) {
+        // 새 파일 업로드
+        usedFileId = await createFileGroup(files);
+        setFileId(usedFileId);
+      }
+      if (!usedFileId) throw new Error("파일 업로드에 실패했습니다.");
+      if (type === "IN") {
+        await checkIn(selectedReservation.reservationId, usedFileId);
+        setSuccessToastMessage("체크인이 완료되었습니다.");
+      } else {
+        await checkOut(selectedReservation.reservationId, usedFileId);
+        setSuccessToastMessage("체크아웃이 완료되었습니다.");
+      }
+      // 성공 시 오늘의 예약 새로고침
+      setModalOpen(false);
+      setFiles([]);
+      setFileId(null);
+      setUploadedFiles([]);
+      setModalError(null);
+      // 새로고침
+      searchManagerReservations({
+        fromRequestDate: today,
+        toRequestDate: today,
+        reservationStatus: "CONFIRMED,IN_PROGRESS",
+        page: 0,
+        size: 100,
+      })
+        .then((data) => {
+          setTodayReservations(
+            (data.content || []).filter(
+              (r: ManagerReservationType) =>
+                r.status === "CONFIRMED" || r.status === "IN_PROGRESS"
+            )
+          );
+        })
+        .catch(() => {});
+    } catch (err: any) {
+      setModalError(err.message || "체크인/체크아웃에 실패했습니다.");
+    } finally {
+      setModalLoading(false);
     }
   };
 
@@ -179,6 +260,9 @@ export const TodayScheduleSection = () => {
                     <div>
                       <div className="font-semibold text-slate-700 text-base md:text-lg">
                         {reservation.customerName} {reservation.serviceName}
+                        {reservation.status === "IN_PROGRESS" && (
+                          <span className="ml-2 px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-xs font-semibold align-middle">서비스 진행 중</span>
+                        )}
                       </div>
                       <div className="text-xs md:text-sm text-slate-500 mt-1">
                         {reservation.startTime && reservation.turnaround
@@ -223,41 +307,94 @@ export const TodayScheduleSection = () => {
           </div>
         ) : (
           <div className="flex flex-col gap-3">
-            {todayReservations.map((reservation) => (
-              <div
-                key={reservation.reservationId}
-                className="flex justify-between items-center p-4 md:p-6 bg-slate-50 rounded-lg shadow-sm cursor-pointer hover:bg-indigo-50 transition"
-                onClick={() =>
-                  navigate(
-                    `/managers/reservations/${reservation.reservationId}`
-                  )
+            {todayReservations.map((reservation) => {
+              const isCheckedIn = !!reservation.inTime;
+              const isCheckedOut = !!reservation.outTime;
+              let buttonLabel = "체크인";
+              let buttonDisabled = false;
+              let nextCheckType = "IN";
+
+              if (reservation.status === "IN_PROGRESS") {
+                buttonLabel = "체크아웃";
+                nextCheckType = "OUT";
+                if (isCheckedOut) {
+                  buttonLabel = "완료";
+                  buttonDisabled = true;
                 }
-              >
-                <div>
-                  <div className="font-semibold text-slate-700 text-base md:text-lg">
-                    {reservation.customerName} {reservation.serviceName}
-                  </div>
-                  <div className="text-xs md:text-sm text-slate-500 mt-1">
-                    {reservation.startTime && reservation.turnaround
-                      ? formatTimeRange(reservation.startTime, reservation.turnaround)
-                      : reservation.startTime}
-                    {" | "}
-                    {reservation.customerAddress}
-                  </div>
-                </div>
-                <button
-                  className="bg-indigo-100 text-indigo-600 px-5 py-2 md:px-8 md:py-3 rounded font-semibold hover:bg-indigo-200 transition text-sm md:text-base"
-                  onClick={(e) => {
-                    e.stopPropagation(); /* prevent parent click */
-                  }}
+              } else if (reservation.status === "CONFIRMED") {
+                if (isCheckedIn && !isCheckedOut) {
+                  buttonLabel = "체크아웃";
+                  nextCheckType = "OUT";
+                } else if (isCheckedIn && isCheckedOut) {
+                  buttonLabel = "완료";
+                  buttonDisabled = true;
+                } else {
+                  buttonLabel = "체크인";
+                  nextCheckType = "IN";
+                }
+              } else {
+                buttonLabel = "완료";
+                buttonDisabled = true;
+              }
+
+              return (
+                <div
+                  key={reservation.reservationId}
+                  className="flex justify-between items-center p-4 md:p-6 bg-slate-50 rounded-lg shadow-sm cursor-pointer hover:bg-indigo-50 transition"
+                  onClick={() =>
+                    navigate(
+                      `/managers/reservations/${reservation.reservationId}`
+                    )
+                  }
                 >
-                  체크인
-                </button>
-              </div>
-            ))}
+                  <div>
+                    <div className="font-semibold text-slate-700 text-base md:text-lg">
+                      {reservation.customerName} {reservation.serviceName}
+                      {reservation.status === "IN_PROGRESS" && (
+                        <span className="ml-2 px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-xs font-semibold align-middle">서비스 진행 중</span>
+                      )}
+                    </div>
+                    <div className="text-xs md:text-sm text-slate-500 mt-1">
+                      {reservation.startTime && reservation.turnaround
+                        ? formatTimeRange(reservation.startTime, reservation.turnaround)
+                        : reservation.startTime}
+                      {" | "}
+                      {reservation.customerAddress}
+                    </div>
+                  </div>
+                  <button
+                    className={`bg-indigo-100 text-indigo-600 px-5 py-2 md:px-8 md:py-3 rounded font-semibold hover:bg-indigo-200 transition text-sm md:text-base ${buttonDisabled ? "opacity-50 cursor-not-allowed" : ""}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (buttonDisabled) return;
+                      setSelectedReservation(reservation);
+                      setCheckType(nextCheckType);
+                      setModalOpen(true);
+                    }}
+                    disabled={buttonDisabled}
+                  >
+                    {buttonLabel}
+                  </button>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
+      {/* Add modal rendering for check-in/check-out */}
+      <CleanignLogModal
+        open={modalOpen}
+        checkType={checkType}
+        files={files}
+        setFiles={setFiles}
+        onCheck={handleCheck}
+        onClose={() => setModalOpen(false)}
+        uploadedFiles={uploadedFiles}
+        onRemoveUploadedFile={(idx) => setUploadedFiles((prev) => prev.filter((_, i) => i !== idx))}
+      />
+      {successToastMessage && (
+        <SuccessToast open={!!successToastMessage} message={successToastMessage} onClose={() => setSuccessToastMessage(null)} />
+      )}
     </div>
   );
 }; 
