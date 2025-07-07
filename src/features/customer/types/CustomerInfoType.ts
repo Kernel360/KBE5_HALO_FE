@@ -18,3 +18,7 @@ export interface CustomerDetailInfoType {
   longitude: number;
   point : number;
 }
+
+export interface ChargePointsType {
+  point : number;
+}

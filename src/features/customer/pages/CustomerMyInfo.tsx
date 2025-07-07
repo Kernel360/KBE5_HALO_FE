@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import type { CustomerDetailInfoType } from '../types/CustomerInfoType';
 import { getCustomerInfo } from '../api/customerAuth';
 import { User, MapPin } from 'lucide-react';
+import { PointChargingModal } from '@/features/customer/modal/PointChargingModal';
+import SuccessToast from '@/shared/components/ui/toast/SuccessToast';
 
 const genderDisplayMap = {
   MALE: '남',
@@ -10,6 +12,8 @@ const genderDisplayMap = {
 
 export const CustomerMyInfo: React.FC = () => {
   const [info, setInfo] = useState<CustomerDetailInfoType | null>(null);
+  const [isChargingModalOpen, setIsChargingModalOpen] = useState(false);
+  const [successToastMsg, setSuccessToastMsg] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchCustomerInfo = async () => {
@@ -26,6 +30,26 @@ export const CustomerMyInfo: React.FC = () => {
     };
     fetchCustomerInfo();
   }, []);
+
+  const handleChargingSuccess = (chargedAmount: number) => {
+    // 충전 성공 후 포인트 정보 새로고침
+    const fetchUpdatedInfo = async () => {
+      try {
+        const res = await getCustomerInfo();
+        setInfo({
+          ...res.body,
+          gender: genderDisplayMap[res.body.gender as keyof typeof genderDisplayMap],
+          point: res.body.point,
+        });
+        
+        // 성공 토스트 표시
+        setSuccessToastMsg(`${chargedAmount.toLocaleString()}P가 충전되었습니다.`);
+      } catch (error) {
+        console.error('포인트 정보 새로고침 실패:', error);
+      }
+    };
+    fetchUpdatedInfo();
+  };
 
 
   if (!info) return <div>로딩 중...</div>;
@@ -71,7 +95,10 @@ export const CustomerMyInfo: React.FC = () => {
               <div>
               <div className="flex justify-between items-center mb-1">
                 <label className="text-sm font-bold text-indigo-600">포인트</label>
-                <button className="px-3 py-1 bg-indigo-500 text-white text-xs font-semibold rounded hover:bg-indigo-600 transition-colors">
+                <button 
+                  onClick={() => setIsChargingModalOpen(true)}
+                  className="px-3 py-1 bg-indigo-500 text-white text-xs font-semibold rounded hover:bg-indigo-600 transition-colors"
+                >
                   충전
                 </button>
               </div>
@@ -104,6 +131,23 @@ export const CustomerMyInfo: React.FC = () => {
           </div>
         </div>
       </div>
+      
+      {/* 포인트 충전 모달 */}
+      {info && (
+        <PointChargingModal
+          isOpen={isChargingModalOpen}
+          onClose={() => setIsChargingModalOpen(false)}
+          currentPoints={info.point}
+          onSuccess={handleChargingSuccess}
+        />
+      )}
+      
+      {/* 성공 토스트 */}
+      <SuccessToast
+        open={!!successToastMsg}
+        message={successToastMsg || ""}
+        onClose={() => setSuccessToastMsg(null)}
+      />
     </main>
   );
 };
