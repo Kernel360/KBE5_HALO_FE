@@ -134,9 +134,9 @@ export const ManagerSignup = () => {
 
   // 연락처 입력 시 하이픈 자동 포맷 적용
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const formatted = formatPhoneNumber(e.target.value);
-    setForm((prev) => ({ ...prev, phone: formatted }));
-    setErrors((prev) => ({ ...prev, phone: "" }));
+    const formatted = formatPhoneNumber(e.target.value)
+    setForm(prev => ({ ...prev, phone: formatted }))
+    setErrors(prev => ({ ...prev, phone: '' }))
   };
 
   // 업무 가능 시간 선택/해제 토글
@@ -159,8 +159,8 @@ export const ManagerSignup = () => {
 
   // 선택된 시간 텍스트 포맷 (예: "월요일: 09시, 10시")
   const formatSelectedTimeText = (day: string, hours: Set<string>) => {
-    const sorted = Array.from(hours).sort();
-    return `${day}요일: ${sorted.join(", ")}`;
+    const sorted = Array.from(hours).sort()
+    return `${day}요일: ${sorted.join(', ')}`
   };
 
   // 한글 요일 → 영문 ENUM 매핑
@@ -188,7 +188,7 @@ export const ManagerSignup = () => {
   // selectedTimes가 바뀔 때 availableTimes 업데이트
   useEffect(() => {
     const converted = Object.entries(selectedTimes).flatMap(([day, hours]) =>
-      Array.from(hours).map((hour) => ({
+      Array.from(hours).map(hour => ({
         dayOfWeek: convertToEnum(day),
         time: hour.replace("시", ":00"),
       })),
@@ -198,7 +198,7 @@ export const ManagerSignup = () => {
 
   // 유효성 검사
   const validate = () => {
-    const newErrors: Record<string, string> = {};
+    const newErrors: Record<string, string> = {}
 
     if (!form.phone.trim()) newErrors.phone = "연락처를 입력해주세요.";
     if (!newErrors.phone && !isValidPhone(form.phone))
@@ -229,8 +229,8 @@ export const ManagerSignup = () => {
     if (form.availableTimes.length === 0)
       newErrors.availableTimes = "업무 가능 시간을 1개 이상 선택해주세요.";
 
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
   };
 
   // 회원가입 제출 처리
