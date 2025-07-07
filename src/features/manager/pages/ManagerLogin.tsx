@@ -1,150 +1,206 @@
-import { Fragment } from "react/jsx-runtime";
-import { useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { login } from "@/shared/utils/login";
-import { isValidPhone, isValidPassword } from "@/shared/utils/validation";
-import { formatPhoneNumber } from "@/shared/utils/format";
-import { useUserStore } from "@/store/useUserStore";
+import { Fragment, useRef, useState, useEffect } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { login } from '@/shared/utils/login'
+import { isValidPhone, isValidPassword } from '@/shared/utils/validation'
+import { formatPhoneNumber } from '@/shared/utils/format'
+import { useUserStore } from '@/store/useUserStore'
+import { Card } from '@/shared/components/ui/Card'
+import { CardContent } from '@/shared/components/ui/CardContent'
+import { Button } from '@/shared/components/ui/Button'
+import ErrorToast from '@/shared/components/ui/toast/ErrorToast'
+import FormField from '@/shared/components/ui/FormField'
 
 export const ManagerLogin = () => {
-  const phoneRef = useRef<HTMLInputElement>(null);
-  const passwordRef = useRef<HTMLInputElement>(null);
-  const [loginPhone, setPhone] = useState("");
-  const [loginPassword, setPassword] = useState("");
-  const navigate = useNavigate();
+  const phoneRef = useRef<HTMLInputElement>(null)
+  const passwordRef = useRef<HTMLInputElement>(null)
+  const [loginPhone, setPhone] = useState('')
+  const [loginPassword, setPassword] = useState('')
+  const [errors, setErrors] = useState<{ phone?: string; password?: string }>({})
+  const [toast, setToast] = useState<{ open: boolean; message: string }>({ open: false, message: '' })
+  const [openFeatureIndex, setOpenFeatureIndex] = useState<number | null>(null)
+  const cardRef = useRef<HTMLDivElement>(null)
+  const navigate = useNavigate()
+
+  // 매니저 주요 기능 설명
+  const featureDetails = [
+    '💡 예약 현황을 한눈에 확인하고, 일정을 효율적으로 관리할 수 있습니다.',
+    '💡 고객 문의 내역을 확인하고, 신속하게 답변할 수 있습니다.',
+    '💡 내 프로필, 계약 현황, 정산 내역을 쉽고 빠르게 확인할 수 있습니다.',
+  ]
+
+  // 팝오버 바깥 클릭 시 닫힘 처리
+  useEffect(() => {
+    if (openFeatureIndex === null) return
+    const handleClick = (e: MouseEvent) => {
+      if (cardRef.current && !cardRef.current.contains(e.target as Node)) {
+        setOpenFeatureIndex(null)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [openFeatureIndex])
 
   // 사용자의 전화번호 입력값을 하이픈 포함 형식으로 자동 포맷하는 핸들러
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPhone(formatPhoneNumber(e.target.value));
-  };
+    setPhone(formatPhoneNumber(e.target.value))
+    setErrors((prev) => ({ ...prev, phone: undefined }))
+  }
 
   // 매니저 로그인
-  const handleLogin = async () => {
+  const handleLogin = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault()
+    // 유효성 검사
+    const newErrors: { phone?: string; password?: string } = {}
+    if (!isValidPhone(loginPhone)) {
+      newErrors.phone = '연락처 형식이 올바르지 않습니다. 예: 010-1234-5678'
+    }
+    if (!isValidPassword(loginPassword)) {
+      newErrors.password = '비밀번호는 8~20자, 대/소문자/숫자/특수문자 중 3가지 이상 포함하여야 합니다.'
+    }
+    setErrors(newErrors)
+    if (Object.keys(newErrors).length > 0) return
     try {
-      // 연락처 유효성 검사 (010-1234-5678 형식)
-      if(!isValidPhone(loginPhone)) {
-        alert("연락처 형식이 올바르지 않습니다. 예: 010-1234-5678");
-        phoneRef.current?.focus(); // alert 닫힌 후 포커싱
-        return;
-      }
-      // 비밀번호 유효성 검사 (8~20자, 대/소문자/숫자/특수문자 중 3가지 이상 포함)
-      if(!isValidPassword(loginPassword)) {
-        alert("비밀번호는 8~20자, 대/소문자/숫자/특수문자 중 3가지 이상 포함하여야 합니다.");
-        passwordRef.current?.focus(); // alert 닫힌 후 포커싱
-        return;
-      }
-      await login("MANAGER", loginPhone, loginPassword);
-      const status = useUserStore.getState().status;
-      switch(status) {
-        case "ACTIVE":               // 활성
-        case "TERMINATION_PENDING":  // 계약해지요청
-          navigate("/managers"); // 대시보드로 이동
-          break;
+      await login('MANAGER', loginPhone, loginPassword)
+      const status = useUserStore.getState().status
+      switch (status) {
+        case 'ACTIVE':
+        case 'TERMINATION_PENDING':
+          navigate('/managers')
+          break
         default:
-          navigate("/managers/my");  // 마이페이지로 이동
-          break;
+          navigate('/managers/my')
+          break
       }
     } catch (err: any) {
-      alert(err.message || "로그인 실패");
+      setToast({ open: true, message: err?.message || '로그인 실패' })
     }
-  };
+  }
 
   return (
     <Fragment>
-      <div className="w-full min-h-screen bg-gray-50 inline-flex justify-center items-center">
-        <div
-          className="w-[480px] p-12 bg-white rounded-2xl shadow-[0px_4px_24px_0px_rgba(0,0,0,0.04)] inline-flex flex-col justify-start items-start gap-8">
-          <div className="self-stretch flex flex-col justify-center items-center gap-4">
-            <div className="inline-flex justify-center items-center gap-3">
-              <div className="w-10 h-10 bg-indigo-600 rounded-lg inline-flex flex-col justify-center items-center">
-                <div className="justify-start text-white text-xl font-bold font-['Inter'] leading-normal">H</div>
+      <div className="flex min-h-screen w-full items-center justify-center bg-gray-50 px-2 py-8">
+        <div className="flex w-full max-w-4xl flex-col-reverse items-center gap-8 md:flex-row md:gap-12">
+          {/* 매니저 주요 기능 안내 카드 */}
+          <Card
+            ref={cardRef}
+            className="mt-6 flex w-full max-w-xs flex-col gap-0 rounded-2xl border border-indigo-100 bg-gradient-to-br from-indigo-50 via-white to-white p-0 shadow md:mt-0 md:max-w-[400px]"
+          >
+            <div className="flex flex-col gap-2 px-6 pt-8 pb-4 md:px-10 md:pt-10">
+              <div className="flex items-center gap-2">
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-100 text-xl font-bold text-indigo-600">
+                  ★
+                </span>
+                <span className="font-['Inter'] text-lg font-extrabold tracking-tight text-indigo-700 md:text-xl">
+                  매니저 주요 기능
+                </span>
               </div>
-              <div className="justify-start text-gray-900 text-2xl font-bold font-['Inter'] leading-7">HaloCare</div>
+              <div className="mt-1 font-['Inter'] text-sm font-semibold text-gray-600 md:text-base">
+                무엇을 할 수 있나요?
+              </div>
             </div>
-            <div className="justify-start text-gray-500 text-base font-medium font-['Inter'] leading-tight">매니저 포털</div>
-          </div>
-          <div className="self-stretch flex flex-col justify-start items-start gap-6">
-            {/* 연락처 입력 */}
-            <div className="self-stretch flex flex-col justify-start items-start gap-2">
-              <div className="flex justify-between w-full text-sm font-medium font-['Inter'] leading-none">
-                <span className="text-gray-700">연락처</span>
-                <p className="text-xs text-gray-400">※ 숫자만 입력하면 하이픈(-)이 자동으로 추가됩니다.</p>
+            <CardContent className="flex flex-col gap-3 p-4 pt-2 md:p-8">
+              {[
+                {
+                  title: '예약 관리',
+                  desc: '예약 현황 확인 및 일정 관리',
+                },
+                {
+                  title: '고객 문의 응답',
+                  desc: '고객 문의 내역 확인 및 답변',
+                },
+                {
+                  title: '내 정보/계약 관리',
+                  desc: '프로필, 계약, 정산 내역 확인',
+                },
+              ].map((item, idx) => (
+                <div
+                  key={item.title}
+                  className="group relative flex cursor-pointer items-center gap-3 rounded-lg bg-indigo-50/0 px-2 py-2 transition hover:bg-indigo-50 md:px-3"
+                  onClick={() => setOpenFeatureIndex(openFeatureIndex === idx ? null : idx)}
+                >
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-100 text-lg font-bold text-indigo-600">
+                    {['①', '②', '③'][idx]}
+                  </span>
+                  <div>
+                    <div className="text-base font-bold text-gray-900 md:text-base">{item.title}</div>
+                    <div className="text-xs text-gray-500 md:text-sm">{item.desc}</div>
+                  </div>
+                  {/* 팝오버 말풍선 */}
+                  {openFeatureIndex === idx && (
+                    <div
+                      className={`absolute top-full left-1/2 z-20 mt-2 w-[90vw] max-w-xs -translate-x-1/2 md:top-1/2 md:left-full md:mt-0 md:ml-4 md:-translate-x-0 md:-translate-y-1/2`}>
+                      <div className="animate-fade-in relative w-full rounded-lg border border-indigo-200 bg-white px-3 py-2 text-xs text-gray-700 shadow-lg md:px-4 md:py-3 md:text-sm">
+                        {/* 꼬리(삼각형) */}
+                        <div
+                          className={`absolute -top-2 left-1/2 h-0 w-0 -translate-x-1/2 border-x-8 border-t-0 border-b-8 border-x-transparent border-b-white md:top-1/2 md:left-[-8px] md:-translate-x-0 md:-translate-y-1/2 md:border-x-8 md:border-y-8 md:border-r-8 md:border-b-0 md:border-l-0 md:border-x-transparent md:border-y-transparent md:border-r-white`}
+                        ></div>
+                        {featureDetails[idx]}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+          {/* 로그인 카드 */}
+          <Card variant="login" className="w-[480px] flex-col gap-0 p-0">
+            {/* 상단 영역 */}
+            <div className="flex flex-col items-center gap-1 rounded-t-2xl border-b border-gray-100 bg-gradient-to-b from-indigo-50 to-white pt-10 pb-6">
+              <div className="flex items-center gap-2">
+                <span className="text-2xl font-bold text-indigo-700">HaloCare</span>
+                <span className="text-lg font-semibold tracking-wide text-gray-500">매니저 포털</span>
               </div>
-              <div className="self-stretch h-11 px-4 bg-gray-50 rounded-lg outline outline-1 outline-offset-[-1px] outline-gray-200 inline-flex justify-start items-center mt-1">
-                <input
+              <div className="mt-1 text-xs text-gray-400">HaloCare 서비스를 위한 매니저 전용 공간입니다.</div>
+            </div>
+            {/* 폼 영역 */}
+            <CardContent className="flex flex-col gap-7 rounded-b-2xl bg-white p-10">
+              <form className="flex flex-col gap-7" onSubmit={handleLogin}>
+                {/* 연락처 */}
+                <FormField
+                  label="연락처"
+                  name="manager-login-phone"
                   type="tel"
-                  ref={phoneRef}
-                  className="w-full justify-start text-gray-400 text-sm font-normal font-['Inter'] leading-none"
-                  placeholder="숫자만 입력하세요 (예: 01012345678)"
                   value={loginPhone}
                   onChange={handlePhoneChange}
+                  placeholder="숫자만 입력하세요 (예: 01012345678)"
+                  required
+                  error={errors.phone}
                 />
-              </div>
-            </div>
-
-            {/* 비밀번호 입력 */}
-            <div className="self-stretch flex flex-col justify-start items-start gap-2">
-              <div className="flex justify-between w-full text-sm font-medium font-['Inter'] leading-none">
-                <span className="text-gray-700">비밀번호</span>
-                <p className="text-xs text-gray-400">※ 8~20자, 대/소문자·숫자·특수문자 중 3가지 이상 포함</p>
-              </div>
-              <div className="self-stretch h-11 px-4 bg-gray-50 rounded-lg outline outline-1 outline-offset-[-1px] outline-gray-200 inline-flex justify-start items-center">
-                <input
+                {/* 비밀번호 */}
+                <FormField
+                  label="비밀번호"
+                  name="manager-login-password"
                   type="password"
-                  ref={passwordRef}
-                  className="w-full justify-start text-gray-400 text-sm font-normal font-['Inter'] leading-none"
-                  placeholder="비밀번호를 입력하세요"
                   value={loginPassword}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={e => setPassword(e.target.value)}
+                  placeholder="비밀번호를 입력하세요"
+                  required
+                  error={errors.password}
                 />
+                {/* 로그인 버튼 */}
+                <Button
+                  type="submit"
+                  className="shine-effect shiny-btn h-12 w-full rounded-lg text-lg font-bold text-white shadow transition"
+                >
+                  로그인
+                </Button>
+              </form>
+              {/* 안내 문구 및 회원가입 */}
+              <div className="mt-2 text-center text-xs text-gray-400">
+                아직 계정이 없으신가요?{' '}
+                <Link to="/managers/auth/signup" className="font-semibold text-indigo-600 hover:underline">
+                  회원가입
+                </Link>
               </div>
-            </div>
-
-            {/* 아이디 찾기, 비밀번호 찾기 */}
-            {/* <div className="w-full flex justify-center gap-2 text-sm font-medium">
-              <Link to="/managers/auth/recovery-id" className="text-indigo-600 hover:underline">
-                아이디 찾기
-              </Link>
-              <span className="text-gray-300">|</span>
-              <Link to="/managers/auth/recovery-pwd" className="text-indigo-600 hover:underline">
-                비밀번호 찾기
-              </Link>
-            </div> */}
-
-            {/* 로그인 */}
-            <button
-              className="self-stretch h-12 bg-indigo-600 rounded-lg inline-flex justify-center items-center cursor-pointer"
-              onClick={handleLogin}
-            >
-              <div className="justify-start text-white text-base font-semibold font-['Inter'] leading-tight">로그인</div>
-            </button>
-
-            {/* <div className="self-stretch inline-flex justify-center items-center gap-4">
-              <div className="flex-1 h-px bg-gray-200" />
-              <div className="justify-start text-gray-400 text-sm font-normal font-['Inter'] leading-none">또는</div>
-              <div className="flex-1 h-px bg-gray-200" />
-            </div>
-            <div className="self-stretch flex flex-col justify-start items-start gap-4">
-              <div className="self-stretch h-12 px-4 bg-white rounded-lg outline outline-1 outline-offset-[-1px] outline-gray-200 inline-flex justify-center items-center gap-3">
-                <img
-                  src="https://developers.google.com/identity/images/g-logo.png"
-                  alt="Google Logo"
-                  className="w-5 h-5 mr-2"
-                />
-                <div className="justify-start text-zinc-800 text-base font-medium font-['Inter'] leading-tight">Google로 로그인</div>
-              </div>
-            </div> */}
-
-            <div className="self-stretch inline-flex justify-center items-center gap-2">
-              <div className="justify-start text-stone-500 text-base font-normal font-['Inter'] leading-tight">아직 계정이 없으신가요?</div>
-              <Link to="/managers/auth/signup" className="justify-start text-indigo-600 text-base font-semibold font-['Inter'] leading-tight">
-                회원가입
-              </Link>
-            </div>
-
-          </div>
+            </CardContent>
+          </Card>
         </div>
+        <ErrorToast
+          open={toast.open}
+          message={toast.message}
+          onClose={() => setToast({ open: false, message: '' })}
+        />
       </div>
     </Fragment>
-  );
-};
+  )
+}
