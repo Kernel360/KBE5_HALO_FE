@@ -212,7 +212,7 @@ export const ManagerLogin = () => {
                 {/* 로그인 버튼 */}
                 <Button
                   type="submit"
-                  className="shine-effect shiny-btn h-12 w-full rounded-lg text-lg font-bold text-white shadow transition"
+                  className="h-12 w-full rounded-lg text-lg font-bold text-white shadow transition bg-indigo-600 hover:bg-indigo-700 focus:bg-indigo-700"
                 >
                   로그인
                 </Button>
