@@ -4,7 +4,7 @@ interface PaginationProps extends React.HTMLAttributes<HTMLDivElement> {
   className?: string
   children: React.ReactNode
 }
-export const Pagination = ({
+export const CommonPagination = ({
   children,
   className = '',
   ...rest

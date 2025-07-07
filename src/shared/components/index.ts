@@ -1,15 +1,16 @@
-export { PageHeader } from './PageHeader'
-export { Pagination } from './Pagination'
-export { StatusBadge } from './StatusBadge'
-export { EmptyState } from './EmptyState'
-export { TableSection } from './TableSection'
-export { SearchForm } from './SearchForm'
-export { MultiSelectDropdown } from './ui/MultiSelectDropdown'
+export { PageHeader } from "./PageHeader";
+export { CommonPagination } from "./CommonPagination";
+export { StatusBadge } from "./StatusBadge";
+export { EmptyState } from "./EmptyState";
+export { TableSection } from "./TableSection";
+export { SearchForm } from "./SearchForm";
+export { MultiSelectDropdown } from "./ui/MultiSelectDropdown";
+export { PortalDropdown } from "./PortalDropdown";
 
 // 기존 공통 컴포넌트들
-export { default as AddressSearch } from './AddressSearch'
-export { FileUploadSection } from './FileUploadSection'
-export { GuardLayout } from './GuardLayout'
+export { default as AddressSearch } from "./AddressSearch";
+export { FileUploadSection } from "./FileUploadSection";
+export { GuardLayout } from "./GuardLayout";
 export { default as HalfStar } from './HalfStar'
 
 // 새로운 공통 컴포넌트들

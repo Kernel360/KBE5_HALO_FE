@@ -5,7 +5,7 @@ interface PaginationProps {
   className?: string
 }
 
-export const Pagination = ({
+export const CommonPagination = ({
   page,
   totalPages,
   onChange,

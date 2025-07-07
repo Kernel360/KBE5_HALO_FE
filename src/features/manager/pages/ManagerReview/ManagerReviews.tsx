@@ -4,7 +4,7 @@ import { isValidDateRange } from '@/shared/utils/validation'
 import { searchManagerReviews } from '@/features/manager/api/managerReview'
 import { REVIEW_PAGE_SIZE } from '@/shared/constants/constants'
 import ErrorToast from "@/shared/components/ui/toast/ErrorToast";
-import { Pagination } from "@/shared/components/Pagination";
+import { CommonPagination } from "@/shared/components/CommonPagination";
 import EmptyState from "@/shared/components/EmptyState";
 import { SearchForm } from "@/shared/components/SearchForm";
 import ManagerReviewCard from "@/features/manager/components/ManagerReviewCard";
@@ -448,7 +448,7 @@ export const ManagerReviews = () => {
           </div>
           {/* 페이징 */}
           <div className="flex justify-center mt-4 w-full">
-            <Pagination
+            <CommonPagination
               page={page}
               totalPages={totalPages}
               onChange={setPage}

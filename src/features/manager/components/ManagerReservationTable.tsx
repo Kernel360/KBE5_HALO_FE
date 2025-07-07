@@ -1,9 +1,9 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import type { ManagerReservationSummary as ManagerReservationType } from "../types/ManagerReservationType";
-import { formatTimeRange } from "../../../shared/utils/format";
-import { StatusBadge } from "../../../shared/components";
-import { Pagination } from "../../../shared/components";
+import { formatTimeRange } from "@/shared/utils/format";
+import { StatusBadge } from "@/shared/components";
+import { CommonPagination } from "@/shared/components/CommonPagination";
 import { getReservationStatusStyle } from "../utils/ManagerReservationStauts";
 import ManagerReservationListMobile from "@/features/manager/components/ManagerReservationListMobile";
 import { PortalDropdown } from "@/shared/components/PortalDropdown";
@@ -296,7 +296,7 @@ export const ManagerReservationTable = ({
           }
         />
         <div className="mt-6 flex justify-center">
-          <Pagination
+          <CommonPagination
             page={page}
             totalPages={totalPages}
             onChange={onPageChange}
@@ -718,7 +718,7 @@ export const ManagerReservationTable = ({
           </table>
         </div>
         <div className="mt-6 flex justify-center">
-          <Pagination
+          <CommonPagination
             page={page}
             totalPages={totalPages}
             onChange={onPageChange}
