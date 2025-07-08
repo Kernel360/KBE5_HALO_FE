@@ -26,7 +26,7 @@ interface ManagerSignupForm {
   bio: string;
   profileImageId: number | null; // 타입 에러 방지용, 실제 사용 X
   specialty: number | "";
-  fileId: number[] | null;
+  fileId: number | null;
   profileImageFileId: number | null;
   availableTimes: { dayOfWeek: string; time: string }[];
   termsAgreed: boolean;
