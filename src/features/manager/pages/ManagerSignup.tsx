@@ -26,7 +26,7 @@ interface ManagerSignupForm {
   bio: string;
   profileImageId: number | null; // 타입 에러 방지용, 실제 사용 X
   specialty: number | "";
-  fileId: number[] | null;
+  fileId: number | null;
   profileImageFileId: number | null;
   availableTimes: { dayOfWeek: string; time: string }[];
   termsAgreed: boolean;
@@ -107,7 +107,7 @@ export const ManagerSignup = () => {
           const fileIds = await createFileGroup(files);
           setForm((prev) => ({
             ...prev,
-            fileId: Array.isArray(fileIds) ? fileIds : [fileIds],
+            fileId: Array.isArray(fileIds) ? fileIds[0] : fileIds,
           }));
         } catch {
           alert("서류 파일 업로드에 실패했습니다.");
