@@ -107,7 +107,7 @@ export const ManagerSignup = () => {
           const fileIds = await createFileGroup(files);
           setForm((prev) => ({
             ...prev,
-            fileId: Array.isArray(fileIds) ? fileIds : [fileIds],
+            fileId: Array.isArray(fileIds) ? fileIds[0] : fileIds,
           }));
         } catch {
           alert("서류 파일 업로드에 실패했습니다.");
