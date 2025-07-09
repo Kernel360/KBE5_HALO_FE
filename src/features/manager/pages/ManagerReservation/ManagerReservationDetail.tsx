@@ -36,14 +36,6 @@ import ReservationRequestBanner from '../../components/ReservationRequestBanner'
 import ReservationCheckInOutBanner from '../../components/ReservationCheckInOutBanner'
 
 // 명확한 타입 정의
-interface CustomerNote {
-  id: number;
-  content: string;
-  tag: string;
-  createdAt: string;
-  createdBy: string;
-}
-
 export const ManagerReservationDetail = () => {
   // 모든 훅 선언을 컴포넌트 함수 최상단에 위치
   const { reservationId } = useParams()
@@ -60,28 +52,30 @@ export const ManagerReservationDetail = () => {
   const [content, setContent] = useState('')
   const [openRejectModal, setOpenRejectModal] = useState(false)
   const [rejectReason, setRejectReason] = useState('')
-  const [customerNotes, setCustomerNotes] = useState<CustomerNote[]>([
-    {
-      id: 1,
-      content: '홈클리닝 서비스를 매우 만족해하시는 고객입니다. 꼼꼼한 청소를 선호하십니다.',
-      tag: 'preference',
-      createdAt: '2024-01-10T10:00:00Z',
-      createdBy: '김매니저'
-    },
-    {
-      id: 2,
-      content: '반려동물(강아지)이 있어서 소음에 민감할 수 있습니다.',
-      tag: 'attention',
-      createdAt: '2024-01-05T14:30:00Z',
-      createdBy: '이매니저'
-    }
-  ])
-  const [customerProfile, setCustomerProfile] = useState<CustomerProfile | null>(null)
+  const [customerProfile, setCustomerProfile] = useState<CustomerProfile | null>(
+    null
+  )
   const [openAcceptModal, setOpenAcceptModal] = useState(false)
-  const [successToastMessage, setSuccessToastMessage] = useState<string | null>(null)
-  const [errorToastMessage, setErrorToastMessage] = useState<string | null>(null)
-  const [checkInUploadedFiles, setCheckInUploadedFiles] = useState<{ name: string; url: string; size: number }[]>([])
-  const [checkOutUploadedFiles, setCheckOutUploadedFiles] = useState<{ name: string; url: string; size: number }[]>([])
+  const [successToastMessage, setSuccessToastMessage] = useState<string | null>(
+    null
+  )
+  const [errorToastMessage, setErrorToastMessage] = useState<string | null>(
+    null
+  )
+  const [checkInUploadedFiles, setCheckInUploadedFiles] = useState<
+    {
+      name: string
+      url: string
+      size: number
+    }[]
+  >([])
+  const [checkOutUploadedFiles, setCheckOutUploadedFiles] = useState<
+    {
+      name: string
+      url: string
+      size: number
+    }[]
+  >([])
   const [isUploading, setIsUploading] = useState(false)
 
   // 문의사항 조회
@@ -323,45 +317,6 @@ export const ManagerReservationDetail = () => {
     }
   };
 
-  // 고객 메모 추가
-  const handleAddCustomerNote = (note: string, tag: string) => {
-    const newNote = {
-      id: Date.now(),
-      content: note,
-      tag,
-      createdAt: new Date().toISOString(),
-      createdBy: '현재매니저'
-    }
-    setCustomerNotes(prev => [newNote, ...prev])
-    alert('메모가 추가되었습니다.')
-  }
-
-  // 고객 메모 삭제
-  const handleDeleteCustomerNote = (noteId: number) => {
-    if (confirm('이 메모를 삭제하시겠습니까?')) {
-      setCustomerNotes(prev => prev.filter(note => note.id !== noteId))
-      alert('메모가 삭제되었습니다.')
-    }
-  }
-
-  // 고객에게 메시지 보내기
-  const handleSendMessage = (message: string) => {
-    // 실제로는 SMS API 또는 메시징 시스템 연동
-    alert(`${reservation?.userName}님에게 메시지가 전송되었습니다.`)
-  }
-
-  // 고객 등급 업데이트
-  const handleUpdateGrade = () => {
-    // 고객 등급 업데이트 기능은 추후 구현 예정입니다.
-    alert('고객 등급 업데이트 기능은 추후 구현 예정입니다.');
-  }
-
-  // 다음 예약 제안
-  const handleProposeBooking = () => {
-    const message = `${reservation?.userName}님, 안녕하세요! 다음주 같은 시간에 정기 서비스 예약은 어떠신가요? 미리 예약하시면 더 편리하실 것 같아요.`
-    handleSendMessage(message)
-  }
-
   // 체크인 파일 삭제 핸들러
   const handleRemoveCheckInUploadedFile = (idx: number) => {
     const newUploaded = checkInUploadedFiles.filter((_, i) => i !== idx);
@@ -468,15 +423,7 @@ export const ManagerReservationDetail = () => {
               </div>
             </div>
             <CancelInfoCard reservation={reservation} />
-            <CRMSection
-              customerProfile={customerProfile}
-              customerNotes={customerNotes}
-              handleAddCustomerNote={handleAddCustomerNote}
-              handleDeleteCustomerNote={handleDeleteCustomerNote}
-              handleSendMessage={handleSendMessage}
-              handleProposeBooking={handleProposeBooking}
-              handleUpdateGrade={handleUpdateGrade}
-            />
+            <CRMSection customerProfile={customerProfile} />
             {/* 기존 예약 요청 대기 카드 영역은 제거됨 */}
           </Card>
         </div>

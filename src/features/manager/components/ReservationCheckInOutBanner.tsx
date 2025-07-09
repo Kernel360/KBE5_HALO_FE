@@ -1,13 +1,11 @@
 import React from 'react'
+import type { ManagerReservationDetail } from '@/features/manager/types/ManagerReservationType'
 
 interface ReservationCheckInOutBannerProps {
-  reservation: {
-    inTime?: string
-    outTime?: string
-    userName: string
-    serviceName: string
-    requestDate: string
-  }
+  reservation: Pick<
+    ManagerReservationDetail,
+    'inTime' | 'outTime' | 'userName' | 'serviceName' | 'requestDate'
+  >
   onCheckIn: () => void
   onCheckOut: () => void
 }
