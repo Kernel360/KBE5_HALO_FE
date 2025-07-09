@@ -62,7 +62,6 @@ export const fetchAdminAccounts = async (params?: {
     paramsSerializer: (params) =>
       qs.stringify(params, { arrayFormat: "repeat" }),
   });
-  console.log(res.data.body);
   if (!res.data.success)
     throw new Error(
       res.data.message || "관리자 계정 목록 조회에 실패했습니다.",

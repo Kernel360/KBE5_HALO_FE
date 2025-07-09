@@ -17,8 +17,6 @@ const ReservationStepTwoGuard: React.FC = () => {
 
   const handleNext = (data: any) => {
     // Step 3으로 이동하거나 결제 프로세스 등
-    console.log('Next step with data:', data);
-    // navigate('/reservations/:id/step-3', { state: data });
   };
 
   return (

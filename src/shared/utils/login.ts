@@ -25,8 +25,6 @@ export const login = async (role: Role, phone: string, password: string) => {
         throw new Error('알 수 없는 사용자 역할')
     }
   } catch (error: any) {
-    console.error('Login error:', error) // 디버깅용 로그 추가
-
     // axios 에러 객체에서 서버가 내려준 message 꺼내기
     let serverMessage = '로그인에 실패했습니다.' // 기본 메시지
 
@@ -48,7 +46,6 @@ export const login = async (role: Role, phone: string, password: string) => {
   const accessToken = rawHeader?.replace('Bearer ', '').trim()
   const userName = res.data.body.userName
   const status = res.data.body.status
-  console.log()
 
   if (!accessToken || !userName) {
     throw new Error('로그인 응답이 올바르지 않습니다.')
