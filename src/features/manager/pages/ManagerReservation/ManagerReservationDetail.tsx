@@ -1,37 +1,37 @@
-import { Fragment, useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
-import type { ManagerReservationDetail as ManagerReservationType } from "@/features/manager/types/ManagerReservationType";
+import { Fragment, useEffect, useState } from 'react'
+import { Link, useParams } from 'react-router-dom'
+import type { ManagerReservationDetail as ManagerReservationType } from '@/features/manager/types/ManagerReservationType'
 import {
   checkIn,
   checkOut,
   getManagerReservation,
   acceptReservation,
-  rejectReservation,
-} from "@/features/manager/api/managerReservation";
-import { CleanignLogModal } from "@/features/manager/components/ManagerCleaningLogModal";
-import { createManagerReview } from "@/features/manager/api/managerReview";
-import { isValidLength } from "@/shared/utils/validation";
-import { PageHeader } from "@/shared/components/PageHeader";
-import { Card } from "@/shared/components/ui/Card";
-import { Loading } from "@/shared/components/ui/Loading";
-import { getCustomerProfile } from "@/features/manager/api/customerProfile";
-import type { CustomerProfile } from "@/features/manager/types/CustomerProfileType";
-import SuccessToast from "@/shared/components/ui/toast/SuccessToast";
-import ErrorToast from "@/shared/components/ui/toast/ErrorToast";
-import { ReservationInfoCard } from "@/features/manager/components/ReservationInfoCard";
-import { ServiceDetailCard } from "@/features/manager/components/ServiceDetailCard";
-import { AddressMapCard } from "@/features/manager/components/AddressMapCard";
-import { CancelInfoCard } from "@/features/manager/components/CancelInfoCard";
-import { CheckInOutCard } from "@/features/manager/components/CheckInOutCard";
-import { ReviewSection } from "@/features/manager/components/ReviewSection";
-import { CRMSection } from "@/features/manager/components/CRMSection";
+  rejectReservation
+} from '@/features/manager/api/managerReservation'
+import { MangerServiceCheckLogModal } from '@/features/manager/components/MangerServiceCheckLogModal'
+import { createManagerReview } from '@/features/manager/api/managerReview'
+import { isValidLength } from '@/shared/utils/validation'
+import { PageHeader } from '@/shared/components/PageHeader'
+import { Card } from '@/shared/components/ui/Card'
+import { Loading } from '@/shared/components/ui/Loading'
+import { getCustomerProfile } from '@/features/manager/api/customerProfile'
+import type { CustomerProfile } from '@/features/manager/types/CustomerProfileType'
+import SuccessToast from '@/shared/components/ui/toast/SuccessToast'
+import ErrorToast from '@/shared/components/ui/toast/ErrorToast'
+import { ReservationInfoCard } from '@/features/manager/components/ReservationInfoCard'
+import { ServiceDetailCard } from '@/features/manager/components/ServiceDetailCard'
+import { AddressMapCard } from '@/features/manager/components/AddressMapCard'
+import { CancelInfoCard } from '@/features/manager/components/CancelInfoCard'
+import { CheckInOutCard } from '@/features/manager/components/CheckInOutCard'
+import { ReviewSection } from '@/features/manager/components/ReviewSection'
+import { CRMSection } from '@/features/manager/components/CRMSection'
 import {
   createFileGroup,
   updateFileGroup,
   uploadFilesAndGetUrls,
-} from "@/shared/utils/fileUpload";
-import ManagerAcceptModal from "../../components/ManagerAcceptModal";
-import ManagerRejectModal from "../../components/ManagerRejectModal";
+} from '@/shared/utils/fileUpload'
+import ManagerAcceptModal from '../../components/ManagerAcceptModal'
+import ManagerRejectModal from '../../components/ManagerRejectModal'
 
 // 명확한 타입 정의
 interface CustomerNote {
@@ -44,42 +44,43 @@ interface CustomerNote {
 
 export const ManagerReservationDetail = () => {
   // 모든 훅 선언을 컴포넌트 함수 최상단에 위치
-  const { reservationId } = useParams();
-  const [reservation, setReservation] = useState<ManagerReservationType | null>(null);
-  const [checkType, setCheckType] = useState<"IN" | "OUT">("IN");
-  const [openModal, setOpenModal] = useState(false);
-  const [checkInFileId, setCheckInFileId] = useState<number | null>(null);
-  const [checkInFileUrls, setCheckInFileUrls] = useState<string[]>([]);
-  const [checkInFiles, setCheckInFiles] = useState<File[]>([]);
-  const [checkOutFileId, setCheckOutFileId] = useState<number | null>(null);
-  const [checkOutFileUrls, setCheckOutFileUrls] = useState<string[]>([]);
-  const [checkOutFiles, setCheckOutFiles] = useState<File[]>([]);
-  const [rating, setRating] = useState(0);
-  const [content, setContent] = useState("");
-  const [openRejectModal, setOpenRejectModal] = useState(false);
-  const [rejectReason, setRejectReason] = useState("");
+  const { reservationId } = useParams()
+  const [reservation, setReservation] = useState<ManagerReservationType | null>(null)
+  const [checkType, setCheckType] = useState<'IN' | 'OUT'>('IN')
+  const [openModal, setOpenModal] = useState(false)
+  const [checkInFileId, setCheckInFileId] = useState<number | null>(null)
+  const [checkInFileUrls, setCheckInFileUrls] = useState<string[]>([])
+  const [checkInFiles, setCheckInFiles] = useState<File[]>([])
+  const [checkOutFileId, setCheckOutFileId] = useState<number | null>(null)
+  const [checkOutFileUrls, setCheckOutFileUrls] = useState<string[]>([])
+  const [checkOutFiles, setCheckOutFiles] = useState<File[]>([])
+  const [rating, setRating] = useState(0)
+  const [content, setContent] = useState('')
+  const [openRejectModal, setOpenRejectModal] = useState(false)
+  const [rejectReason, setRejectReason] = useState('')
   const [customerNotes, setCustomerNotes] = useState<CustomerNote[]>([
     {
       id: 1,
-      content: "홈클리닝 서비스를 매우 만족해하시는 고객입니다. 꼼꼼한 청소를 선호하십니다.",
-      tag: "preference",
-      createdAt: "2024-01-10T10:00:00Z",
-      createdBy: "김매니저",
+      content: '홈클리닝 서비스를 매우 만족해하시는 고객입니다. 꼼꼼한 청소를 선호하십니다.',
+      tag: 'preference',
+      createdAt: '2024-01-10T10:00:00Z',
+      createdBy: '김매니저'
     },
     {
       id: 2,
-      content: "반려동물(강아지)이 있어서 소음에 민감할 수 있습니다.",
-      tag: "attention",
-      createdAt: "2024-01-05T14:30:00Z",
-      createdBy: "이매니저",
-    },
-  ]);
-  const [customerProfile, setCustomerProfile] = useState<CustomerProfile | null>(null);
-  const [openAcceptModal, setOpenAcceptModal] = useState(false);
-  const [successToastMessage, setSuccessToastMessage] = useState<string | null>(null);
-  const [errorToastMessage, setErrorToastMessage] = useState<string | null>(null);
-  const [checkInUploadedFiles, setCheckInUploadedFiles] = useState<{ name: string; url: string; size: number }[]>([]);
-  const [checkOutUploadedFiles, setCheckOutUploadedFiles] = useState<{ name: string; url: string; size: number }[]>([]);
+      content: '반려동물(강아지)이 있어서 소음에 민감할 수 있습니다.',
+      tag: 'attention',
+      createdAt: '2024-01-05T14:30:00Z',
+      createdBy: '이매니저'
+    }
+  ])
+  const [customerProfile, setCustomerProfile] = useState<CustomerProfile | null>(null)
+  const [openAcceptModal, setOpenAcceptModal] = useState(false)
+  const [successToastMessage, setSuccessToastMessage] = useState<string | null>(null)
+  const [errorToastMessage, setErrorToastMessage] = useState<string | null>(null)
+  const [checkInUploadedFiles, setCheckInUploadedFiles] = useState<{ name: string; url: string; size: number }[]>([])
+  const [checkOutUploadedFiles, setCheckOutUploadedFiles] = useState<{ name: string; url: string; size: number }[]>([])
+  const [isUploading, setIsUploading] = useState(false)
 
   // 문의사항 조회
   useEffect(() => {
@@ -110,67 +111,77 @@ export const ManagerReservationDetail = () => {
   useEffect(() => {
     if (checkInFiles.length > 0) {
       (async () => {
-        const newUrls = await uploadFilesAndGetUrls(checkInFiles);
-        let fileId = checkInFileId;
-        const allUrls = [...checkInFileUrls, ...newUrls];
-        if (!fileId) {
-          fileId = await createFileGroup(checkInFiles);
-          setCheckInFileId(fileId);
-          setCheckInFileUrls(newUrls);
-          setCheckInUploadedFiles(newUrls.map((url, i) => ({
-            name: checkInFiles[i].name,
-            url,
-            size: checkInFiles[i].size,
-          })));
-        } else {
-          await updateFileGroup(fileId, allUrls);
-          setCheckInFileUrls(allUrls);
-          setCheckInUploadedFiles(prev => [
-            ...prev,
-            ...newUrls.map((url, i) => ({
+        setIsUploading(true)
+        try {
+          const newUrls = await uploadFilesAndGetUrls(checkInFiles)
+          let fileId = checkInFileId
+          const allUrls = [...checkInFileUrls, ...newUrls]
+          if (!fileId) {
+            fileId = await createFileGroup(checkInFiles)
+            setCheckInFileId(fileId)
+            setCheckInFileUrls(newUrls)
+            setCheckInUploadedFiles(newUrls.map((url, i) => ({
               name: checkInFiles[i].name,
               url,
               size: checkInFiles[i].size,
-            })),
-          ]);
+            })))
+          } else {
+            await updateFileGroup(fileId, allUrls)
+            setCheckInFileUrls(allUrls)
+            setCheckInUploadedFiles(prev => [
+              ...prev,
+              ...newUrls.map((url, i) => ({
+                name: checkInFiles[i].name,
+                url,
+                size: checkInFiles[i].size,
+              })),
+            ])
+          }
+          setCheckInFiles([])
+        } finally {
+          setIsUploading(false)
         }
-        setCheckInFiles([]);
-      })();
+      })()
     }
-  }, [checkInFiles]);
+  }, [checkInFiles])
 
   // 체크아웃 파일 자동 업로드
   useEffect(() => {
     if (checkOutFiles.length > 0) {
       (async () => {
-        const newUrls = await uploadFilesAndGetUrls(checkOutFiles);
-        let fileId = checkOutFileId;
-        const allUrls = [...checkOutFileUrls, ...newUrls];
-        if (!fileId) {
-          fileId = await createFileGroup(checkOutFiles);
-          setCheckOutFileId(fileId);
-          setCheckOutFileUrls(newUrls);
-          setCheckOutUploadedFiles(newUrls.map((url, i) => ({
-            name: checkOutFiles[i].name,
-            url,
-            size: checkOutFiles[i].size,
-          })));
-        } else {
-          await updateFileGroup(fileId, allUrls);
-          setCheckOutFileUrls(allUrls);
-          setCheckOutUploadedFiles(prev => [
-            ...prev,
-            ...newUrls.map((url, i) => ({
+        setIsUploading(true)
+        try {
+          const newUrls = await uploadFilesAndGetUrls(checkOutFiles)
+          let fileId = checkOutFileId
+          const allUrls = [...checkOutFileUrls, ...newUrls]
+          if (!fileId) {
+            fileId = await createFileGroup(checkOutFiles)
+            setCheckOutFileId(fileId)
+            setCheckOutFileUrls(newUrls)
+            setCheckOutUploadedFiles(newUrls.map((url, i) => ({
               name: checkOutFiles[i].name,
               url,
               size: checkOutFiles[i].size,
-            })),
-          ]);
+            })))
+          } else {
+            await updateFileGroup(fileId, allUrls)
+            setCheckOutFileUrls(allUrls)
+            setCheckOutUploadedFiles(prev => [
+              ...prev,
+              ...newUrls.map((url, i) => ({
+                name: checkOutFiles[i].name,
+                url,
+                size: checkOutFiles[i].size,
+              })),
+            ])
+          }
+          setCheckOutFiles([])
+        } finally {
+          setIsUploading(false)
         }
-        setCheckOutFiles([]);
-      })();
+      })()
     }
-  }, [checkOutFiles]);
+  }, [checkOutFiles])
 
   // reservation이 없을 때는 훅 실행 이후에 return
   if (!reservation) {
@@ -185,11 +196,8 @@ export const ManagerReservationDetail = () => {
           setErrorToastMessage("예약 ID가 없습니다.");
           return;
         }
-        if (!checkInFileId) {
-          setErrorToastMessage("체크인 파일 업로드가 필요합니다.");
-          return;
-        }
-        const res = await checkIn(Number(reservationId), checkInFileId);
+        // 파일 업로드가 선택사항이므로, 파일이 없어도 진행
+        const res = await checkIn(Number(reservationId), checkInFileId ?? undefined);
         setReservation((prev) =>
           prev
             ? {
@@ -207,15 +215,12 @@ export const ManagerReservationDetail = () => {
       }
 
       if (checkType === "OUT") {
-        if (!checkOutFileId) {
-          setErrorToastMessage("체크아웃 파일 업로드가 필요합니다.");
-          return;
-        }
+        // 파일 업로드가 선택사항이므로, 파일이 없어도 진행
         if (!reservation?.checkId || !reservation?.inTime) {
           setErrorToastMessage("체크인을 먼저 진행해주세요.");
           return;
         }
-        const res = await checkOut(Number(reservationId), checkOutFileId);
+        const res = await checkOut(Number(reservationId), checkOutFileId ?? undefined);
         setReservation((prev) =>
           prev
             ? {
@@ -233,7 +238,7 @@ export const ManagerReservationDetail = () => {
       }
     } catch (error) {
       // 우선순위: 응답 data의 message > error.message > 기본 메시지
-      const errMsg = (error as any)?.response?.data?.message || (error as any)?.message || `${checkType === "IN" ? "체크인" : "체크아웃"} 요청 중 오류가 발생하였습니다.`;
+      const errMsg = (error as any)?.response?.data?.message || (error as any)?.message || `${checkType === "IN" ? "체크인" : "체크아웃"} 요청 중 오류가 발생했습니다.`;
       setErrorToastMessage(errMsg);
     }
   };
@@ -340,7 +345,6 @@ export const ManagerReservationDetail = () => {
   // 고객에게 메시지 보내기
   const handleSendMessage = (message: string) => {
     // 실제로는 SMS API 또는 메시징 시스템 연동
-    console.log('메시지 전송:', message)
     alert(`${reservation?.userName}님에게 메시지가 전송되었습니다.`)
   }
 
@@ -473,15 +477,16 @@ export const ManagerReservationDetail = () => {
         </div>
       </div>
 
-      <CleanignLogModal
+      <MangerServiceCheckLogModal
         open={openModal}
         checkType={checkType}
-        files={checkType === "IN" ? checkInFiles : checkOutFiles}
-        setFiles={checkType === "IN" ? setCheckInFiles : setCheckOutFiles}
+        files={checkType === 'IN' ? checkInFiles : checkOutFiles}
+        setFiles={checkType === 'IN' ? setCheckInFiles : setCheckOutFiles}
         onCheck={handleCheck}
         onClose={() => setOpenModal(false)}
-        uploadedFiles={checkType === "IN" ? checkInUploadedFiles : checkOutUploadedFiles}
-        onRemoveUploadedFile={checkType === "IN" ? handleRemoveCheckInUploadedFile : handleRemoveCheckOutUploadedFile}
+        uploadedFiles={checkType === 'IN' ? checkInUploadedFiles : checkOutUploadedFiles}
+        onRemoveUploadedFile={checkType === 'IN' ? handleRemoveCheckInUploadedFile : handleRemoveCheckOutUploadedFile}
+        isUploading={isUploading}
       />
 
       <ManagerRejectModal

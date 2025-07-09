@@ -1,19 +1,20 @@
-import { useRef } from "react";
+import { useRef, useState } from 'react'
+import WarningToast from '@/shared/components/ui/toast/WarningToast'
 
 interface FileUploadSectionProps {
-  files: File[];
-  setFiles: React.Dispatch<React.SetStateAction<File[]>>;
-  title?: string;
-  errors?: string;
-  multiple?: boolean;
-  isRequired?: boolean;
-  uploadedFiles?: { name: string; url: string; size?: number }[];
-  onRemoveUploadedFile?: (idx: number) => void;
+  files: File[]
+  setFiles: React.Dispatch<React.SetStateAction<File[]>>
+  title?: string
+  errors?: string
+  multiple?: boolean
+  isRequired?: boolean
+  uploadedFiles?: { name: string; url: string; size?: number }[]
+  onRemoveUploadedFile?: (idx: number) => void
 }
 
-const MAX_FILE_SIZE_MB = 10;
-const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
-const MAX_FILE_COUNT = 5;
+const MAX_FILE_SIZE_MB = 10
+const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024
+const MAX_FILE_COUNT = 5
 
 export const FileUploadSection = ({
   files,
@@ -23,62 +24,68 @@ export const FileUploadSection = ({
   multiple = true,
   isRequired = true,
   uploadedFiles = [],
-  onRemoveUploadedFile,
+  onRemoveUploadedFile
 }: FileUploadSectionProps) => {
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const [toastOpen, setToastOpen] = useState(false)
+  const [toastMessage, setToastMessage] = useState('')
 
   const handleFileButtonClick = () => {
-    fileInputRef.current?.click();
-  };
+    fileInputRef.current?.click()
+  }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files) return;
-    const selectedFiles = Array.from(e.target.files);
+    if (!e.target.files) return
+    const selectedFiles = Array.from(e.target.files)
 
     const validFiles = selectedFiles.filter(file => {
       if (file.size > MAX_FILE_SIZE_BYTES) {
-        alert(`'${file.name}' 파일은 ${MAX_FILE_SIZE_MB}MB를 초과합니다.`);
-        return false;
+        setToastMessage(`'${file.name}' 파일은 ${MAX_FILE_SIZE_MB}MB를 초과합니다.`)
+        setToastOpen(true)
+        return false
       }
-      return true;
-    });
+      return true
+    })
 
+    // uploadedFiles가 있을 경우 총합 체크
+    const uploadedCount = uploadedFiles ? uploadedFiles.length : 0
     const totalFiles = multiple
-      ? files.length + validFiles.length
-      : validFiles.length;
+      ? files.length + uploadedCount + validFiles.length
+      : validFiles.length + uploadedCount
     if (totalFiles > MAX_FILE_COUNT) {
-      alert(`파일은 최대 ${MAX_FILE_COUNT}개까지 첨부할 수 있습니다.`);
-      e.target.value = "";
-      return;
+      setToastMessage(`파일은 최대 ${MAX_FILE_COUNT}개까지 첨부할 수 있습니다.`)
+      setToastOpen(true)
+      e.target.value = ''
+      return
     }
 
-    setFiles(prev => (multiple ? [...prev, ...validFiles] : validFiles));
-    e.target.value = "";
-  };
+    setFiles(prev => (multiple ? [...prev, ...validFiles] : validFiles))
+    e.target.value = ''
+  }
 
   const handleRemoveFile = (index: number) => {
-    setFiles(prev => prev.filter((_, i) => i !== index));
-  };
+    setFiles(prev => prev.filter((_, i) => i !== index))
+  }
 
-  const getFileURL = (file: File) => URL.createObjectURL(file);
+  const getFileURL = (file: File) => URL.createObjectURL(file)
 
   const getFileIcon = (fileName: string) => {
-    const ext = fileName.split(".").pop()?.toLowerCase();
-    if (ext === "jpg" || ext === "jpeg" || ext === "png") {
-      return "image";
+    const ext = fileName.split('.').pop()?.toLowerCase()
+    if (ext === 'jpg' || ext === 'jpeg' || ext === 'png') {
+      return 'image'
     }
-    if (ext === "pdf") {
-      return "picture_as_pdf";
+    if (ext === 'pdf') {
+      return 'picture_as_pdf'
     }
-    return "description";
-  };
+    return 'description'
+  }
 
-  const formatFileSize = (size: number) => `${(size / (1024 * 1024)).toFixed(1)}MB`;
+  const formatFileSize = (size: number) => `${(size / (1024 * 1024)).toFixed(1)}MB`
 
   return (
     <div className="cuser-pointer flex flex-col gap-2 self-stretch">
       <label className="font-['Inter'] text-sm leading-none font-medium text-slate-700">
-        {title ? title : "첨부파일"}
+        {title ? title : '첨부파일'}
         {isRequired && <span> *</span>}
       </label>
       <div className="flex flex-col gap-3 self-stretch rounded-lg bg-slate-50 p-4 outline outline-1 outline-offset-[-1px] outline-slate-200">
@@ -166,12 +173,13 @@ export const FileUploadSection = ({
         </button>
         <div className="font-['Inter'] text-xs leading-none font-normal text-slate-500">
           JPG, PNG, PDF 파일 (각 최대 {MAX_FILE_SIZE_MB}MB
-          {multiple ? `, 최대 ${MAX_FILE_COUNT}개` : ""})
+          {multiple ? `, 최대 ${MAX_FILE_COUNT}개` : ''})
         </div>
+        {errors && files.length === 0 && (
+          <p className="text-xs text-red-500">{errors}</p>
+        )}
+        <WarningToast open={toastOpen} message={toastMessage} onClose={() => setToastOpen(false)} />
       </div>
-      {errors && files.length === 0 && (
-        <p className="text-xs text-red-500">{errors}</p>
-      )}
     </div>
-  );
-};
+  )
+}
