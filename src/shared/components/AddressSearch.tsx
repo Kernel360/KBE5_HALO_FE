@@ -1,7 +1,5 @@
-import { useEffect, useRef } from 'react'
-import { useLoadScript } from '@react-google-maps/api'
+import { useRef } from 'react'
 import { useAddressStore } from '@/store/useAddressStore'
-import Loading from '@/shared/components/ui/Loading'
 
 interface AddressSearchProps {
   roadAddress: string
@@ -9,11 +7,44 @@ interface AddressSearchProps {
   errors?: string
   setRoadAddress: (val: string) => void
   setDetailAddress: (val: string) => void
-  // 위도/경도 업데이트를 위한 콜백 추가
   onCoordinatesChange?: (lat: number, lng: number) => void
 }
 
-const GOOGLE_MAP_LIBRARIES = ['places'] as ['places']
+declare global {
+  interface Window {
+    daum: {
+      Postcode: new (options: {
+        oncomplete: (data: DaumPostcodeData) => void
+      }) => { open: () => void }
+    }
+    kakao: {
+      maps: {
+        services: {
+          Geocoder: new () => {
+            addressSearch: (
+              address: string,
+              callback: (result: KakaoGeocodeResult[], status: string) => void
+            ) => void
+          }
+          Status: {
+            OK: string
+          }
+        }
+      }
+    }
+  }
+}
+
+interface DaumPostcodeData {
+  roadAddress: string
+  // ... other fields if needed
+}
+interface KakaoGeocodeResult {
+  x: string
+  y: string
+}
+
+const round7 = (num: number) => Math.round(num * 1e7) / 1e7
 
 const AddressSearch = ({
   roadAddress,
@@ -23,101 +54,104 @@ const AddressSearch = ({
   setDetailAddress,
   onCoordinatesChange
 }: AddressSearchProps) => {
-  const inputRef = useRef<HTMLInputElement>(null)
-  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null)
   const { setAddress } = useAddressStore()
-  const { isLoaded } = useLoadScript({
-    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
-    libraries: GOOGLE_MAP_LIBRARIES
-  })
+  const detailInputRef = useRef<HTMLInputElement>(null)
 
-  // 도로명주소 자동완성 초기화
-  useEffect(() => {
-    if (isLoaded && inputRef.current && !autocompleteRef.current) {
-      autocompleteRef.current = new window.google.maps.places.Autocomplete(
-        inputRef.current
-      )
-
-      autocompleteRef.current.addListener('place_changed', () => {
-        const place = autocompleteRef.current!.getPlace()
-
-        if (!place.geometry || !place.formatted_address) {
-          alert('자동완성 목록에서 주소를 선택해주세요.')
-          return
+  // 카카오 우편번호 팝업 열기 (동적 로딩 및 재시도 지원)
+  const openPostcode = () => {
+    // 이미 로드된 경우 바로 실행
+    if (window.daum && window.daum.Postcode) {
+      new window.daum.Postcode({
+        oncomplete: function (data: DaumPostcodeData) {
+          setRoadAddress(data.roadAddress)
+          if (window.kakao && window.kakao.maps && window.kakao.maps.services) {
+            const geocoder = new window.kakao.maps.services.Geocoder()
+            geocoder.addressSearch(
+              data.roadAddress,
+              (result: KakaoGeocodeResult[], status: string) => {
+                if (
+                  status === window.kakao.maps.services.Status.OK &&
+                  result[0]
+                ) {
+                  const lat = round7(parseFloat(result[0].y))
+                  const lng = round7(parseFloat(result[0].x))
+                  if (onCoordinatesChange) onCoordinatesChange(lat, lng)
+                  setAddress(data.roadAddress, lat, lng, detailAddress)
+                } else {
+                  if (onCoordinatesChange) onCoordinatesChange(0, 0)
+                  setAddress(data.roadAddress, 0, 0, detailAddress)
+                }
+              }
+            )
+          } else {
+            if (onCoordinatesChange) onCoordinatesChange(0, 0)
+            setAddress(data.roadAddress, 0, 0, detailAddress)
+          }
+          setTimeout(() => {
+            detailInputRef.current?.focus()
+          }, 100)
         }
-
-        const lat = place.geometry.location?.lat() ?? 0
-        const lng = place.geometry.location?.lng() ?? 0
-
-        // 도로명주소 업데이트
-        setRoadAddress(place.formatted_address)
-
-        // 부모 컴포넌트에 좌표 정보 전달
-        if (onCoordinatesChange) {
-          onCoordinatesChange(lat, lng)
-        }
-
-        // 스토어에도 저장
-        setAddress(place.formatted_address, lat, lng, detailAddress)
-      })
+      }).open()
+      return
     }
-  }, [isLoaded, detailAddress, onCoordinatesChange, setRoadAddress, setAddress])
-
-  // 상세주소 변경 시에도 setAddress 실행 (기존 좌표 유지)
-  useEffect(() => {
-    if (roadAddress) {
-      const { latitude, longitude } = useAddressStore.getState()
-      setAddress(roadAddress, latitude ?? 0, longitude ?? 0, detailAddress)
+    // 스크립트가 없으면 동적으로 추가
+    const scriptId = 'daum-postcode-script'
+    if (!document.getElementById(scriptId)) {
+      const script = document.createElement('script')
+      script.id = scriptId
+      script.src = 'https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js'
+      script.onload = () => openPostcode() // 로드 후 재시도
+      document.body.appendChild(script)
+    } else {
+      // 이미 추가했지만 아직 로드 안 됨: 100ms 단위로 재시도
+      setTimeout(openPostcode, 100)
     }
-  }, [detailAddress, roadAddress, setAddress])
+  }
 
-  return isLoaded ? (
+  return (
     <div className="flex flex-col items-start justify-start gap-2 self-stretch">
       <div className="justify-start self-stretch font-['Inter'] text-sm leading-none font-medium text-slate-700">
         주소 *
       </div>
-
-      {/* 도로명주소 자동완성 입력창 */}
-      <div className="inline-flex h-12 items-center justify-start self-stretch rounded-lg bg-slate-50 px-4 outline outline-1 outline-offset-[-1px] outline-slate-200">
+      <div className="flex w-full gap-2">
         <input
-          ref={inputRef}
           type="text"
           value={roadAddress}
           placeholder="도로명주소"
-          className="w-full bg-transparent text-slate-700 text-sm font-normal outline-none"
-          onChange={(e) => setRoadAddress(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              e.preventDefault(); // Enter로 submit 막기
-              e.stopPropagation();
-            }
-          }}
+          className="h-12 flex-1 rounded-lg bg-slate-50 bg-transparent px-4 text-sm font-normal text-slate-700 outline outline-1 outline-offset-[-1px] outline-slate-200 outline-none"
+          readOnly
         />
+        <button
+          type="button"
+          onClick={openPostcode}
+          className="rounded-lg bg-indigo-600 px-4 text-sm font-medium text-white transition hover:bg-indigo-700"
+        >
+          주소 검색
+        </button>
       </div>
-
-      {/* 상세주소 수동입력 */}
       <div className="inline-flex h-12 items-center justify-start self-stretch rounded-lg bg-slate-50 px-4 outline outline-1 outline-offset-[-1px] outline-slate-200">
         <input
+          ref={detailInputRef}
           type="text"
           placeholder="상세주소"
           value={detailAddress}
-          onChange={(e) => {
-            setDetailAddress(e.target.value);
+          onChange={e => {
+            setDetailAddress(e.target.value)
+            const { latitude, longitude } = useAddressStore.getState()
+            setAddress(
+              roadAddress,
+              latitude ?? 0,
+              longitude ?? 0,
+              e.target.value
+            )
           }}
           className="w-full bg-transparent text-sm font-normal text-slate-700 outline-none"
         />
       </div>
-
       {errors && !roadAddress && (
         <p className="text-xs text-red-500">{errors}</p>
       )}
     </div>
-  ) : (
-    <Loading
-      message="주소 검색 기능을 로딩 중..."
-      size="lg"
-      className="h-screen"
-    />
   )
 }
 
