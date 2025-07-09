@@ -11,9 +11,7 @@ import { Eye, EyeOff } from "lucide-react"
 import { useAddressStore } from "@/store/useAddressStore"
 import type { CustomerSignupReq } from "../types/CustomerSignupType"
 import AddressSearch from "@/shared/components/AddressSearch"
-import SuccessToast from "@/shared/components/ui/toast/SuccessToast"
-import ErrorToast from "@/shared/components/ui/toast/ErrorToast"
-import WarningToast from "@/shared/components/ui/toast/WarningToast"
+import Toast from "@/shared/components/ui/toast/Toast"
 import { PrivacyPolicyModal } from "../modal/PrivacyPolicyModal"
 
 const today = new Date()
@@ -45,9 +43,7 @@ export const CustomerSignup: React.FC = () => {
   const { setAddress } = useAddressStore() // 주소 정보 상태 (Zustand에서 관리)
   const [showPassword, setShowPassword] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
-  const [successToast, setSuccessToast] = useState({ open: false, message: "" })
-  const [errorToast, setErrorToast] = useState({ open: false, message: "" })
-  const [warningToast, setWarningToast] = useState({ open: false, message: "" })
+  const [toast, setToast] = useState({ open: false, message: "" })
   const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const navigate = useNavigate()
@@ -120,7 +116,7 @@ export const CustomerSignup: React.FC = () => {
 
     // 좌표 정보 재확인
     if (!form.latitude || !form.longitude) {
-      setWarningToast({ open: true, message: "주소를 다시 선택해주세요." })
+      setToast({ open: true, message: "주소를 다시 선택해주세요." })
       return
     }
 
@@ -131,34 +127,24 @@ export const CustomerSignup: React.FC = () => {
     try {
       setIsSubmitting(true)
       await signupCustomer(payload)
-      setSuccessToast({ open: true, message: "회원가입 성공하였습니다." })
+      setToast({ open: true, message: "회원가입 성공하였습니다." })
       setAddress("", 0, 0, "")
       setTimeout(() => navigate("/auth/login"), 2500)
     } catch (error: unknown) {
       const message =
         (error as { response?: { data?: { message?: string } } })?.response
           ?.data?.message || "회원가입에 실패했습니다."
-      setErrorToast({ open: true, message })
+      setToast({ open: true, message })
       setIsSubmitting(false)
     }
   }
 
   return (
     <div className="flex w-full justify-center px-4 py-12">
-      <SuccessToast
-        open={successToast.open}
-        message={successToast.message}
-        onClose={() => setSuccessToast({ open: false, message: "" })}
-      />
-      <ErrorToast
-        open={errorToast.open}
-        message={errorToast.message}
-        onClose={() => setErrorToast({ open: false, message: "" })}
-      />
-      <WarningToast
-        open={warningToast.open}
-        message={warningToast.message}
-        onClose={() => setWarningToast({ open: false, message: "" })}
+      <Toast
+        open={toast.open}
+        message={toast.message}
+        onClose={() => setToast({ open: false, message: "" })}
       />
       <form
         onSubmit={handleSubmit}
