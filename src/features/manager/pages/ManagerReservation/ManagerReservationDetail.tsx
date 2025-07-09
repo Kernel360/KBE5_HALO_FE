@@ -263,6 +263,8 @@ export const ManagerReservationDetail = () => {
               managerRating: res.rating,
               managerContent: res.content,
               managerCreateAt: res.createdAt,
+              managerReviewContent: res.content, // 추가
+              managerReviewRating: res.rating,   // 추가
             }
           : prev,
       );
@@ -365,24 +367,6 @@ export const ManagerReservationDetail = () => {
         )}
         {/* 본문 */}
         <div className="flex flex-col items-start justify-start gap-6 self-stretch p-6">
-          {/* 모바일: 체크인/체크아웃 한 줄 배너 (본문 위에만 표시) */}
-          {['CONFIRMED', 'IN_PROGRESS', 'COMPLETED'].includes(reservation.status) && (
-            <div className="flex justify-center w-full xl:hidden">
-              <div className="w-full max-w-5xl p-6">
-                <ReservationCheckInOutBanner
-                  reservation={reservation}
-                  onCheckIn={() => {
-                    setCheckType('IN');
-                    setOpenModal(true);
-                  }}
-                  onCheckOut={() => {
-                    setCheckType('OUT');
-                    setOpenModal(true);
-                  }}
-                />
-              </div>
-            </div>
-          )}
           <Card className="flex flex-col items-start justify-start gap-6 self-stretch rounded-xl bg-white p-8 shadow-[0px_2px_12px_0px_rgba(0,0,0,0.04)]">
             {/* 예약 요청 대기 배너: Card 내부 상단에 위치, w-full 제거 */}
             <div className="grid w-full grid-cols-1 gap-8 xl:grid-cols-2">
@@ -392,13 +376,28 @@ export const ManagerReservationDetail = () => {
                 <ServiceDetailCard reservation={reservation} />
                 <AddressMapCard reservation={reservation} />
               </div>
-              {/* 오른쪽: 체크인/체크아웃 + 리뷰 */}
+              {/* 오른쪽: 리뷰 → 체크인/체크아웃 카드 순서로 변경 */}
               <div className="flex flex-col gap-8">
-                {/* 체크인/체크아웃 카드: 데스크탑에서만 sticky, 완료 시 sticky 해제 */}
+                <ReviewSection
+                  reservation={reservation}
+                  rating={rating}
+                  content={content}
+                  onRatingChange={setRating}
+                  onContentChange={setContent}
+                  onSubmit={handleReview}
+                  improvedDesign
+                />
+                {/* 리뷰와 체크인/체크아웃 카드 사이 구분선 */}
+                <div className="border-t border-gray-200 my-2" />
                 {['CONFIRMED', 'IN_PROGRESS', 'COMPLETED'].includes(reservation.status) && (
                   <div
-                    className={`hidden xl:block ${reservation.inTime && reservation.outTime ? '' : 'sticky'} top-8 z-20 bg-white rounded-xl`}
-                    style={{ boxShadow: reservation.inTime && reservation.outTime ? undefined : '0 2px 12px 0 rgba(0,0,0,0.04)' }}
+                    className={`hidden xl:block ${reservation.inTime && reservation.outTime ? '' : 'sticky'} top-8 z-20 rounded-xl bg-white`}
+                    style={{
+                      boxShadow:
+                        reservation.inTime && reservation.outTime
+                          ? undefined
+                          : '0 2px 12px 0 rgba(0,0,0,0.04)',
+                    }}
                   >
                     <CheckInOutCard
                       reservation={reservation}
@@ -407,25 +406,32 @@ export const ManagerReservationDetail = () => {
                     />
                   </div>
                 )}
-                {/* 모바일에서는 카드/배너 모두 미표시 (본문 내부) */}
-                {/* 리뷰: sticky 카드 높이만큼 padding-bottom 추가 */}
-                <div className="pb-32">
-                  <ReviewSection
-                    reservation={reservation}
-                    rating={rating}
-                    content={content}
-                    onRatingChange={setRating}
-                    onContentChange={setContent}
-                    onSubmit={handleReview}
-                    improvedDesign
-                  />
-                </div>
               </div>
             </div>
             <CancelInfoCard reservation={reservation} />
             <CRMSection customerProfile={customerProfile} />
-            {/* 기존 예약 요청 대기 카드 영역은 제거됨 */}
           </Card>
+          {/* 모바일: 체크인/체크아웃 배너는 Card 바깥, 리뷰는 Card 안 오른쪽 컬럼에만 위치 */}
+          {['CONFIRMED', 'IN_PROGRESS', 'COMPLETED'].includes(reservation.status) && (
+            <>
+              <div className="border-t border-gray-200 my-4 xl:hidden w-full" />
+              <div className="flex w-full justify-center xl:hidden">
+                <div className="w-full max-w-5xl p-6">
+                  <ReservationCheckInOutBanner
+                    reservation={reservation}
+                    onCheckIn={() => {
+                      setCheckType('IN')
+                      setOpenModal(true)
+                    }}
+                    onCheckOut={() => {
+                      setCheckType('OUT')
+                      setOpenModal(true)
+                    }}
+                  />
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </div>
 
