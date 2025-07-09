@@ -1,6 +1,6 @@
-import api from "@/services/axios";
-import type { ManagerReservationDetail } from "@/features/manager/types/ManagerReservationType";
-import { ReservationStatusMap } from "@/features/manager/utils/ManagerReservationStauts";
+import api from '@/services/axios'
+import type { ManagerReservationDetail } from '@/features/manager/types/ManagerReservationType'
+import { ReservationStatusMap } from '@/features/manager/utils/ManagerReservationStauts'
 
 // 문의사항 목록 조회
 export const searchManagerReservations = async (params: {
@@ -88,10 +88,12 @@ export const getManagerReservation = async (
 }
 
 // 체크인
-export const checkIn = async (reservationId: number, inFileId: number) => {
+export const checkIn = async (reservationId: number, inFileId?: number) => {
+  const body: Record<string, unknown> = {}
+  if (inFileId !== undefined) body.inFileId = inFileId
   const res = await api.post(
     `/managers/reservations/${reservationId}/check-in`,
-    { inFileId: inFileId }
+    body
   )
 
   if (!res.data.success) {
@@ -104,10 +106,12 @@ export const checkIn = async (reservationId: number, inFileId: number) => {
 }
 
 // 체크아웃
-export const checkOut = async (reservationId: number, outFileId: number) => {
+export const checkOut = async (reservationId: number, outFileId?: number) => {
+  const body: Record<string, unknown> = {}
+  if (outFileId !== undefined) body.outFileId = outFileId
   const res = await api.patch(
     `/managers/reservations/${reservationId}/check-out`,
-    { outFileId: outFileId }
+    body
   )
 
   if (!res.data.success) {
@@ -133,7 +137,10 @@ export const acceptReservation = async (reservationId: number) => {
 }
 
 // 예약 거절
-export const rejectReservation = async (reservationId: number, cancelReason: string) => {
+export const rejectReservation = async (
+  reservationId: number,
+  cancelReason: string
+) => {
   const res = await api.post(`/managers/reservations/${reservationId}/reject`, {
     cancelReason: cancelReason
   })
