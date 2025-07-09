@@ -263,6 +263,8 @@ export const ManagerReservationDetail = () => {
               managerRating: res.rating,
               managerContent: res.content,
               managerCreateAt: res.createdAt,
+              managerReviewContent: res.content, // 추가
+              managerReviewRating: res.rating,   // 추가
             }
           : prev,
       );
