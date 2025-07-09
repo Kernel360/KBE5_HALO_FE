@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React from "react"
 import { useLocation, useSearchParams } from "react-router-dom"
 import { Search } from "lucide-react"
 import ReservationSearchFilter from "./search/ReservationSearchFilter"
@@ -11,24 +11,6 @@ interface MenuItems {
   searchType?: "reservation" | "review" | "inquiry"
 }
 
-interface SearchFilters {
-  reservation: {
-    status: string
-    managerName: string
-    dateRange: { start: string; end: string }
-  }
-  review: {
-    rating: string
-    keyword: string
-    dateRange: { start: string; end: string }
-  }
-  inquiry: {
-    status: string
-    category: string
-    dateRange: { start: string; end: string }
-  }
-}
-
 const CustomerSidebar: React.FC = () => {
   const menuItems: MenuItems[] = [
     { name: "마이페이지", path: "/my" },
@@ -39,24 +21,7 @@ const CustomerSidebar: React.FC = () => {
   ]
 
   const location = useLocation()
-  const [searchParams, setSearchParams] = useSearchParams()
-  const [searchFilters, setSearchFilters] = useState<SearchFilters>({
-    reservation: {
-      dateRange: { start: "", end: "" },
-      status: "",
-      managerName: ""
-    },
-    review: {
-      rating: "",
-      dateRange: { start: "", end: "" },
-      keyword: ""
-    },
-    inquiry: {
-      status: "",
-      category: "",
-      dateRange: { start: "", end: "" }
-    }
-  })
+  const [, setSearchParams] = useSearchParams()
 
   const getCurrentSearchType = ():
     | "reservation"
@@ -67,26 +32,11 @@ const CustomerSidebar: React.FC = () => {
 
     // 정확한 경로 매칭만 지원
     const currentMenu = menuItems.find(item => item.path === currentPath)
-    console.log("Current Menu:", currentMenu)
     if (currentMenu?.searchType) {
       return currentMenu.searchType
     }
 
     return null
-  }
-
-  const handleFilterChange = (
-    type: "reservation" | "review" | "inquiry",
-    field: string,
-    value: string | { start: string; end: string }
-  ) => {
-    setSearchFilters(prev => ({
-      ...prev,
-      [type]: {
-        ...prev[type],
-        [field]: value
-      }
-    }))
   }
 
   const renderSearchSection = () => {
@@ -104,19 +54,27 @@ const CustomerSidebar: React.FC = () => {
 
         {searchType === "reservation" && (
           <ReservationSearchFilter
-            filters={searchFilters.reservation}
-            onFilterChange={(field, value) =>
-              handleFilterChange("reservation", field, value)
-            }
+            onStatusChange={status => {
+              const params = new URLSearchParams()
+              if (status) {
+                params.set("status", status)
+              }
+              // 전체 선택 시에도 URL 업데이트 (빈 파라미터)
+              setSearchParams(params)
+            }}
           />
         )}
 
         {searchType === "review" && (
           <ReviewSearchFilter
-            filters={searchFilters.review}
-            onFilterChange={(field, value) =>
-              handleFilterChange("review", field, value)
-            }
+            onSearch={filters => {
+              const params = new URLSearchParams()
+              if (filters.rating !== null)
+                params.set("rating", filters.rating.toString())
+            }}
+            onReset={() => {
+              setSearchParams(new URLSearchParams())
+            }}
           />
         )}
 
