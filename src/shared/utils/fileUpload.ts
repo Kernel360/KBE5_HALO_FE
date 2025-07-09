@@ -12,7 +12,6 @@ export async function getPresignedUrls(
     files: fileNames,
     expirationMinutes,
   });
-  console.log(res.data);
   // 개선된 응답 구조에 맞게 presigned url 배열만 반환
   return res.data.body.preSignedUrls;
 }
@@ -58,9 +57,7 @@ export async function createFileGroup(
   expirationMinutes = 30,
 ): Promise<number> {
   const uploadedUrls = await uploadFilesAndGetUrls(files, expirationMinutes);
-  console.log(uploadedUrls);
   const res = await axios.post("/files", { fileUrls: uploadedUrls });
-  console.log(res.data);
   return res.data.body.fileId; // 반드시 숫자만 반환
 }
 
@@ -73,6 +70,5 @@ export async function updateFileGroup(
   allFileUrls: string[],
 ): Promise<number> {
   const res = await axios.patch("/files", { fileId, fileUrls: allFileUrls });
-  console.log(res.data);
   return res.data; // fileId (Long)
 }

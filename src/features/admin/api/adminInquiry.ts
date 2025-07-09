@@ -57,7 +57,6 @@ export const getAdminInquiry = async (
   inquiryId: number,
 ) => {
   const res = await api.get(`/admin/inquiries/${inquiryId}`);
-  console.log(res.data.body);
   if (!res.data.success)
     throw new Error(res.data.message || "문의사항 상세 조회에 실패했습니다.");
   return res.data.body;

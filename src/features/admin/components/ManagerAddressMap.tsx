@@ -24,20 +24,13 @@ const ManagerAddressMap: React.FC<ManagerAddressMapProps> = ({
 
   useEffect(() => {
     const initializeMap = () => {
-      console.log("지도 초기화 시작");
-      console.log("mapContainer.current:", mapContainer.current);
-      console.log("window.kakao:", window.kakao);
-      console.log("window.kakao.maps:", window.kakao?.maps);
-
       if (!mapContainer.current) {
-        console.error("지도 컨테이너가 없습니다");
         setHasError(true);
         setIsLoading(false);
         return;
       }
 
       if (!window.kakao || !window.kakao.maps) {
-        console.error("카카오 맵 API가 로드되지 않았습니다");
         setHasError(true);
         setIsLoading(false);
         return;
@@ -50,20 +43,15 @@ const ManagerAddressMap: React.FC<ManagerAddressMapProps> = ({
           level: 6, // 지도 확대 레벨
         };
 
-        console.log("지도 생성 시도:", mapOption);
         const map = new window.kakao.maps.Map(mapContainer.current, mapOption);
         mapRef.current = map;
-        console.log("지도 생성 완료:", map);
 
         // 주소-좌표 변환 객체 생성
         const geocoder = new window.kakao.maps.services.Geocoder();
 
         // 주소로 좌표 검색
-        console.log("주소 검색 시작:", address);
         geocoder.addressSearch(address, (result: any, status: any) => {
-          console.log("주소 검색 결과:", result, status);
           if (status === window.kakao.maps.services.Status.OK) {
-            console.log("주소 검색 성공:", result[0]);
             const coords = new window.kakao.maps.LatLng(
               result[0].y,
               result[0].x,
@@ -131,15 +119,12 @@ const ManagerAddressMap: React.FC<ManagerAddressMapProps> = ({
 
             map.setBounds(bounds);
           } else {
-            console.error("주소 검색 실패:", status, "주소:", address);
             // 주소 검색 실패 시에도 기본 지도는 표시
-            console.log("기본 지도 표시 (서울 중심)");
           }
         });
 
         setIsLoading(false);
       } catch (error) {
-        console.error("지도 생성 중 오류:", error);
         setHasError(true);
         setIsLoading(false);
       }
@@ -159,7 +144,6 @@ const ManagerAddressMap: React.FC<ManagerAddressMapProps> = ({
             initializeMap();
           });
         } else {
-          console.error("카카오 맵 API 로드 대기 시간 초과");
           setHasError(true);
           setIsLoading(false);
         }
