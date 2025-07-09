@@ -32,6 +32,7 @@ import {
 } from '@/shared/utils/fileUpload'
 import ManagerAcceptModal from '../../components/ManagerAcceptModal'
 import ManagerRejectModal from '../../components/ManagerRejectModal'
+import ReservationRequestBanner from '../../components/ReservationRequestBanner'
 
 // 명확한 타입 정의
 interface CustomerNote {
@@ -394,14 +395,33 @@ export const ManagerReservationDetail = () => {
             </Link>
           }
         />
+        {/* 예약 요청 대기 한 줄 상태바 */}
+        {reservation.status === 'REQUESTED' && (
+          <ReservationRequestBanner
+            reservation={reservation}
+            onAccept={() => setOpenAcceptModal(true)}
+            onReject={() => setOpenRejectModal(true)}
+          />
+        )}
         {/* 본문 */}
         <div className="flex flex-col items-start justify-start gap-6 self-stretch p-6">
           <Card className="flex flex-col items-start justify-start gap-6 self-stretch rounded-xl bg-white p-8 shadow-[0px_2px_12px_0px_rgba(0,0,0,0.04)]">
-            <div className="w-full grid grid-cols-1 xl:grid-cols-2 gap-8">
-              {/* 왼쪽: 예약 정보 + 서비스 상세 + 리뷰 */}
+            <div className="grid w-full grid-cols-1 gap-8 xl:grid-cols-2">
+              {/* 왼쪽: 예약 정보 + 서비스 상세 + 서비스 주소(지도) */}
               <div className="flex flex-col gap-8">
                 <ReservationInfoCard reservation={reservation} customerProfile={customerProfile} />
                 <ServiceDetailCard reservation={reservation} />
+                <AddressMapCard reservation={reservation} />
+              </div>
+              {/* 오른쪽: 체크인/체크아웃 + 리뷰 */}
+              <div className="flex flex-col gap-8">
+                {['CONFIRMED', 'IN_PROGRESS', 'COMPLETED'].includes(reservation.status) && (
+                  <CheckInOutCard
+                    reservation={reservation}
+                    setCheckType={setCheckType}
+                    setOpenModal={setOpenModal}
+                  />
+                )}
                 <ReviewSection
                   reservation={reservation}
                   rating={rating}
@@ -411,17 +431,6 @@ export const ManagerReservationDetail = () => {
                   onSubmit={handleReview}
                   improvedDesign
                 />
-              </div>
-              {/* 오른쪽: 서비스 주소(지도) + 체크인/체크아웃 */}
-              <div className="flex flex-col gap-8">
-                <AddressMapCard reservation={reservation} />
-                {['CONFIRMED', 'IN_PROGRESS', 'COMPLETED'].includes(reservation.status) && (
-                  <CheckInOutCard
-                    reservation={reservation}
-                    setCheckType={setCheckType}
-                    setOpenModal={setOpenModal}
-                  />
-                )}
               </div>
             </div>
             <CancelInfoCard reservation={reservation} />
@@ -434,45 +443,7 @@ export const ManagerReservationDetail = () => {
               handleProposeBooking={handleProposeBooking}
               handleUpdateGrade={handleUpdateGrade}
             />
-            {reservation.status === "REQUESTED" && (
-              <div className="w-full flex justify-center mt-4">
-                <div className="w-full max-w-xl rounded-2xl shadow-lg border border-yellow-200 bg-white p-6 flex flex-col items-center gap-4">
-                  {/* 상단 아이콘/타이틀/뱃지 */}
-                  <div className="flex items-center gap-3 mb-2">
-                    <svg className="w-8 h-8 text-yellow-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span className="text-xl font-bold text-yellow-700">예약 요청 대기</span>
-                    <span className="ml-2 px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700 text-xs font-semibold">확인 필요</span>
-                  </div>
-                  {/* 안내 메시지 */}
-                  <div className="text-sm text-yellow-700 font-medium mb-2 text-center">
-                    고객의 예약 요청에 대해 수락 또는 거절을 선택해 주세요.
-                  </div>
-                  {/* 예약 정보 요약 */}
-                  <div className="w-full flex flex-col gap-1 text-sm text-gray-700 bg-yellow-50 rounded-lg p-4 mb-2">
-                    <div><span className="font-semibold text-gray-900">고객명</span> : {reservation.userName}</div>
-                    <div><span className="font-semibold text-gray-900">서비스</span> : {reservation.serviceName}</div>
-                    <div><span className="font-semibold text-gray-900">요청일</span> : {reservation.requestDate}</div>
-                  </div>
-                  {/* 버튼 영역 */}
-                  <div className="flex gap-4 mt-2 w-full justify-center">
-                    <button
-                      className="flex-1 px-5 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition"
-                      onClick={() => setOpenAcceptModal(true)}
-                    >
-                      예약 수락
-                    </button>
-                    <button
-                      className="flex-1 px-5 py-2 bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600 transition"
-                      onClick={() => setOpenRejectModal(true)}
-                    >
-                      예약 거절
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
+            {/* 기존 예약 요청 대기 카드 영역은 제거됨 */}
           </Card>
         </div>
       </div>
