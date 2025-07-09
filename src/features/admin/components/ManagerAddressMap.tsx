@@ -45,23 +45,17 @@ const ManagerAddressMap: React.FC<ManagerAddressMapProps> = ({
         const geocoder = new maps.services.Geocoder();
 
         // 주소로 좌표 검색
-        geocoder.addressSearch(address, (result: any[], status: string) => {
-          if (status === maps.services.Status.OK) {
-            const coords = new maps.LatLng(
-              result[0].y,
-              result[0].x
-            )
-
-            // 지도 중심을 검색된 좌표로 이동
-            map.setCenter(coords);
-
-            // 마커 생성
-            const marker = new maps.Marker({
-              map: map,
-              position: coords,
-            });
-
-            // 정보창 생성
+        geocoder.addressSearch(address, (result: Array<{ x: number; y: number }>, status: string) => {
+          if (status === maps.services.Status.OK && result[0]) {
+            const lat = Number(result[0].y)
+            const lng = Number(result[0].x)
+            if (isNaN(lat) || isNaN(lng)) {
+              console.error('좌표 변환 결과가 NaN입니다:', result[0])
+              return
+            }
+            const coords = new maps.LatLng(lat, lng)
+            map.setCenter(coords)
+            const marker = new maps.Marker({ map, position: coords })
             const infoWindow = new maps.InfoWindow({
               content: `
                 <div style="padding: 10px; min-width: 200px;">
@@ -71,52 +65,39 @@ const ManagerAddressMap: React.FC<ManagerAddressMapProps> = ({
                     ${detailAddress}
                   </div>
                 </div>
-              `,
-            });
-
-            // 마커에 정보창 표시
-            infoWindow.open(map, marker);
-
+              `
+            })
+            infoWindow.open(map, marker)
             // 서비스 가능 지역 원 표시 (반경 5km)
             const circle = new maps.Circle({
               center: coords,
-              radius: 5000, // 5km
+              radius: 5000,
               strokeWeight: 2,
-              strokeColor: "#6366f1",
+              strokeColor: '#6366f1',
               strokeOpacity: 0.8,
-              strokeStyle: "solid",
-              fillColor: "#6366f1",
-              fillOpacity: 0.1,
-            });
-
-            circle.setMap(map);
-
+              strokeStyle: 'solid',
+              fillColor: '#6366f1',
+              fillOpacity: 0.1
+            })
+            circle.setMap(map)
             // 원이 모두 보이도록 지도 레벨 조정
-            const bounds = new maps.LatLngBounds();
-            const distance = 5000; // 5km
-            const earthRadius = 6371000; // 지구 반지름 (미터)
-
-            const lat = result[0].y;
-            const lng = result[0].x;
-            const latRadian = (lat * Math.PI) / 180;
-
-            const deltaLat = ((distance / earthRadius) * 180) / Math.PI;
-            const deltaLng =
-              ((distance / (earthRadius * Math.cos(latRadian))) * 180) /
-              Math.PI;
-
-            bounds.extend(
-              new maps.LatLng(lat + deltaLat, lng + deltaLng),
-            );
-            bounds.extend(
-              new maps.LatLng(lat - deltaLat, lng - deltaLng),
-            );
-
-            map.setBounds(bounds);
+            const bounds = new maps.LatLngBounds()
+            const earthRadius = 6371000
+            const latRadian = (lat * Math.PI) / 180
+            const deltaLat = ((5000 / earthRadius) * 180) / Math.PI
+            const deltaLng = ((5000 / (earthRadius * Math.cos(latRadian))) * 180) / Math.PI
+            if (!isNaN(deltaLat) && !isNaN(deltaLng)) {
+              bounds.extend(new maps.LatLng(lat + deltaLat, lng + deltaLng))
+              bounds.extend(new maps.LatLng(lat - deltaLat, lng - deltaLng))
+              map.setBounds(bounds)
+            } else {
+              console.error('deltaLat 또는 deltaLng가 NaN입니다:', { deltaLat, deltaLng })
+            }
           } else {
-            // 주소 검색 실패 시에도 기본 지도는 표시
+            // 주소 변환 실패
+            console.error('카카오 주소 변환 실패', address, result, status)
           }
-        });
+        })
 
         setIsLoading(false);
       } catch (error) {
