@@ -33,6 +33,7 @@ import {
 import ManagerAcceptModal from '../../components/ManagerAcceptModal'
 import ManagerRejectModal from '../../components/ManagerRejectModal'
 import ReservationRequestBanner from '../../components/ReservationRequestBanner'
+import ReservationCheckInOutBanner from '../../components/ReservationCheckInOutBanner'
 
 // 명확한 타입 정의
 interface CustomerNote {
@@ -405,6 +406,22 @@ export const ManagerReservationDetail = () => {
         )}
         {/* 본문 */}
         <div className="flex flex-col items-start justify-start gap-6 self-stretch p-6">
+          {/* 모바일: 체크인/체크아웃 한 줄 배너 (본문 위에만 표시) */}
+          {['CONFIRMED', 'IN_PROGRESS', 'COMPLETED'].includes(reservation.status) && (
+            <div className="block xl:hidden w-full">
+              <ReservationCheckInOutBanner
+                reservation={reservation}
+                onCheckIn={() => {
+                  setCheckType('IN');
+                  setOpenModal(true);
+                }}
+                onCheckOut={() => {
+                  setCheckType('OUT');
+                  setOpenModal(true);
+                }}
+              />
+            </div>
+          )}
           <Card className="flex flex-col items-start justify-start gap-6 self-stretch rounded-xl bg-white p-8 shadow-[0px_2px_12px_0px_rgba(0,0,0,0.04)]">
             <div className="grid w-full grid-cols-1 gap-8 xl:grid-cols-2">
               {/* 왼쪽: 예약 정보 + 서비스 상세 + 서비스 주소(지도) */}
@@ -415,22 +432,32 @@ export const ManagerReservationDetail = () => {
               </div>
               {/* 오른쪽: 체크인/체크아웃 + 리뷰 */}
               <div className="flex flex-col gap-8">
+                {/* 체크인/체크아웃 카드: 데스크탑에서만 sticky, 완료 시 sticky 해제 */}
                 {['CONFIRMED', 'IN_PROGRESS', 'COMPLETED'].includes(reservation.status) && (
-                  <CheckInOutCard
-                    reservation={reservation}
-                    setCheckType={setCheckType}
-                    setOpenModal={setOpenModal}
-                  />
+                  <div
+                    className={`hidden xl:block ${reservation.inTime && reservation.outTime ? '' : 'sticky'} top-8 z-20 bg-white rounded-xl`}
+                    style={{ boxShadow: reservation.inTime && reservation.outTime ? undefined : '0 2px 12px 0 rgba(0,0,0,0.04)' }}
+                  >
+                    <CheckInOutCard
+                      reservation={reservation}
+                      setCheckType={setCheckType}
+                      setOpenModal={setOpenModal}
+                    />
+                  </div>
                 )}
-                <ReviewSection
-                  reservation={reservation}
-                  rating={rating}
-                  content={content}
-                  onRatingChange={setRating}
-                  onContentChange={setContent}
-                  onSubmit={handleReview}
-                  improvedDesign
-                />
+                {/* 모바일에서는 카드/배너 모두 미표시 (본문 내부) */}
+                {/* 리뷰: sticky 카드 높이만큼 padding-bottom 추가 */}
+                <div className="pb-32">
+                  <ReviewSection
+                    reservation={reservation}
+                    rating={rating}
+                    content={content}
+                    onRatingChange={setRating}
+                    onContentChange={setContent}
+                    onSubmit={handleReview}
+                    improvedDesign
+                  />
+                </div>
               </div>
             </div>
             <CancelInfoCard reservation={reservation} />
