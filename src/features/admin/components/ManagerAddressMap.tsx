@@ -2,15 +2,8 @@ import React, { useEffect, useRef } from "react";
 import Loading from "@/shared/components/ui/Loading";
 
 interface ManagerAddressMapProps {
-  address: string;
-  detailAddress: string;
-}
-
-// 카카오 맵 API 타입 정의
-declare global {
-  interface Window {
-    kakao: any;
-  }
+  address: string
+  detailAddress: string
 }
 
 const ManagerAddressMap: React.FC<ManagerAddressMapProps> = ({
@@ -19,55 +12,57 @@ const ManagerAddressMap: React.FC<ManagerAddressMapProps> = ({
 }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const mapRef = useRef<any>(null);
-  const [isLoading, setIsLoading] = React.useState(true);
-  const [hasError, setHasError] = React.useState(false);
+  const [isLoading, setIsLoading] = React.useState(true)
+  const [hasError, setHasError] = React.useState(false)
 
   useEffect(() => {
     const initializeMap = () => {
       if (!mapContainer.current) {
-        setHasError(true);
-        setIsLoading(false);
-        return;
+        setHasError(true)
+        setIsLoading(false)
+        return
       }
 
       if (!window.kakao || !window.kakao.maps) {
-        setHasError(true);
-        setIsLoading(false);
-        return;
+        setHasError(true)
+        setIsLoading(false)
+        return
       }
 
       try {
+        // kakao.maps를 any로 우회
+        const maps = (window.kakao as any).maps
         // 지도 초기화
         const mapOption = {
-          center: new window.kakao.maps.LatLng(37.5665, 126.978), // 서울 중심
+          center: new maps.LatLng(37.5665, 126.978), // 서울 중심
           level: 6, // 지도 확대 레벨
         };
 
-        const map = new window.kakao.maps.Map(mapContainer.current, mapOption);
+        const map = new maps.Map(mapContainer.current, mapOption);
         mapRef.current = map;
 
         // 주소-좌표 변환 객체 생성
-        const geocoder = new window.kakao.maps.services.Geocoder();
+        const geocoder = new maps.services.Geocoder();
 
         // 주소로 좌표 검색
-        geocoder.addressSearch(address, (result: any, status: any) => {
-          if (status === window.kakao.maps.services.Status.OK) {
-            const coords = new window.kakao.maps.LatLng(
+        geocoder.addressSearch(address, (result: any[], status: string) => {
+          if (status === maps.services.Status.OK) {
+            const coords = new maps.LatLng(
               result[0].y,
-              result[0].x,
-            );
+              result[0].x
+            )
 
             // 지도 중심을 검색된 좌표로 이동
             map.setCenter(coords);
 
             // 마커 생성
-            const marker = new window.kakao.maps.Marker({
+            const marker = new maps.Marker({
               map: map,
               position: coords,
             });
 
             // 정보창 생성
-            const infoWindow = new window.kakao.maps.InfoWindow({
+            const infoWindow = new maps.InfoWindow({
               content: `
                 <div style="padding: 10px; min-width: 200px;">
                   <div style="font-weight: bold; margin-bottom: 5px;">매니저 위치</div>
@@ -83,7 +78,7 @@ const ManagerAddressMap: React.FC<ManagerAddressMapProps> = ({
             infoWindow.open(map, marker);
 
             // 서비스 가능 지역 원 표시 (반경 5km)
-            const circle = new window.kakao.maps.Circle({
+            const circle = new maps.Circle({
               center: coords,
               radius: 5000, // 5km
               strokeWeight: 2,
@@ -97,7 +92,7 @@ const ManagerAddressMap: React.FC<ManagerAddressMapProps> = ({
             circle.setMap(map);
 
             // 원이 모두 보이도록 지도 레벨 조정
-            const bounds = new window.kakao.maps.LatLngBounds();
+            const bounds = new maps.LatLngBounds();
             const distance = 5000; // 5km
             const earthRadius = 6371000; // 지구 반지름 (미터)
 
@@ -111,10 +106,10 @@ const ManagerAddressMap: React.FC<ManagerAddressMapProps> = ({
               Math.PI;
 
             bounds.extend(
-              new window.kakao.maps.LatLng(lat + deltaLat, lng + deltaLng),
+              new maps.LatLng(lat + deltaLat, lng + deltaLng),
             );
             bounds.extend(
-              new window.kakao.maps.LatLng(lat - deltaLat, lng - deltaLng),
+              new maps.LatLng(lat - deltaLat, lng - deltaLng),
             );
 
             map.setBounds(bounds);
@@ -133,14 +128,14 @@ const ManagerAddressMap: React.FC<ManagerAddressMapProps> = ({
     // 카카오 맵 API가 이미 로드되어 있으면 바로 초기화
     if (window.kakao && window.kakao.maps) {
       // autoload=false이므로 수동으로 로드
-      window.kakao.maps.load(() => {
+      (window.kakao as any).maps.load(() => {
         initializeMap();
       });
     } else {
       // 약간의 지연 후 재시도
       const timer = setTimeout(() => {
         if (window.kakao && window.kakao.maps) {
-          window.kakao.maps.load(() => {
+          (window.kakao as any).maps.load(() => {
             initializeMap();
           });
         } else {
