@@ -1,62 +1,63 @@
-import { useAuthStore } from "@/store/useAuthStore";
-import { Fragment } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
-import { useUserStore } from "@/store/useUserStore";
-import { logout } from "@/shared/utils/logout";
+import { useAuthStore } from "@/store/useAuthStore"
+import { Fragment } from "react"
+import { NavLink, useNavigate } from "react-router-dom"
+import { useUserStore } from "@/store/useUserStore"
+import { logout } from "@/shared/utils/logout"
 
 export const CustomerHeader = () => {
-  const isLoggedIn = useAuthStore((state) => state.isLoggedIn());
-  const { userName } = useUserStore();
-  const navigate = useNavigate();
+  const isLoggedIn = useAuthStore(state => state.isLoggedIn())
+  const { userName } = useUserStore()
+  const navigate = useNavigate()
 
   const menuItems = [
     { name: "예약하기", path: "/reservations/new" },
-    { name: "마이페이지", path: "/my" },
-  ];
+    { name: "예약 내역", path: "/my/reservations" },
+    { name: "리뷰 내역", path: "/my/reviews" },
+    { name: "문의 내역", path: "/my/inquiries" },
+    { name: "회원정보", path: "/my" }
+  ]
 
   // 메뉴 클릭 핸들러 (로그인 체크)
   const handleMenuClick = (path: string, e: React.MouseEvent) => {
-    e.preventDefault();
+    e.preventDefault()
     if (!isLoggedIn) {
-      navigate("/auth/login");
+      navigate("/auth/login")
     } else {
-      navigate(path);
+      navigate(path)
     }
-  };
+  }
 
   // 수요자 로그아웃
   const handleLogout = async () => {
-    await logout();
-    navigate("/");
-  };
+    await logout()
+    navigate("/")
+  }
 
   return (
     <Fragment>
-      <div className="self-stretch h-20 px-28 bg-white border-b border-zinc-100 inline-flex justify-between items-center">
+      <div className="inline-flex h-20 items-center justify-between self-stretch border-b border-zinc-100 bg-white px-28">
         {/* 좌측 로고 */}
         <button
           onClick={() => navigate("/")}
-          className="flex justify-start items-center gap-2 cursor-pointer bg-transparent border-none p-0"
-          type="button"
-        >
-          <div className="w-8 h-8 bg-indigo-600 rounded-lg inline-flex flex-col justify-center items-center">
-            <div className="justify-start text-white text-base font-bold font-['Inter'] leading-tight">
+          className="flex cursor-pointer items-center justify-start gap-2 border-none bg-transparent p-0"
+          type="button">
+          <div className="inline-flex h-8 w-8 flex-col items-center justify-center rounded-lg bg-indigo-600">
+            <div className="justify-start font-['Inter'] text-base leading-tight font-bold text-white">
               H
             </div>
           </div>
-          <div className="justify-start text-zinc-800 text-xl font-bold font-['Inter'] leading-normal">
+          <div className="justify-start font-['Inter'] text-xl leading-normal font-bold text-zinc-800">
             HaloCare
           </div>
         </button>
 
         {/* 중간 메뉴 */}
-        <div className="flex justify-center items-center gap-10">
+        <div className="flex items-center justify-center gap-10">
           {menuItems.map(({ name, path }) => (
             <button
               key={path}
-              onClick={(e) => handleMenuClick(path, e)}
-              className="justify-start text-zinc-800 text-base font-medium font-['Inter'] leading-tight bg-transparent border-none cursor-pointer hover:text-indigo-600 p-0"
-            >
+              onClick={e => handleMenuClick(path, e)}
+              className="cursor-pointer justify-start border-none bg-transparent p-0 font-['Inter'] text-base leading-tight font-medium text-zinc-800 hover:text-indigo-600">
               {name}
             </button>
           ))}
@@ -64,54 +65,49 @@ export const CustomerHeader = () => {
 
         {/* 우측 메뉴 */}
         {isLoggedIn ? (
-          <div className="inline-flex justify-end items-center gap-4">
-            <div className="flex justify-end items-center gap-2">
+          <div className="inline-flex items-center justify-end gap-4">
+            <div className="flex items-center justify-end gap-2">
               <div
-                className="justify-start text-zinc-800 text-base font-medium font-['Inter'] leading-tight cursor-pointer hover:underline"
-                onClick={() => navigate("/my")}
-              >
+                className="cursor-pointer justify-start font-['Inter'] text-base leading-tight font-medium text-zinc-800 hover:underline"
+                onClick={() => navigate("/my")}>
                 {userName}님
               </div>
             </div>
             <button
-              className="w-24 h-10 bg-white rounded-lg outline outline-1 outline-offset-[-1px] outline-gray-200 inline-flex flex-col justify-center items-center"
-              onClick={handleLogout}
-            >
-              <div className="justify-start text-stone-500 text-sm font-medium font-['Inter'] leading-none cursor-pointer">
+              className="inline-flex h-10 w-24 flex-col items-center justify-center rounded-lg bg-white outline outline-1 outline-offset-[-1px] outline-gray-200"
+              onClick={handleLogout}>
+              <div className="cursor-pointer justify-start font-['Inter'] text-sm leading-none font-medium text-stone-500">
                 로그아웃
               </div>
             </button>
           </div>
         ) : (
-          <div className="flex justify-end items-center gap-4">
+          <div className="flex items-center justify-end gap-4">
             <NavLink
               to={"/auth/login"}
               end
               className={
-                "justify-start text-indigo-600 text-base font-medium font-['Inter'] leading-tight"
-              }
-            >
+                "justify-start font-['Inter'] text-base leading-tight font-medium text-indigo-600"
+              }>
               로그인
             </NavLink>
-            <div className="w-28 h-10 bg-indigo-600 rounded-lg inline-flex flex-col justify-center items-center">
+            <div className="inline-flex h-10 w-28 flex-col items-center justify-center rounded-lg bg-indigo-600">
               <NavLink
                 to={"/auth/signup"}
                 end
                 className={
-                  "justify-start text-white text-sm font-semibold font-['Inter'] leading-none"
-                }
-              >
+                  "justify-start font-['Inter'] text-sm leading-none font-semibold text-white"
+                }>
                 회원가입
               </NavLink>
             </div>
-            <div className="w-36 h-10 bg-white rounded-lg outline outline-1 outline-offset-[-1px] outline-indigo-600 inline-flex flex-col justify-center items-center">
+            <div className="inline-flex h-10 w-36 flex-col items-center justify-center rounded-lg bg-white outline outline-1 outline-offset-[-1px] outline-indigo-600">
               <NavLink
                 to={"/managers/auth/signup"}
                 end
                 className={
-                  "justify-start text-indigo-600 text-sm font-semibold font-['Inter'] leading-none"
-                }
-              >
+                  "justify-start font-['Inter'] text-sm leading-none font-semibold text-indigo-600"
+                }>
                 매니저 모집
               </NavLink>
             </div>
@@ -119,5 +115,5 @@ export const CustomerHeader = () => {
         )}
       </div>
     </Fragment>
-  );
-};
+  )
+}
