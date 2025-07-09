@@ -272,3 +272,14 @@ export const formatTime = (date: Date): string => {
 export const formatDateTime = (date: Date): string => {
   return `${formatDateToKorean(date)} ${formatTime(date)}`
 }
+
+export const formatDateTimeKoreanFull = (dateInput: string | Date): string => {
+  const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput
+  const year = date.getFullYear()
+  const month = (date.getMonth() + 1).toString().padStart(2, '0')
+  const day = date.getDate().toString().padStart(2, '0')
+  const hour = date.getHours().toString().padStart(2, '0')
+  const minute = date.getMinutes().toString().padStart(2, '0')
+  const second = date.getSeconds().toString().padStart(2, '0')
+  return `${year}년 ${month}월 ${day}일\n${hour}시 ${minute}분 ${second}초`
+}
