@@ -396,33 +396,40 @@ export const ManagerReservationDetail = () => {
             </Link>
           }
         />
-        {/* 예약 요청 대기 한 줄 상태바 */}
+        {/* 예약 요청 대기 배너: Card 바깥, 본문 위에 위치. Card와 동일한 너비와 padding(p-6)으로 중앙 정렬 */}
         {reservation.status === 'REQUESTED' && (
-          <ReservationRequestBanner
-            reservation={reservation}
-            onAccept={() => setOpenAcceptModal(true)}
-            onReject={() => setOpenRejectModal(true)}
-          />
+          <div className="flex justify-center w-full">
+            <div className="w-full max-w-5xl p-6">
+              <ReservationRequestBanner
+                reservation={reservation}
+                onAccept={() => setOpenAcceptModal(true)}
+                onReject={() => setOpenRejectModal(true)}
+              />
+            </div>
+          </div>
         )}
         {/* 본문 */}
         <div className="flex flex-col items-start justify-start gap-6 self-stretch p-6">
           {/* 모바일: 체크인/체크아웃 한 줄 배너 (본문 위에만 표시) */}
           {['CONFIRMED', 'IN_PROGRESS', 'COMPLETED'].includes(reservation.status) && (
-            <div className="block xl:hidden w-full">
-              <ReservationCheckInOutBanner
-                reservation={reservation}
-                onCheckIn={() => {
-                  setCheckType('IN');
-                  setOpenModal(true);
-                }}
-                onCheckOut={() => {
-                  setCheckType('OUT');
-                  setOpenModal(true);
-                }}
-              />
+            <div className="flex justify-center w-full xl:hidden">
+              <div className="w-full max-w-5xl p-6">
+                <ReservationCheckInOutBanner
+                  reservation={reservation}
+                  onCheckIn={() => {
+                    setCheckType('IN');
+                    setOpenModal(true);
+                  }}
+                  onCheckOut={() => {
+                    setCheckType('OUT');
+                    setOpenModal(true);
+                  }}
+                />
+              </div>
             </div>
           )}
           <Card className="flex flex-col items-start justify-start gap-6 self-stretch rounded-xl bg-white p-8 shadow-[0px_2px_12px_0px_rgba(0,0,0,0.04)]">
+            {/* 예약 요청 대기 배너: Card 내부 상단에 위치, w-full 제거 */}
             <div className="grid w-full grid-cols-1 gap-8 xl:grid-cols-2">
               {/* 왼쪽: 예약 정보 + 서비스 상세 + 서비스 주소(지도) */}
               <div className="flex flex-col gap-8">
