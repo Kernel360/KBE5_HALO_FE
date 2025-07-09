@@ -56,15 +56,8 @@ export const AdminCustomers = () => {
           size: 10,
           sort: sortOrder ? `point,${sortOrder}` : undefined,
         };
-        console.log("API 호출 파라미터:", searchParams);
-        console.log("현재 검색어 상태:", {
-          nameKeyword,
-          phoneKeyword,
-          emailKeyword,
-        });
 
         const data = await fetchAdminCustomers(searchParams);
-        console.log("고객 목록 응답 데이터:", data);
         // API 응답 데이터를 AdminCustomer 타입에 맞게 매핑
         const mappedCustomers: AdminCustomer[] = (data.content || []).map(
           (customer) => ({
@@ -319,7 +312,6 @@ export const AdminCustomers = () => {
                 ]}
                 initialValues={{ type: "name", keyword: "" }}
                 onSearch={({ type, keyword }) => {
-                  console.log("검색 실행:", { type, keyword });
 
                   // 모든 검색어 초기화
                   setNameKeyword("");
