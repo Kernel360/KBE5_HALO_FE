@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from 'react';
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import {
   signupAdmin,
@@ -29,58 +29,125 @@ export const AdminAccountForm = () => {
   const isEditMode = !!adminId;
   const location = useLocation();
   const adminData = location.state;
-  const [form, setForm] = useState<createAdminSignup>({
-    userName: isEditMode && adminData?.userName ? adminData.userName : "",
-    email: isEditMode && adminData?.email ? adminData.email : "",
-    password: "",
-    phone: isEditMode && adminData?.phone ? adminData.phone : "",
+  const [form, setForm] = useState<createAdminSignup & {
+    currentPassword?: string;
+    newPassword?: string;
+    confirmNewPassword?: string;
+  }>({
+    userName: isEditMode && adminData?.userName ? adminData.userName : '',
+    email: isEditMode && adminData?.email ? adminData.email : '',
+    password: '',
+    phone: isEditMode && adminData?.phone ? adminData.phone : '',
+    currentPassword: '',
+    newPassword: '',
+    confirmNewPassword: '',
   });
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [loading, setLoading] = useState(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [successToastMsg, setSuccessToastMsg] = useState<string | null>(null);
+  const [showPasswordFields, setShowPasswordFields] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const navigate = useNavigate();
+
+  // 새 비밀번호 입력란에 값이 없을 때 확인/현재 비밀번호 입력란 값, 에러 초기화
+  useEffect(() => {
+    if (isEditMode && showPasswordFields && !form.newPassword) {
+      setForm(f => ({ ...f, confirmNewPassword: '', currentPassword: '' }));
+      setErrors(e => ({ ...e, confirmNewPassword: '', currentPassword: '' }));
+    }
+  }, [form.newPassword, isEditMode, showPasswordFields]);
+
+  // 비밀번호 변경 토글 핸들러
+  const handleTogglePasswordFields = () => {
+    setShowPasswordFields((prev) => {
+      const next = !prev;
+      if (!next) {
+        // 닫힐 때 값과 에러 초기화
+        setForm((f) => ({ ...f, currentPassword: '', newPassword: '', confirmNewPassword: '' }));
+        setErrors((e) => ({ ...e, currentPassword: '', newPassword: '', confirmNewPassword: '' }));
+      }
+      return next;
+    });
+  };
 
   const validate = () => {
     const newErrors: { [key: string]: string } = {};
     if (!isEditMode && !form.userName.trim())
-      newErrors.userName = "이름을 입력하세요.";
-    if (!form.email.trim()) {
-      newErrors.email = "이메일을 입력하세요.";
+      newErrors.userName = '이름을 입력하세요.';
+    // 이메일은 추가 모드에서만 필수
+    if (!isEditMode) {
+      if (!form.email.trim()) {
+        newErrors.email = '이메일을 입력하세요.';
+      } else {
+        // 이메일 유효성 검사
+        const emailRegex = /^[\w.-]+@[\w.-]+\.[A-Za-z]{2,}$/;
+        if (!emailRegex.test(form.email)) {
+          newErrors.email = '유효한 이메일 주소를 입력하세요.';
+        }
+      }
     } else {
-      // 이메일 유효성 검사
-      const emailRegex = /^[\w.-]+@[\w.-]+\.[A-Za-z]{2,}$/;
-      if (!emailRegex.test(form.email)) {
-        newErrors.email = "유효한 이메일 주소를 입력하세요.";
+      // 수정 모드에서는 이메일이 입력되어 있을 때만 유효성 검사
+      if (form.email.trim()) {
+        const emailRegex = /^[\w.-]+@[\w.-]+\.[A-Za-z]{2,}$/;
+        if (!emailRegex.test(form.email)) {
+          newErrors.email = '유효한 이메일 주소를 입력하세요.';
+        }
       }
     }
-    if (!isEditMode && !(form.password ?? "").trim())
-      newErrors.password = "비밀번호를 입력하세요.";
+    if (!isEditMode && !(form.password ?? '').trim())
+      newErrors.password = '비밀번호를 입력하세요.';
     if (!isEditMode && !form.phone.trim()) {
-      newErrors.phone = "전화번호를 입력하세요.";
+      newErrors.phone = '전화번호를 입력하세요.';
     } else if (!isEditMode && form.phone) {
       // 전화번호 유효성 검사 (010-1234-5678 또는 01012345678)
       const phoneRegex = /^01[016789]-?\d{3,4}-?\d{4}$/;
       if (
-        !phoneRegex.test(form.phone.replace(/-/g, "")) &&
+        !phoneRegex.test(form.phone.replace(/-/g, '')) &&
         !phoneRegex.test(form.phone)
       ) {
-        newErrors.phone = "유효한 전화번호를 입력하세요. (예: 010-1234-5678)";
+        newErrors.phone = '유효한 전화번호를 입력하세요. (예: 010-1234-5678)';
+      }
+    }
+    // 아코디언이 열려 있을 때만 비밀번호 변경 유효성 검사
+    if (isEditMode && showPasswordFields && form.newPassword) {
+      if (!form.currentPassword) {
+        newErrors.currentPassword = '현재 비밀번호를 입력하세요.';
+      }
+      if (!form.newPassword) {
+        newErrors.newPassword = '새 비밀번호를 입력하세요.';
+      } else if (form.newPassword.length < 8) {
+        newErrors.newPassword = '새 비밀번호는 8자 이상이어야 합니다.';
+      }
+      if (!form.confirmNewPassword) {
+        newErrors.confirmNewPassword = '새 비밀번호 확인을 입력하세요.';
+      } else if (form.newPassword !== form.confirmNewPassword) {
+        newErrors.confirmNewPassword = '새 비밀번호가 일치하지 않습니다.';
       }
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
+  // 모든 입력값이 빈칸인지 체크 (수정 모드에서만 사용)
+  const isAllFieldsEmpty = isEditMode &&
+    !form.userName.trim() &&
+    !form.phone.trim() &&
+    !form.email.trim() &&
+    !(form.password ?? '').trim();
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    if (isEditMode && name !== "email") return;
-    if (name === "phone") {
-      setForm((prev) => ({ ...prev, [name]: formatPhoneNumber(value) }));
+    // 수정 모드에서도 모든 필드 수정 가능하게 변경 (아래 조건 제거)
+    // if (isEditMode && name !== 'email') return;
+    if (name === 'phone') {
+      setForm(prev => ({ ...prev, [name]: formatPhoneNumber(value) }));
     } else {
-      setForm((prev) => ({ ...prev, [name]: value }));
+      setForm(prev => ({ ...prev, [name]: value }));
     }
-    setErrors((prev) => ({ ...prev, [name]: "" }));
+    setErrors(prev => ({ ...prev, [name]: '' }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -89,27 +156,32 @@ export const AdminAccountForm = () => {
     setLoading(true);
     try {
       if (isEditMode && adminId) {
-        // 이름, 전화번호는 수정 불가이므로 기존 값 사용, 이메일은 입력값, 비밀번호는 입력값이 있으면 포함
-        const updateData: createAdminSignup = {
+        // 이름, 전화번호, 이메일은 항상 수정 가능, 비밀번호는 변경 요청이 있을 때만 resetPwd로 포함
+        const updateData: any = {
+          adminId: adminId,
           userName: form.userName,
           phone: form.phone,
           email: form.email,
         };
-        if (form.password && form.password.trim()) {
-          updateData.password = form.password;
+        if (form.newPassword) {
+          updateData.resetPwd = {
+            currentPassword: form.currentPassword ?? '',
+            newPassword: form.newPassword ?? '',
+            confirmPassword: form.confirmNewPassword ?? '',
+          };
         }
         await updateAdminAccount(adminId, updateData);
-        setSuccessToastMsg("관리자 정보가 수정되었습니다.");
+        setSuccessToastMsg('관리자 정보가 수정되었습니다.');
       } else {
         await signupAdmin(form);
-        setSuccessToastMsg("관리자 등록이 완료되었습니다.");
+        setSuccessToastMsg('관리자 등록이 완료되었습니다.');
       }
-      setTimeout(() => navigate("/admin/accounts"), 1200);
+      setTimeout(() => navigate('/admin/accounts'), 1200);
     } catch (err: any) {
       setToastMsg(
         err?.message ||
           err?.toString() ||
-          (isEditMode ? "관리자 수정 실패" : "관리자 등록 실패"),
+          (isEditMode ? '관리자 수정 실패' : '관리자 등록 실패')
       );
     } finally {
       setLoading(false);
@@ -176,29 +248,25 @@ export const AdminAccountForm = () => {
           </p>
         )}
         <form onSubmit={handleSubmit} autoComplete="off">
-          {!isEditMode && (
-            <>
-              <FormField
-                label="이름"
-                name="userName"
-                value={form.userName}
-                onChange={handleChange}
-                placeholder="예) 홍길동"
-                required
-                error={errors.userName}
-              />
-              <FormField
-                label="전화번호"
-                name="phone"
-                type="tel"
-                value={form.phone}
-                onChange={handleChange}
-                placeholder="예) 010-1234-5678"
-                required
-                error={errors.phone}
-              />
-            </>
-          )}
+          <FormField
+            label="이름"
+            name="userName"
+            value={form.userName}
+            onChange={handleChange}
+            placeholder="예) 홍길동"
+            required={!isEditMode}
+            error={errors.userName}
+          />
+          <FormField
+            label="전화번호"
+            name="phone"
+            type="tel"
+            value={form.phone}
+            onChange={handleChange}
+            placeholder="예) 010-1234-5678"
+            required={!isEditMode}
+            error={errors.phone}
+          />
           <FormField
             label="이메일"
             name="email"
@@ -206,41 +274,141 @@ export const AdminAccountForm = () => {
             value={form.email}
             onChange={handleChange}
             placeholder="예) admin@email.com"
-            required
+            required={!isEditMode}
             error={errors.email}
           />
-          <FormField
-            label="비밀번호"
-            name="password"
-            type="password"
-            value={form.password}
-            onChange={handleChange}
-            placeholder={
-              isEditMode
-                ? "비밀번호를 변경하려면 입력하세요"
-                : "비밀번호를 입력하세요"
-            }
-            autoComplete="new-password"
-            disabled={isEditMode}
-            error={errors.password}
-            required={!isEditMode}
-          />
-          <div className="flex gap-2 mt-8">
+          {!isEditMode ? (
+            <FormField
+              label="비밀번호"
+              name="password"
+              type={showNewPassword ? 'text' : 'password'}
+              value={form.password}
+              onChange={handleChange}
+              placeholder="비밀번호를 입력하세요"
+              autoComplete="new-password"
+              error={errors.password}
+              required
+              rightIcon={
+                <button
+                  type="button"
+                  tabIndex={-1}
+                  onClick={() => setShowNewPassword(v => !v)}
+                  className="focus:outline-none"
+                  aria-label={showNewPassword ? '비밀번호 숨기기' : '비밀번호 표시'}
+                >
+                  <span className="material-symbols-outlined text-gray-400">
+                    {showNewPassword ? 'visibility' : 'visibility_off'}
+                  </span>
+                </button>
+              }
+            />
+          ) : (
+            <>
+              {/* 비밀번호 변경 토글 버튼 제거, 새 비밀번호 입력란은 항상 보임 */}
+              <div className="mb-2">
+                <FormField
+                  label="새 비밀번호"
+                  name="newPassword"
+                  type={showNewPassword ? 'text' : 'password'}
+                  value={form.newPassword}
+                  onChange={handleChange}
+                  placeholder="새 비밀번호를 입력하세요 (8자 이상)"
+                  autoComplete="new-password"
+                  error={errors.newPassword}
+                  rightIcon={
+                    <button
+                      type="button"
+                      tabIndex={-1}
+                      onClick={() => setShowNewPassword(v => !v)}
+                      className="focus:outline-none"
+                      aria-label={showNewPassword ? '비밀번호 숨기기' : '비밀번호 표시'}
+                    >
+                      <span className="material-symbols-outlined text-gray-400">
+                        {showNewPassword ? 'visibility' : 'visibility_off'}
+                      </span>
+                    </button>
+                  }
+                />
+                <div
+                  style={{
+                    maxHeight: form.newPassword ? 200 : 0,
+                    opacity: form.newPassword ? 1 : 0,
+                    transition: 'max-height 0.3s, opacity 0.3s',
+                    overflow: 'hidden',
+                  }}
+                >
+                  <div className="mt-3 space-y-3">
+                    <FormField
+                      label="새 비밀번호 확인"
+                      name="confirmNewPassword"
+                      type={showConfirmNewPassword ? 'text' : 'password'}
+                      value={form.confirmNewPassword}
+                      onChange={handleChange}
+                      placeholder="새 비밀번호를 다시 입력하세요"
+                      autoComplete="new-password"
+                      error={errors.confirmNewPassword}
+                      rightIcon={
+                        <button
+                          type="button"
+                          tabIndex={-1}
+                          onClick={() => setShowConfirmNewPassword(v => !v)}
+                          className="focus:outline-none"
+                          aria-label={showConfirmNewPassword ? '비밀번호 숨기기' : '비밀번호 표시'}
+                        >
+                          <span className="material-symbols-outlined text-gray-400">
+                            {showConfirmNewPassword ? 'visibility' : 'visibility_off'}
+                          </span>
+                        </button>
+                      }
+                    />
+                    <FormField
+                      label="현재 비밀번호"
+                      name="currentPassword"
+                      type={showCurrentPassword ? 'text' : 'password'}
+                      value={form.currentPassword}
+                      onChange={handleChange}
+                      placeholder="현재 비밀번호를 입력하세요"
+                      autoComplete="current-password"
+                      error={errors.currentPassword}
+                      rightIcon={
+                        <button
+                          type="button"
+                          tabIndex={-1}
+                          onClick={() => setShowCurrentPassword(v => !v)}
+                          className="focus:outline-none"
+                          aria-label={showCurrentPassword ? '비밀번호 숨기기' : '비밀번호 표시'}
+                        >
+                          <span className="material-symbols-outlined text-gray-400">
+                            {showCurrentPassword ? 'visibility' : 'visibility_off'}
+                          </span>
+                        </button>
+                      }
+                    />
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+          <div className="mt-8 flex gap-2">
             <Button
               type="button"
-              className="w-1/2 h-12 border border-gray-300 text-gray-600 bg-white hover:bg-gray-100 font-semibold rounded-xl shadow transition text-base active:scale-95"
-              onClick={() => navigate("/admin/accounts")}
+              className="h-12 w-1/2 rounded-xl border border-gray-300 bg-white text-base font-semibold text-gray-600 shadow transition hover:bg-gray-100"
+              onClick={() => navigate('/admin/accounts')}
             >
               취소
             </Button>
             <Button
               type="submit"
-              className={`w-1/2 h-12 bg-indigo-600 text-white font-semibold rounded-xl shadow-lg hover:bg-indigo-700 transition flex justify-center items-center gap-2 text-base active:scale-95 ${loading ? "opacity-60 cursor-not-allowed" : ""}`}
-              disabled={loading}
+              className={`flex h-12 w-1/2 items-center justify-center gap-2 rounded-xl text-base font-semibold shadow-lg transition active:scale-95
+                ${loading || isAllFieldsEmpty
+                  ? 'bg-gray-300 text-gray-400 cursor-not-allowed hover:bg-gray-300'
+                  : 'bg-indigo-600 text-white hover:bg-indigo-700'}
+              `}
+              disabled={loading || isAllFieldsEmpty}
             >
               {loading ? (
                 <svg
-                  className="animate-spin h-5 w-5 mr-2 text-white"
+                  className="mr-2 h-5 w-5 animate-spin"
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"
@@ -261,11 +429,11 @@ export const AdminAccountForm = () => {
                 </svg>
               ) : (
                 <span className="material-symbols-outlined text-white">
-                  {isEditMode ? "edit" : "add"}
+                  {isEditMode ? 'edit' : 'add'}
                 </span>
               )}
-              <span className="text-white text-base font-semibold">
-                {isEditMode ? "관리자 수정하기" : "관리자 등록하기"}
+              <span className="base font-semibold text-white">
+                {isEditMode ? '관리자 수정하기' : '관리자 등록하기'}
               </span>
             </Button>
           </div>
