@@ -48,6 +48,7 @@ export const AdminAccounts = () => {
   )
   const [targetAdminName, setTargetAdminName] = useState<string>('')
   const myPhone = useUserStore(state => state.email)
+  const myUserName = useUserStore(state => state.userName)
   const [successToastMsg, setSuccessToastMsg] = useState<string | null>(null)
   const [editModalOpen, setEditModalOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<Record<string, unknown> | null>(
@@ -76,61 +77,63 @@ export const AdminAccounts = () => {
         ...params,
         size: 10
       })
-      setAdminData(res.content || []);
-      setTotalPages(res.totalPages || 1);
+      setAdminData(res.content || [])
+      setTotalPages(res.totalPages || 1)
     } catch (err: unknown) {
-      const backendMsg = (err as any)?.response?.data?.message;
-      setErrorToastMsg(backendMsg || "관리자 계정 목록 조회 실패");
+      const backendMsg = (
+        err as unknown as { response?: { data?: { message?: string } } }
+      )?.response?.data?.message
+      setErrorToastMsg(backendMsg || '관리자 계정 목록 조회 실패')
     } finally {
       setLoading(false)
     }
   };
 
   useEffect(() => {
-    fetchData();
+    fetchData()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, statusKeyword]);
+  }, [page, statusKeyword])
 
   // AdminSearchForm에서 검색
   const handleSearch = (values: Record<string, string>) => {
-    const { type = "", keyword = "" } = values;
-    setSearchType(type);
-    setSearchKeyword(keyword);
-    setPage(0);
+    const { type = '', keyword = '' } = values
+    setSearchType(type)
+    setSearchKeyword(keyword)
+    setPage(0)
     fetchData({
-      name: type === "name" ? keyword : "",
-      phone: type === "phone" ? keyword : "",
-      email: type === "email" ? keyword : "",
-      page: 0,
-    });
+      name: type === 'name' ? keyword : '',
+      phone: type === 'phone' ? keyword : '',
+      email: type === 'email' ? keyword : '',
+      page: 0
+    })
   };
 
   // 상태 체크박스 핸들러 (다중 선택)
   const handleStatusCheckbox = (value: string) => {
-    setStatusKeyword((prev) =>
-      prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value],
-    );
-    setPage(0);
-  };
+    setStatusKeyword(prev =>
+      prev.includes(value) ? prev.filter(v => v !== value) : [...prev, value]
+    )
+    setPage(0)
+  }
 
   // 삭제 핸들러 (ConfirmModal 연동)
   const handleDeleteClick = (adminId: string | number) => {
-    const admin = adminData.find((a) => a.adminId === adminId);
-    setTargetAdminId(adminId);
+    const admin = adminData.find(a => a.adminId === adminId)
+    setTargetAdminId(adminId)
     setTargetAdminName(
       admin && typeof admin.userName === 'string' ? admin.userName : ''
-    );
-    setConfirmOpen(true);
-  };
+    )
+    setConfirmOpen(true)
+  }
   const handleConfirmDelete = async () => {
     if (!targetAdminId) return;
     try {
-      await deleteAdminAccount(targetAdminId);
-      setSuccessToastMsg("삭제되었습니다.");
-      setConfirmOpen(false);
-      setTargetAdminId(null);
-      setTargetAdminName("");
-      fetchData();
+      await deleteAdminAccount(targetAdminId)
+      setSuccessToastMsg('삭제되었습니다.')
+      setConfirmOpen(false)
+      setTargetAdminId(null)
+      setTargetAdminName('')
+      fetchData()
     } catch (err: unknown) {
       const backendMsg = (err as any)?.response?.data?.message;
       setErrorToastMsg(backendMsg || "삭제 실패");
@@ -207,11 +210,21 @@ export const AdminAccounts = () => {
         const phone = typeof row.phone === 'string' ? row.phone : ''
         const userName = typeof row.userName === 'string' ? row.userName : ''
         const adminId = row.adminId as string | number
+        const isRoot = myUserName && myUserName.includes('root')
+        const isSelf = phone === myPhone
         return (
           <div className="flex justify-center items-center gap-2">
             <Button
               className="h-8 px-5 bg-indigo-500 text-white rounded-xl hover:bg-indigo-600 text-sm font-semibold disabled:bg-gray-300 disabled:text-gray-400 disabled:cursor-not-allowed shadow"
+              disabled={
+                isRoot ? false : !isSelf
+              }
               onClick={e => {
+                if (!isRoot && !isSelf) {
+                  e.stopPropagation();
+                  setErrorToastMsg('본인 계정만 수정할 수 있습니다.');
+                  return;
+                }
                 e.stopPropagation();
                 setEditTarget(row)
                 setEditModalOpen(true)
@@ -345,6 +358,8 @@ export const AdminAccounts = () => {
                     const phone = typeof row.phone === 'string' ? row.phone : ''
                     const userName = typeof row.userName === 'string' ? row.userName : ''
                     const adminId = row.adminId as string | number
+                    const isRoot = myUserName && myUserName.includes('root')
+                    const isSelf = phone === myPhone
                     return (
                       <div
                         key={typeof row.adminId === 'string' || typeof row.adminId === 'number' ? row.adminId : ''}
