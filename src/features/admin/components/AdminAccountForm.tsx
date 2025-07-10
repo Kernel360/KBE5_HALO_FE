@@ -1,52 +1,68 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, useParams, useLocation } from "react-router-dom";
-import {
-  signupAdmin,
-  updateAdminAccount,
-} from "@/features/admin/api/adminAuth";
-import type { createAdminSignup } from "@/features/admin/types/AdminAuthType";
-import { Button } from "@/shared/components/ui/Button";
-import { Card } from "@/shared/components/ui/Card";
-import FormField from "@/shared/components/ui/FormField";
-import Toast from "@/shared/components/ui/toast/Toast";
-import SuccessToast from "@/shared/components/ui/toast/SuccessToast";
+import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { signupAdmin, updateAdminAccount } from '@/features/admin/api/adminAuth'
+import type { createAdminSignup } from '@/features/admin/types/AdminAuthType'
+import { Button } from '@/shared/components/ui/Button'
+import { Card } from '@/shared/components/ui/Card'
+import FormField from '@/shared/components/ui/FormField'
+import Toast from '@/shared/components/ui/toast/Toast'
+import SuccessToast from '@/shared/components/ui/toast/SuccessToast'
 
 // 전화번호 자동 하이픈 포맷 함수
 function formatPhoneNumber(value: string) {
-  const numbersOnly = value.replace(/\D/g, "");
-  if (numbersOnly.length < 4) return numbersOnly;
+  const numbersOnly = value.replace(/\D/g, '')
+  if (numbersOnly.length < 4) return numbersOnly
   if (numbersOnly.length < 7) {
-    return numbersOnly.replace(/(\d{3})(\d{1,3})/, "$1-$2");
+    return numbersOnly.replace(/(\d{3})(\d{1,3})/, '$1-$2')
   }
   if (numbersOnly.length < 11) {
-    return numbersOnly.replace(/(\d{3})(\d{3})(\d{1,4})/, "$1-$2-$3");
+    return numbersOnly.replace(/(\d{3})(\d{3})(\d{1,4})/, '$1-$2-$3')
   }
-  return numbersOnly.replace(/(\d{3})(\d{4})(\d{1,4})/, "$1-$2-$3");
+  return numbersOnly.replace(/(\d{3})(\d{4})(\d{1,4})/, '$1-$2-$3')
 }
 
-export const AdminAccountForm = () => {
-  const { adminId } = useParams();
-  const isEditMode = !!adminId;
-  const location = useLocation();
-  const adminData = location.state;
+interface AdminAccountFormProps {
+  mode?: 'edit' | 'create'
+  adminData?: Record<string, unknown>
+  onClose?: () => void
+  isModal?: boolean
+}
+
+export const AdminAccountForm = ({
+  mode = 'create',
+  adminData,
+  onClose
+}: AdminAccountFormProps) => {
+  const isEditMode = mode === 'edit'
+  const adminId =
+    typeof adminData?.adminId === 'string' ||
+    typeof adminData?.adminId === 'number'
+      ? adminData.adminId
+      : undefined
   const [form, setForm] = useState<createAdminSignup & {
-    currentPassword?: string;
-    newPassword?: string;
-    confirmNewPassword?: string;
+    currentPassword?: string
+    newPassword?: string
+    confirmNewPassword?: string
   }>({
-    userName: isEditMode && adminData?.userName ? adminData.userName : '',
-    email: isEditMode && adminData?.email ? adminData.email : '',
+    userName:
+      isEditMode && typeof adminData?.userName === 'string'
+        ? adminData.userName
+        : '',
+    email:
+      isEditMode && typeof adminData?.email === 'string'
+        ? adminData.email : '',
     password: '',
-    phone: isEditMode && adminData?.phone ? adminData.phone : '',
+    phone:
+      isEditMode && typeof adminData?.phone === 'string'
+        ? adminData.phone : '',
     currentPassword: '',
     newPassword: '',
-    confirmNewPassword: '',
-  });
+    confirmNewPassword: ''
+  })
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [loading, setLoading] = useState(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [successToastMsg, setSuccessToastMsg] = useState<string | null>(null);
-  const [showPasswordFields, setShowPasswordFields] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
@@ -54,24 +70,11 @@ export const AdminAccountForm = () => {
 
   // 새 비밀번호 입력란에 값이 없을 때 확인/현재 비밀번호 입력란 값, 에러 초기화
   useEffect(() => {
-    if (isEditMode && showPasswordFields && !form.newPassword) {
+    if (isEditMode && !form.newPassword) {
       setForm(f => ({ ...f, confirmNewPassword: '', currentPassword: '' }));
       setErrors(e => ({ ...e, confirmNewPassword: '', currentPassword: '' }));
     }
-  }, [form.newPassword, isEditMode, showPasswordFields]);
-
-  // 비밀번호 변경 토글 핸들러
-  const handleTogglePasswordFields = () => {
-    setShowPasswordFields((prev) => {
-      const next = !prev;
-      if (!next) {
-        // 닫힐 때 값과 에러 초기화
-        setForm((f) => ({ ...f, currentPassword: '', newPassword: '', confirmNewPassword: '' }));
-        setErrors((e) => ({ ...e, currentPassword: '', newPassword: '', confirmNewPassword: '' }));
-      }
-      return next;
-    });
-  };
+  }, [form.newPassword, isEditMode]);
 
   const validate = () => {
     const newErrors: { [key: string]: string } = {};
@@ -112,7 +115,7 @@ export const AdminAccountForm = () => {
       }
     }
     // 아코디언이 열려 있을 때만 비밀번호 변경 유효성 검사
-    if (isEditMode && showPasswordFields && form.newPassword) {
+    if (isEditMode && form.newPassword) {
       if (!form.currentPassword) {
         newErrors.currentPassword = '현재 비밀번호를 입력하세요.';
       }
@@ -176,7 +179,11 @@ export const AdminAccountForm = () => {
         await signupAdmin(form);
         setSuccessToastMsg('관리자 등록이 완료되었습니다.');
       }
-      setTimeout(() => navigate('/admin/accounts'), 1200);
+      if (onClose) {
+        setTimeout(() => onClose(), 1200);
+      } else {
+        setTimeout(() => navigate('/admin/accounts'), 1200);
+      }
     } catch (err: any) {
       setToastMsg(
         err?.message ||
@@ -189,7 +196,7 @@ export const AdminAccountForm = () => {
   };
 
   return (
-    <div className="min-h-screen w-full max-w-none flex flex-col md:flex-row md:items-center md:justify-center items-center justify-center bg-gray-50 px-2 md:px-16 gap-8">
+    <div className="w-full flex flex-col items-center justify-center">
       <Toast
         open={!!toastMsg}
         message={toastMsg || ""}
@@ -202,25 +209,19 @@ export const AdminAccountForm = () => {
       />
       {/* 안내/주의사항 카드 */}
       <Card className="w-full max-w-md mb-8 md:mb-0 p-8" variant="login">
-        <h3 className="text-lg font-bold text-indigo-700 mb-4 flex items-center gap-2">
+        <h3 className="mb-4 flex items-center gap-2 text-lg font-bold text-indigo-700">
           <span className="material-symbols-outlined text-indigo-500">
             info
           </span>
-          {isEditMode ? "관리자 계정 수정 안내" : "관리자 계정 등록 안내"}
+          {isEditMode ? '관리자 계정 수정 안내' : '관리자 계정 등록 안내'}
         </h3>
         {isEditMode ? (
-          <ul className="text-sm text-gray-700 list-disc pl-4 space-y-2">
-            <li>
-              관리자 계정의 <b>이메일만 수정</b>할 수 있습니다.
-            </li>
-            <li>이름, 전화번호는 수정이 제한됩니다.</li>
-            <li>
-              비밀번호 변경이 필요할 경우, 별도의 절차를 통해 진행해 주세요.
-            </li>
+          <ul className="list-disc space-y-2 pl-4 text-sm text-gray-700">
+            <li><b>중복된 전화번호는 사용할 수 없습니다.</b></li>
             <li>수정 후 반드시 변경된 정보를 확인해 주세요.</li>
           </ul>
         ) : (
-          <ul className="text-sm text-gray-700 list-disc pl-4 space-y-2">
+          <ul className="list-disc space-y-2 pl-4 text-sm text-gray-700">
             <li>
               관리자 계정은 서비스 운영 및 관리 권한을 가지므로 신중히 등록해
               주세요.
@@ -392,14 +393,17 @@ export const AdminAccountForm = () => {
           <div className="mt-8 flex gap-2">
             <Button
               type="button"
-              className="h-12 w-1/2 rounded-xl border border-gray-300 bg-white text-base font-semibold text-gray-600 shadow transition hover:bg-gray-100"
-              onClick={() => navigate('/admin/accounts')}
+              className="h-12 w-1/2 min-w-[180px] rounded-xl border border-gray-300 bg-white text-base font-semibold text-gray-600 shadow transition hover:bg-gray-100"
+              onClick={() => {
+                if (onClose) onClose();
+                else navigate('/admin/accounts');
+              }}
             >
               취소
             </Button>
             <Button
               type="submit"
-              className={`flex h-12 w-1/2 items-center justify-center gap-2 rounded-xl text-base font-semibold shadow-lg transition active:scale-95
+              className={`flex h-12 w-1/2 min-w-[180px] items-center justify-center gap-2 rounded-xl text-base font-semibold shadow-lg transition active:scale-95
                 ${loading || isAllFieldsEmpty
                   ? 'bg-gray-300 text-gray-400 cursor-not-allowed hover:bg-gray-300'
                   : 'bg-indigo-600 text-white hover:bg-indigo-700'}

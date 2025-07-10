@@ -37,7 +37,6 @@ import { AdminLogin } from '@/features/admin/pages/AdminLogin'
 import { AdminLayout } from '@/features/admin/layouts/AdminLayout'
 import { AdminMain } from '@/features/admin/pages/AdminMain'
 import { AdminAccounts } from '@/features/admin/pages/AdminAccount/AdminAccounts'
-import { AdminAccountForm } from '@/features/admin/pages/AdminAccount/AdminAccountForm'
 import { AdminManagers } from '@/features/admin/pages/AdminManager/AdminManagers'
 import { AdminManagerDetail } from '@/features/admin/pages/AdminManager/AdminManagerDetail'
 import { AdminCustomers } from '@/features/admin/pages/AdminCustomer/AdminCustomers'
@@ -188,13 +187,8 @@ export const router = createBrowserRouter([
           {
             path: 'accounts',
             children: [
-              // 목록
-              { index: true, element: <AdminAccounts /> },
-
-              // 등록
-              { path: 'new', element: <AdminAccountForm /> },
-              // 수정
-              { path: ':adminId/edit', element: <AdminAccountForm /> }
+              // 목록 (추가/수정은 AdminAccounts 내 모달에서 처리)
+              { index: true, element: <AdminAccounts /> }
             ]
           },
           // 고객 정보 목록
