@@ -6,16 +6,15 @@ import React, {
   useState,
   useCallback,
   useRef
-} from "react"
-import { useNavigate, useSearchParams } from "react-router-dom"
-import { getCustomerReservations } from "@/features/customer/api/CustomerReservation"
+} from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+import { getCustomerReservations } from '@/features/customer/api/CustomerReservation'
 import type {
   CustomerReservationListRspType,
   ReservationStatus
-} from "@/features/customer/types/CustomerReservationType"
-import ReservationCard from "@/features/customer/components/ReservationCard" // ReservationCard 컴포넌트 경로를 맞게 수정해주세요
-import { REVIEW_PAGE_SIZE } from "@/shared/constants/constants"
-import Pagination from "@/shared/components/Pagination"
+} from '@/features/customer/types/CustomerReservationType'
+import ReservationCard from '@/features/customer/components/ReservationCard' // ReservationCard 컴포넌트 경로를 맞게 수정해주세요
+import Pagination from '@/shared/components/Pagination'
 
 export const CustomerMyReservationPage: React.FC = () => {
   const navigate = useNavigate()
@@ -32,18 +31,27 @@ export const CustomerMyReservationPage: React.FC = () => {
 
   // 예약 조회에 필요한 파라미터로 변경
   const [searchParams, setSearchParams] = useState({
-    reservationStatus: "" as ReservationStatus,
+    reservationStatus: [] as ReservationStatus[],
+    fromRequestDate: '',
+    toRequestDate: '',
+    managerName: '',
     page: 0,
-    size: REVIEW_PAGE_SIZE
+    size: 5
   })
 
   // URL 파라미터에서 검색 조건 추출
   useEffect(() => {
-    const status = urlParams.get("status")
+    const statuses = urlParams.getAll('status') as ReservationStatus[]
+    const fromRequestDate = urlParams.get('fromRequestDate') || ''
+    const toRequestDate = urlParams.get('toRequestDate') || ''
+    const managerName = urlParams.get('managerName') || ''
 
     setSearchParams(prev => ({
       ...prev,
-      reservationStatus: (status as ReservationStatus) || "",
+      reservationStatus: statuses,
+      fromRequestDate,
+      toRequestDate,
+      managerName,
       page: 0
     }))
   }, [urlParams])
@@ -53,16 +61,22 @@ export const CustomerMyReservationPage: React.FC = () => {
     const fetchInitialReservations = async () => {
       setLoading(true)
       try {
-        const res = await getCustomerReservations({
-          status: searchParams.reservationStatus || undefined,
-          page: searchParams.page
-        })
-
-        console.log("Initial API call params:", {
-          status: searchParams.reservationStatus || undefined,
-          page: searchParams.page
-        })
-        console.log("Initial API response:", res)
+        const res = await getCustomerReservations(
+          {
+            reservationStatus:
+              searchParams.reservationStatus &&
+              searchParams.reservationStatus.length > 0
+                ? searchParams.reservationStatus
+                : undefined,
+            fromRequestDate: searchParams.fromRequestDate || undefined,
+            toRequestDate: searchParams.toRequestDate || undefined,
+            managerName: searchParams.managerName || undefined
+          },
+          {
+            page: searchParams.page,
+            size: searchParams.size
+          }
+        )
 
         if (res?.body) {
           setReservations(res.body.content)
@@ -81,7 +95,7 @@ export const CustomerMyReservationPage: React.FC = () => {
     if (!isMounted.current) {
       fetchInitialReservations()
     }
-  }, [searchParams.reservationStatus, searchParams.page])
+  }, [searchParams])
 
   // 예약 내역 조회 함수 (searchParams 변경 시 호출됨)
   const loadReservations = useCallback(
@@ -97,16 +111,22 @@ export const CustomerMyReservationPage: React.FC = () => {
 
       setLoading(true)
       try {
-        const res = await getCustomerReservations({
-          status: paramsToSearch.reservationStatus || undefined,
-          page: paramsToSearch.page
-        })
-
-        console.log("LoadReservations API call params:", {
-          status: paramsToSearch.reservationStatus || undefined,
-          page: paramsToSearch.page
-        })
-        console.log("LoadReservations API response:", res)
+        const res = await getCustomerReservations(
+          {
+            reservationStatus:
+              paramsToSearch.reservationStatus &&
+              paramsToSearch.reservationStatus.length > 0
+                ? paramsToSearch.reservationStatus
+                : undefined,
+            fromRequestDate: paramsToSearch.fromRequestDate || undefined,
+            toRequestDate: paramsToSearch.toRequestDate || undefined,
+            managerName: paramsToSearch.managerName || undefined
+          },
+          {
+            page: paramsToSearch.page,
+            size: paramsToSearch.size
+          }
+        )
 
         if (res?.body) {
           setReservations(res.body.content)
@@ -117,7 +137,7 @@ export const CustomerMyReservationPage: React.FC = () => {
           setTotal(0)
         }
       } catch (err) {
-        console.error("Failed to fetch reservations:", err)
+        console.error('Failed to fetch reservations:', err)
         setReservations([])
         setTotal(0)
       } finally {
@@ -135,13 +155,13 @@ export const CustomerMyReservationPage: React.FC = () => {
   }, [searchParams, loadReservations])
 
   // Helper to update specific search parameter
-  const updateSearchParam = (key: string, value: any) => {
+  const updateSearchParam = (key: string, value: unknown) => {
     setSearchParams(prev => ({ ...prev, [key]: value }))
   }
 
   // Handle page change
   const handlePageChange = (pageNumber: number) => {
-    updateSearchParam("page", pageNumber)
+    updateSearchParam('page', pageNumber)
   }
 
   return (

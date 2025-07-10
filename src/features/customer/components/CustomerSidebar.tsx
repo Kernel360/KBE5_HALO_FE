@@ -54,13 +54,31 @@ const CustomerSidebar: React.FC = () => {
 
         {searchType === 'reservation' && (
           <ReservationSearchFilter
-            onStatusChange={status => {
+            onSearch={filters => {
               const params = new URLSearchParams()
-              if (status) {
-                params.set('status', status)
+              
+              // 날짜 범위
+              if (filters.dateRange.start) {
+                params.set('fromRequestDate', filters.dateRange.start)
               }
-              // 전체 선택 시에도 URL 업데이트 (빈 파라미터)
+              if (filters.dateRange.end) {
+                params.set('toRequestDate', filters.dateRange.end)
+              }
+              
+              // 예약 상태
+              filters.reservationStatus.forEach(status => {
+                params.append('status', status)
+              })
+              
+              // 매니저명
+              if (filters.managerName) {
+                params.set('managerName', filters.managerName)
+              }
+              
               setSearchParams(params)
+            }}
+            onReset={() => {
+              setSearchParams(new URLSearchParams())
             }}
           />
         )}
