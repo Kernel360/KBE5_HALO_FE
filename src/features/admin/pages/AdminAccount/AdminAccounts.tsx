@@ -1,28 +1,36 @@
-import { Fragment, useState, useEffect, useRef } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Fragment, useState, useEffect, useRef } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import {
   fetchAdminAccounts,
-  deleteAdminAccount,
-} from "@/features/admin/api/adminAuth";
-import { TableSection } from "../../components/TableSection";
-import { AdminTable } from "../../components/AdminTable";
-import { AdminPagination } from "../../components/AdminPagination";
-import Toast from "@/shared/components/ui/toast/Toast";
-import Card from "@/shared/components/ui/Card";
-import CardContent from "@/shared/components/ui/CardContent";
-import Button from "@/shared/components/ui/Button";
-import AdminSearchForm from "../../components/AdminSearchForm";
-import AccountStatusBadge from "@/shared/components/ui/AccountStatusBadge";
-import { ConfirmModal } from "@/shared/components/ui/modal";
-import { useUserStore } from "@/store/useUserStore";
-import ErrorToast from "@/shared/components/ui/toast/ErrorToast";
-import SuccessToast from "@/shared/components/ui/toast/SuccessToast";
+  deleteAdminAccount
+} from '@/features/admin/api/adminAuth'
+import { TableSection } from '../../components/TableSection'
+import { AdminTable } from '../../components/AdminTable'
+import { AdminPagination } from '../../components/AdminPagination'
+import Toast from '@/shared/components/ui/toast/Toast'
+import Card from '@/shared/components/ui/Card'
+import CardContent from '@/shared/components/ui/CardContent'
+import Button from '@/shared/components/ui/Button'
+import AdminSearchForm from '../../components/AdminSearchForm'
+import AccountStatusBadge from '@/shared/components/ui/AccountStatusBadge'
+import { ConfirmModal } from '@/shared/components/ui/modal'
+import { useUserStore } from '@/store/useUserStore'
+import ErrorToast from '@/shared/components/ui/toast/ErrorToast'
+import SuccessToast from '@/shared/components/ui/toast/SuccessToast'
 
 export const AdminAccounts = () => {
   // 검색 조건을 하나의 키워드와 타입으로 관리
   const [searchType, setSearchType] = useState("name");
-  const [searchKeyword, setSearchKeyword] = useState("");
-  const [statusKeyword, setStatusKeyword] = useState<string[]>(["활성"]);
+  const [searchKeyword, setSearchKeyword] = useState("")  // 상태 옵션을 영문 value, 한글 label로 관리
+  const STATUS_OPTIONS = [
+    { value: 'ACTIVE', label: '활성' },
+    { value: 'DELETED', label: '비활성' }
+  ]
+  // 초기 상태도 영문 value로
+  const [statusKeyword, setStatusKeyword] = useState<string[]>([
+    'ACTIVE',
+    'DELETED'
+  ])
   const [page, setPage] = useState(0);
   const [adminData, setAdminData] = useState<any[]>([]);
   const [totalPages, setTotalPages] = useState(1);
@@ -32,29 +40,24 @@ export const AdminAccounts = () => {
   const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
   const statusDropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
-  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false)
   const [targetAdminId, setTargetAdminId] = useState<string | number | null>(
-    null,
-  );
-  const [targetAdminName, setTargetAdminName] = useState<string>("");
-  const myPhone = useUserStore((state) => state.email);
-  const [successToastMsg, setSuccessToastMsg] = useState<string | null>(null);
-
-  const STATUS_OPTIONS = [
-    { value: "활성", label: "활성" },
-    { value: "비활성", label: "비활성" },
-  ];
+    null
+  )
+  const [targetAdminName, setTargetAdminName] = useState<string>("")
+  const myPhone = useUserStore((state) => state.email)
+  const [successToastMsg, setSuccessToastMsg] = useState<string | null>(null)
 
   // 검색 조건을 fetch에 맞게 변환
   const getSearchParams = () => {
     return {
-      name: searchType === "name" ? searchKeyword : "",
-      phone: searchType === "phone" ? searchKeyword : "",
-      email: searchType === "email" ? searchKeyword : "",
+      name: searchType === 'name' ? searchKeyword : '',
+      phone: searchType === 'phone' ? searchKeyword : '',
+      email: searchType === 'email' ? searchKeyword : '',
       status: statusKeyword,
-      page,
-    };
-  };
+      page
+    }
+  }
 
   const fetchData = async (
     paramsOverride?: Partial<ReturnType<typeof getSearchParams>>,
@@ -64,7 +67,7 @@ export const AdminAccounts = () => {
       const params = { ...getSearchParams(), ...paramsOverride };
       const res = await fetchAdminAccounts({
         ...params,
-        size: 10,
+        size: 10
       });
       setAdminData(res.content || []);
       setTotalPages(res.totalPages || 1);
@@ -185,13 +188,7 @@ export const AdminAccounts = () => {
       ),
       render: (row: any) => (
         <AccountStatusBadge
-          status={
-            row.status === "활성"
-              ? "ACTIVE"
-              : row.status === "비활성"
-                ? "SUSPENDED"
-                : row.status
-          }
+          status={row.status}
         />
       ),
     },
@@ -201,11 +198,15 @@ export const AdminAccounts = () => {
       render: (row: any) => (
         <Button
           className="h-8 px-5 bg-red-500 text-white rounded-xl hover:bg-red-600 text-sm font-semibold disabled:bg-gray-300 disabled:text-gray-400 disabled:cursor-not-allowed shadow"
-          disabled={row.phone === myPhone}
+          disabled={row.phone === myPhone || (row.userName && row.userName.includes('테스트'))}
           onClick={(e) => {
             e.stopPropagation();
             if (row.phone === myPhone) {
-              setErrorToastMsg("본인 계정은 삭제할 수 없습니다.");
+              setErrorToastMsg('본인 계정은 삭제할 수 없습니다.');
+              return;
+            }
+            if (row.userName && row.userName.includes('테스트')) {
+              setErrorToastMsg('테스트 계정은 삭제할 수 없습니다.');
               return;
             }
             handleDeleteClick(row.adminId);
@@ -295,7 +296,7 @@ export const AdminAccounts = () => {
                 rowKey={(row) => row.adminId}
                 emptyMessage={"등록된 관리자가 없습니다."}
                 onRowClick={(row) =>
-                  navigate(`/admin/accounts/${row.adminId}/edit`)
+                  navigate(`/admin/accounts/${row.adminId}/edit`, { state: row })
                 }
               />
               <div className="w-full flex justify-center py-4">
@@ -319,22 +320,14 @@ export const AdminAccounts = () => {
                       key={row.adminId}
                       className="border rounded-lg p-4 bg-white shadow-sm flex flex-col gap-2 cursor-pointer"
                       onClick={() =>
-                        navigate(`/admin/accounts/${row.adminId}/edit`)
+                        navigate(`/admin/accounts/${row.adminId}/edit`, { state: row })
                       }
                     >
                       <div className="flex justify-between items-center">
                         <div className="font-semibold text-base text-gray-900">
                           {row.userName}
                         </div>
-                        <AccountStatusBadge
-                          status={
-                            row.status === "활성"
-                              ? "ACTIVE"
-                              : row.status === "비활성"
-                                ? "SUSPENDED"
-                                : row.status
-                          }
-                        />
+                        <AccountStatusBadge status={row.status} />
                       </div>
                       <div className="text-sm text-gray-700 break-all">
                         이메일: {row.email}
@@ -345,13 +338,15 @@ export const AdminAccounts = () => {
                       <div className="flex justify-end mt-2">
                         <Button
                           className="h-8 px-4 bg-red-500 text-white rounded-xl hover:bg-red-600 text-xs font-semibold disabled:bg-gray-300 disabled:text-gray-400 disabled:cursor-not-allowed shadow"
-                          disabled={row.phone === myPhone}
+                          disabled={row.phone === myPhone || (row.userName && row.userName.includes('테스트'))}
                           onClick={(e) => {
                             e.stopPropagation();
                             if (row.phone === myPhone) {
-                              setErrorToastMsg(
-                                "본인 계정은 삭제할 수 없습니다.",
-                              );
+                              setErrorToastMsg('본인 계정은 삭제할 수 없습니다.');
+                              return;
+                            }
+                            if (row.userName && row.userName.includes('테스트')) {
+                              setErrorToastMsg('테스트 계정은 삭제할 수 없습니다.');
                               return;
                             }
                             handleDeleteClick(row.adminId);
