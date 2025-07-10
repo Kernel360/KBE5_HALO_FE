@@ -57,9 +57,7 @@ export const cancelBeforeConfirmReservation = async (
 
 // 나의 예약 조회
 export const getCustomerReservations = async (
-  searchCond: Omit<ReservationSearchConditionType, 'page' | 'size'> & {
-    managerName?: string
-  },
+  searchCond: Omit<ReservationSearchConditionType, 'page' | 'size'> & {},
   pageable: { page: number; size: number }
 ) => {
   // 쿼리 파라미터 수동 구성

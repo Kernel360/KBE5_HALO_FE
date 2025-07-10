@@ -199,51 +199,60 @@ const ReservationStepFinal: React.FC = () => {
                   extraServicePrice: number
                 }>
               }
-            ).extraServiceList?.length > 0 && (
-              <>
-                <div className="flex justify-between text-sm">
-                  <span className="font-semibold text-gray-600">
-                    추가 서비스
-                  </span>
-                  <span />
-                </div>
-                {(
-                  finalReservationData as ReservationConfirmRspType & {
-                    extraServiceList?: Array<{
-                      extraServiceName: string
-                      extraServiceTime: number
-                      extraServicePrice: number
-                    }>
-                  }
-                ).extraServiceList?.map(
-                  (
-                    service: {
-                      extraServiceName: string
-                      extraServiceTime: number
-                      extraServicePrice: number
-                    },
-                    index: number
-                  ) => (
-                    <div
-                      key={index}
-                      className="flex justify-between pl-4 text-sm">
-                      <span className="text-gray-500">
-                        {service.extraServiceName}
-                        {service.extraServiceTime > 0 && (
-                          <span className="text-gray-500">
-                            {' '}
-                            {service.extraServiceTime}시간
-                          </span>
-                        )}
-                      </span>
-                      <span className="font-medium text-gray-900">
-                        {service.extraServicePrice?.toLocaleString()}원
-                      </span>
-                    </div>
-                  )
-                )}
-              </>
-            )}
+            ).extraServiceList &&
+              (
+                finalReservationData as ReservationConfirmRspType & {
+                  extraServiceList?: Array<{
+                    extraServiceName: string
+                    extraServiceTime: number
+                    extraServicePrice: number
+                  }>
+                }
+              ).extraServiceList!.length > 0 && (
+                <>
+                  <div className="flex justify-between text-sm">
+                    <span className="font-semibold text-gray-600">
+                      추가 서비스
+                    </span>
+                    <span />
+                  </div>
+                  {(
+                    finalReservationData as ReservationConfirmRspType & {
+                      extraServiceList?: Array<{
+                        extraServiceName: string
+                        extraServiceTime: number
+                        extraServicePrice: number
+                      }>
+                    }
+                  ).extraServiceList?.map(
+                    (
+                      service: {
+                        extraServiceName: string
+                        extraServiceTime: number
+                        extraServicePrice: number
+                      },
+                      index: number
+                    ) => (
+                      <div
+                        key={index}
+                        className="flex justify-between pl-4 text-sm">
+                        <span className="text-gray-500">
+                          {service.extraServiceName}
+                          {service.extraServiceTime > 0 && (
+                            <span className="text-gray-500">
+                              {' '}
+                              {service.extraServiceTime}시간
+                            </span>
+                          )}
+                        </span>
+                        <span className="font-medium text-gray-900">
+                          {service.extraServicePrice?.toLocaleString()}원
+                        </span>
+                      </div>
+                    )
+                  )}
+                </>
+              )}
 
             {/* 총 결제 금액 */}
             <div className="my-3 border-t border-gray-200" />

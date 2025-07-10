@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react'
+import React, { useState } from 'react'
 import { X } from 'lucide-react'
 import { chargePoints } from '@/features/customer/api/customerAuth'
 import ErrorToast from '@/shared/components/ui/toast/ErrorToast'
