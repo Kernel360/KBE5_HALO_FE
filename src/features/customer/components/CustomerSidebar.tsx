@@ -1,22 +1,22 @@
-import React from "react"
-import { useLocation, useSearchParams } from "react-router-dom"
-import { Search } from "lucide-react"
-import ReservationSearchFilter from "./search/ReservationSearchFilter"
-import ReviewSearchFilter from "./search/ReviewSearchFilter"
-import InquirySearchFilter from "./search/InquirySearchFilter"
+import React from 'react'
+import { useLocation, useSearchParams } from 'react-router-dom'
+import { Search } from 'lucide-react'
+import ReservationSearchFilter from './search/ReservationSearchFilter'
+import ReviewSearchFilter from './search/ReviewSearchFilter'
+import InquirySearchFilter from './search/InquirySearchFilter'
 
 interface MenuItems {
   name: string
   path: string
-  searchType?: "reservation" | "review" | "inquiry"
+  searchType?: 'reservation' | 'review' | 'inquiry'
 }
 
 const CustomerSidebar: React.FC = () => {
   const menuItems: MenuItems[] = [
-    { name: "마이페이지", path: "/my" },
-    { name: "예약 내역", path: "/my/reservations", searchType: "reservation" },
-    { name: "리뷰 내역", path: "/my/reviews", searchType: "review" },
-    { name: "문의 내역", path: "/my/inquiries", searchType: "inquiry" }
+    { name: '마이페이지', path: '/my' },
+    { name: '예약 내역', path: '/my/reservations', searchType: 'reservation' },
+    { name: '리뷰 내역', path: '/my/reviews', searchType: 'review' },
+    { name: '문의 내역', path: '/my/inquiries', searchType: 'inquiry' }
     //{ name: '좋아요/아쉬워요 매니저 목록', path: '/my/likes' },
   ]
 
@@ -24,9 +24,9 @@ const CustomerSidebar: React.FC = () => {
   const [, setSearchParams] = useSearchParams()
 
   const getCurrentSearchType = ():
-    | "reservation"
-    | "review"
-    | "inquiry"
+    | 'reservation'
+    | 'review'
+    | 'inquiry'
     | null => {
     const currentPath = location.pathname
 
@@ -52,12 +52,12 @@ const CustomerSidebar: React.FC = () => {
           </h2>
         </div>
 
-        {searchType === "reservation" && (
+        {searchType === 'reservation' && (
           <ReservationSearchFilter
             onStatusChange={status => {
               const params = new URLSearchParams()
               if (status) {
-                params.set("status", status)
+                params.set('status', status)
               }
               // 전체 선택 시에도 URL 업데이트 (빈 파라미터)
               setSearchParams(params)
@@ -65,33 +65,35 @@ const CustomerSidebar: React.FC = () => {
           />
         )}
 
-        {searchType === "review" && (
+        {searchType === 'review' && (
           <ReviewSearchFilter
-            onSearch={filters => {
+            onRatingChange={(rating: number | null) => {
               const params = new URLSearchParams()
-              if (filters.rating !== null)
-                params.set("rating", filters.rating.toString())
+              if (rating !== null) params.set('rating', rating.toString())
+              setSearchParams(params)
             }}
-            onReset={() => {
-              setSearchParams(new URLSearchParams())
-            }}
+            selectedRating={(() => {
+              const params = new URLSearchParams(location.search)
+              const rating = params.get('rating')
+              return rating ? parseInt(rating) : null
+            })()}
           />
         )}
 
-        {searchType === "inquiry" && (
+        {searchType === 'inquiry' && (
           <InquirySearchFilter
             onSearch={filters => {
               const params = new URLSearchParams()
               if (filters.dateRange.start)
-                params.set("startDate", filters.dateRange.start)
+                params.set('startDate', filters.dateRange.start)
               if (filters.dateRange.end)
-                params.set("endDate", filters.dateRange.end)
+                params.set('endDate', filters.dateRange.end)
               if (filters.replyStatus)
-                params.set("replyStatus", filters.replyStatus)
+                params.set('replyStatus', filters.replyStatus)
               if (filters.titleKeyword)
-                params.set("titleKeyword", filters.titleKeyword)
+                params.set('titleKeyword', filters.titleKeyword)
               if (filters.contentKeyword)
-                params.set("contentKeyword", filters.contentKeyword)
+                params.set('contentKeyword', filters.contentKeyword)
               setSearchParams(params)
             }}
             onReset={() => {
