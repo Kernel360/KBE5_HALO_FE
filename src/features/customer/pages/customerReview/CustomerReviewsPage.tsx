@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { searchCustomerReviews } from '@/features/customer/api/CustomerReview'
 import type { CustomerReviewRspType } from '../../types/CustomerReviewType'
@@ -8,17 +8,15 @@ import {
   formatDateWithDay
 } from '@/shared/utils/dateUtils'
 import { Star, Pencil } from 'lucide-react'
-import { REVIEW_PAGE_SIZE } from '@/shared/constants/constants'
 import Pagination from '@/shared/components/Pagination'
 import { useAuthStore } from '@/store/useAuthStore'
 import { CustomerReviewFormModal } from '../../modal/CustomerReviewModal'
 import SuccessToast from '@/shared/components/ui/toast/SuccessToast'
 
-const pageSize = REVIEW_PAGE_SIZE
+const pageSize = 5
 
 export const CustomerReviewsPage = () => {
   const [reviews, setReviews] = useState<CustomerReviewRspType[]>([])
-  const [currentPage, setCurrentPage] = useState(0)
   const [totalReviews, setTotalReviews] = useState(0)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedReservationId, setSelectedReservationId] = useState<
@@ -26,21 +24,26 @@ export const CustomerReviewsPage = () => {
   >(null)
   const [showSuccessToast, setShowSuccessToast] = useState(false)
   const [toastMessage, setToastMessage] = useState('')
-  const [searchParams] = useSearchParams()
+  const [searchParams, setSearchParams] = useSearchParams()
+
+  const currentPage = (() => {
+    const page = searchParams.get('page')
+    return page ? parseInt(page) : 0
+  })()
 
   const selectedRating = (() => {
     const rating = searchParams.get('rating')
     return rating ? parseInt(rating) : null
   })()
 
-  const fetchReviews = async () => {
+  const fetchReviews = useCallback(async () => {
     const { accessToken } = useAuthStore.getState()
     if (!accessToken) return
 
     try {
       const data = await searchCustomerReviews({
         page: currentPage,
-        size: REVIEW_PAGE_SIZE,
+        size: 5,
         rating: selectedRating === null ? undefined : selectedRating
       })
       setReviews(data.content)
@@ -50,11 +53,11 @@ export const CustomerReviewsPage = () => {
         (error as Error).message || '리뷰 목록을 조회하는데 실패하였습니다.'
       alert(errorMessage)
     }
-  }
+  }, [currentPage, selectedRating])
 
   useEffect(() => {
     fetchReviews()
-  }, [currentPage, selectedRating])
+  }, [currentPage, selectedRating, fetchReviews])
 
   const handleOpenModal = (reservationId: number) => {
     setSelectedReservationId(reservationId)
@@ -70,6 +73,12 @@ export const CustomerReviewsPage = () => {
     setToastMessage(message)
     setShowSuccessToast(true)
     await fetchReviews()
+  }
+
+  const handlePageChange = (pageNumber: number) => {
+    const params = new URLSearchParams(searchParams)
+    params.set('page', pageNumber.toString())
+    setSearchParams(params)
   }
 
   return (
@@ -98,7 +107,7 @@ export const CustomerReviewsPage = () => {
         currentPage={currentPage}
         totalItems={totalReviews}
         pageSize={pageSize}
-        onPageChange={setCurrentPage}
+        onPageChange={handlePageChange}
       />
 
       {isModalOpen && selectedReservationId && (

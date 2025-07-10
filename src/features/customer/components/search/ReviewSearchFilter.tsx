@@ -11,6 +11,7 @@ const ReviewSearchFilter: React.FC<ReviewSearchFilterProps> = ({
 }) => {
   const ratingOptions = [
     { label: '전체', value: null },
+    { label: '리뷰 작성 필요', value: 0 },
     { label: '5점', value: 5 },
     { label: '4점', value: 4 },
     { label: '3점 이하', value: 3 }

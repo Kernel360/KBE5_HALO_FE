@@ -56,7 +56,7 @@ const CustomerSidebar: React.FC = () => {
           <ReservationSearchFilter
             onSearch={filters => {
               const params = new URLSearchParams()
-              
+
               // 날짜 범위
               if (filters.dateRange.start) {
                 params.set('fromRequestDate', filters.dateRange.start)
@@ -64,17 +64,17 @@ const CustomerSidebar: React.FC = () => {
               if (filters.dateRange.end) {
                 params.set('toRequestDate', filters.dateRange.end)
               }
-              
+
               // 예약 상태
               filters.reservationStatus.forEach(status => {
                 params.append('status', status)
               })
-              
+
               // 매니저명
               if (filters.managerName) {
                 params.set('managerName', filters.managerName)
               }
-              
+
               setSearchParams(params)
             }}
             onReset={() => {
@@ -88,6 +88,7 @@ const CustomerSidebar: React.FC = () => {
             onRatingChange={(rating: number | null) => {
               const params = new URLSearchParams()
               if (rating !== null) params.set('rating', rating.toString())
+              params.set('page', '0') // 별점 필터 변경 시 페이지를 0으로 리셋
               setSearchParams(params)
             }}
             selectedRating={(() => {
