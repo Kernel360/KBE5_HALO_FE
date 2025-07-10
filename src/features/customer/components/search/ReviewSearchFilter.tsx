@@ -2,16 +2,15 @@ import React from 'react'
 
 interface ReviewSearchFilterProps {
   onRatingChange: (rating: number | null) => void
-  selectedRating: number | null
+  selectedRating?: number | null
 }
 
 const ReviewSearchFilter: React.FC<ReviewSearchFilterProps> = ({
   onRatingChange,
-  selectedRating
+  selectedRating = null
 }) => {
   const ratingOptions = [
     { label: '전체', value: null },
-    { label: '리뷰 작성 필요', value: -1 },
     { label: '5점', value: 5 },
     { label: '4점', value: 4 },
     { label: '3점 이하', value: 3 }

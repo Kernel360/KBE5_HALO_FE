@@ -9,9 +9,10 @@ import {
 } from '@/shared/utils/dateUtils'
 import { Star, Pencil } from 'lucide-react'
 import { REVIEW_PAGE_SIZE } from '@/shared/constants/constants'
-import { useNavigate } from 'react-router-dom'
 import Pagination from '@/shared/components/Pagination'
 import { useAuthStore } from '@/store/useAuthStore'
+import { CustomerReviewFormModal } from '../../modal/CustomerReviewModal'
+import SuccessToast from '@/shared/components/ui/toast/SuccessToast'
 
 const pageSize = REVIEW_PAGE_SIZE
 
@@ -19,6 +20,12 @@ export const CustomerReviewsPage = () => {
   const [reviews, setReviews] = useState<CustomerReviewRspType[]>([])
   const [currentPage, setCurrentPage] = useState(0)
   const [totalReviews, setTotalReviews] = useState(0)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [selectedReservationId, setSelectedReservationId] = useState<
+    number | null
+  >(null)
+  const [showSuccessToast, setShowSuccessToast] = useState(false)
+  const [toastMessage, setToastMessage] = useState('')
   const [searchParams] = useSearchParams()
 
   const selectedRating = (() => {
@@ -26,43 +33,44 @@ export const CustomerReviewsPage = () => {
     return rating ? parseInt(rating) : null
   })()
 
-  useEffect(() => {
+  const fetchReviews = async () => {
     const { accessToken } = useAuthStore.getState()
     if (!accessToken) return
 
-    const fetchReviews = async () => {
-      try {
-        const data = await searchCustomerReviews({
-          page: currentPage,
-          size: REVIEW_PAGE_SIZE
-        })
-        setReviews(data.content)
-        setTotalReviews(data.page.totalElements)
-      } catch (error: any) {
-        const errorMessage =
-          error.response?.data?.message ||
-          error.message ||
-          '리뷰 목록을 조회하는데 실패하였습니다.'
-        alert(errorMessage)
-      }
+    try {
+      const data = await searchCustomerReviews({
+        page: currentPage,
+        size: REVIEW_PAGE_SIZE,
+        rating: selectedRating === null ? undefined : selectedRating
+      })
+      setReviews(data.content)
+      setTotalReviews(data.page.totalElements)
+    } catch (error: unknown) {
+      const errorMessage =
+        (error as Error).message || '리뷰 목록을 조회하는데 실패하였습니다.'
+      alert(errorMessage)
     }
+  }
 
+  useEffect(() => {
     fetchReviews()
-  }, [currentPage])
+  }, [currentPage, selectedRating])
 
-  // 별점 졍렬 필터
-  const filteredReviews = reviews.filter(r => {
-    const numericRating =
-      typeof r.rating === 'number' ? r.rating : Number(r.rating)
+  const handleOpenModal = (reservationId: number) => {
+    setSelectedReservationId(reservationId)
+    setIsModalOpen(true)
+  }
 
-    if (selectedRating === null) return true // 전체
-    if (selectedRating === -1) return !r.reviewId || numericRating === 0 // 리뷰 작성 필요
-    if (selectedRating === 5) return numericRating === 5 // 5점
-    if (selectedRating === 4) return numericRating === 4 // 4점
-    if (selectedRating === 3) return numericRating >= 1 && numericRating <= 3 // 3점 이하
+  const handleCloseModal = () => {
+    setIsModalOpen(false)
+    setSelectedReservationId(null)
+  }
 
-    return false
-  })
+  const handleModalSuccess = async (message: string) => {
+    setToastMessage(message)
+    setShowSuccessToast(true)
+    await fetchReviews()
+  }
 
   return (
     <div className="p-4">
@@ -70,15 +78,16 @@ export const CustomerReviewsPage = () => {
 
       {/* 리뷰 카드 */}
       <div className="space-y-4">
-        {filteredReviews.length === 0 ? (
+        {reviews.length === 0 ? (
           <div className="py-16 text-center text-gray-500">
             <p>조회한 리뷰 내역이 없습니다.</p>
           </div>
         ) : (
-          filteredReviews.map((review, idx) => (
+          reviews.map((review, idx) => (
             <ReviewCard
               key={idx}
               {...review}
+              onOpenModal={handleOpenModal}
             />
           ))
         )}
@@ -91,12 +100,29 @@ export const CustomerReviewsPage = () => {
         pageSize={pageSize}
         onPageChange={setCurrentPage}
       />
+
+      {isModalOpen && selectedReservationId && (
+        <CustomerReviewFormModal
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+          reservationId={selectedReservationId}
+          onSuccess={handleModalSuccess}
+        />
+      )}
+
+      <SuccessToast
+        open={showSuccessToast}
+        message={toastMessage}
+        onClose={() => setShowSuccessToast(false)}
+      />
     </div>
   )
 }
 
 // 리뷰 카드
-const ReviewCard: React.FC<CustomerReviewRspType> = ({
+const ReviewCard: React.FC<
+  CustomerReviewRspType & { onOpenModal: (reservationId: number) => void }
+> = ({
   serviceCategoryName,
   requestDate,
   startTime,
@@ -106,20 +132,13 @@ const ReviewCard: React.FC<CustomerReviewRspType> = ({
   rating,
   createdAt,
   reviewId,
-  reservationId
+  reservationId,
+  onOpenModal
 }) => {
-  const navigate = useNavigate()
-
   const handleWriteReview = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    navigate(`/my/reviews/${reservationId}`, {
-      state: {
-        fromReservation: true,
-        serviceName: serviceCategoryName,
-        managerName
-      }
-    })
+    onOpenModal(reservationId)
   }
 
   return (
