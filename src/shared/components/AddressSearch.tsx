@@ -1,5 +1,4 @@
 import { useRef } from 'react'
-import { useAddressStore } from '@/store/useAddressStore'
 
 interface AddressSearchProps {
   roadAddress: string
@@ -8,6 +7,12 @@ interface AddressSearchProps {
   setRoadAddress: (val: string) => void
   setDetailAddress: (val: string) => void
   onCoordinatesChange?: (lat: number, lng: number) => void
+  onAddressChange?: (
+    roadAddress: string,
+    detailAddress: string,
+    lat: number,
+    lng: number
+  ) => void
 }
 
 declare global {
@@ -52,9 +57,9 @@ const AddressSearch = ({
   errors,
   setRoadAddress,
   setDetailAddress,
-  onCoordinatesChange
+  onCoordinatesChange,
+  onAddressChange
 }: AddressSearchProps) => {
-  const { setAddress } = useAddressStore()
   const detailInputRef = useRef<HTMLInputElement>(null)
 
   // 카카오 우편번호 팝업 열기 (동적 로딩 및 재시도 지원)
@@ -64,29 +69,45 @@ const AddressSearch = ({
       new window.daum.Postcode({
         oncomplete: function (data: DaumPostcodeData) {
           setRoadAddress(data.roadAddress)
-          if (window.kakao && window.kakao.maps && window.kakao.maps.services) {
-            const geocoder = new window.kakao.maps.services.Geocoder()
-            geocoder.addressSearch(
-              data.roadAddress,
-              (result: KakaoGeocodeResult[], status: string) => {
-                if (
-                  status === window.kakao.maps.services.Status.OK &&
-                  result[0]
-                ) {
-                  const lat = round7(parseFloat(result[0].y))
-                  const lng = round7(parseFloat(result[0].x))
-                  if (onCoordinatesChange) onCoordinatesChange(lat, lng)
-                  setAddress(data.roadAddress, lat, lng, detailAddress)
-                } else {
-                  if (onCoordinatesChange) onCoordinatesChange(0, 0)
-                  setAddress(data.roadAddress, 0, 0, detailAddress)
-                }
-              }
-            )
-          } else {
-            if (onCoordinatesChange) onCoordinatesChange(0, 0)
-            setAddress(data.roadAddress, 0, 0, detailAddress)
+
+          // 카카오 맵 API 초기화 후 좌표 검색
+          const initializeKakaoMap = () => {
+            if (window.kakao) {
+              window.kakao.maps.load(() => {
+                const geocoder = new window.kakao.maps.services.Geocoder()
+                geocoder.addressSearch(
+                  data.roadAddress,
+                  (result: KakaoGeocodeResult[], status: string) => {
+                    if (
+                      status === window.kakao.maps.services.Status.OK &&
+                      result[0]
+                    ) {
+                      const lat = round7(parseFloat(result[0].y))
+                      const lng = round7(parseFloat(result[0].x))
+                      if (onCoordinatesChange) onCoordinatesChange(lat, lng)
+                      if (onAddressChange)
+                        onAddressChange(
+                          data.roadAddress,
+                          detailAddress,
+                          lat,
+                          lng
+                        )
+                    } else {
+                      if (onCoordinatesChange) onCoordinatesChange(0, 0)
+                      if (onAddressChange)
+                        onAddressChange(data.roadAddress, detailAddress, 0, 0)
+                    }
+                  }
+                )
+              })
+            } else {
+              setTimeout(initializeKakaoMap, 500)
+            }
           }
+
+          // 카카오 맵 API 초기화 시작
+          initializeKakaoMap()
+
           setTimeout(() => {
             detailInputRef.current?.focus()
           }, 100)
@@ -99,7 +120,8 @@ const AddressSearch = ({
     if (!document.getElementById(scriptId)) {
       const script = document.createElement('script')
       script.id = scriptId
-      script.src = 'https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js'
+      script.src =
+        'https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js'
       script.onload = () => openPostcode() // 로드 후 재시도
       document.body.appendChild(script)
     } else {
@@ -124,8 +146,7 @@ const AddressSearch = ({
         <button
           type="button"
           onClick={openPostcode}
-          className="rounded-lg bg-indigo-600 px-4 text-sm font-medium text-white transition hover:bg-indigo-700"
-        >
+          className="rounded-lg bg-indigo-600 px-4 text-sm font-medium text-white transition hover:bg-indigo-700">
           주소 검색
         </button>
       </div>
@@ -137,13 +158,10 @@ const AddressSearch = ({
           value={detailAddress}
           onChange={e => {
             setDetailAddress(e.target.value)
-            const { latitude, longitude } = useAddressStore.getState()
-            setAddress(
-              roadAddress,
-              latitude ?? 0,
-              longitude ?? 0,
-              e.target.value
-            )
+
+            if (onAddressChange) {
+              onAddressChange(roadAddress, e.target.value, 0, 0)
+            }
           }}
           className="w-full bg-transparent text-sm font-normal text-slate-700 outline-none"
         />
