@@ -138,7 +138,7 @@ const AddressSearch = ({
             type="text"
             value={roadAddress}
             placeholder="도로명주소"
-            className="h-12 w-full cursor-pointer rounded-lg bg-slate-50 px-4 text-sm font-normal text-slate-700 outline outline-1 outline-offset-[-1px] outline-slate-200 outline-none"
+            className="h-12 w-full cursor-pointer rounded-lg border border-gray-300 bg-white px-4 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
             readOnly
             onClick={openPostcode}
           />
@@ -162,7 +162,7 @@ const AddressSearch = ({
             // 상세주소 변경 시에는 기존 좌표 정보를 유지
             // onAddressChange는 우편번호 검색을 통해서만 호출되도록 수정
           }}
-          className="h-11 w-full rounded-lg border border-gray-300 bg-white px-4 text-sm text-gray-900 placeholder-gray-400 outline-none"
+          className="h-11 w-full rounded-lg border border-gray-300 bg-white px-4 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
         />
       </div>
     </div>
