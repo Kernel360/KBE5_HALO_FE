@@ -354,11 +354,21 @@ export const ManagerMyForm = () => {
                     <div className="justify-start self-stretch font-['Inter'] text-sm leading-none font-medium text-slate-700">
                       프로필 사진
                     </div>
-                    <div className="inline-flex h-10 w-40 items-center justify-center rounded-md bg-slate-50 px-4 outline outline-1 outline-offset-[-1px] outline-slate-200">
-                      <div className="justify-start font-['Inter'] text-sm leading-none font-medium text-slate-700">
+                    <label className="inline-flex h-10 w-40 cursor-pointer items-center justify-center rounded-md bg-slate-50 px-4 outline outline-1 outline-offset-[-1px] outline-slate-200 hover:bg-slate-100">
+                      <span className="justify-start font-['Inter'] text-sm leading-none font-medium text-slate-700">
                         파일 선택
-                      </div>
-                    </div>
+                      </span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={e => {
+                          if (e.target.files && e.target.files.length > 0) {
+                            setFiles(Array.from(e.target.files))
+                          }
+                        }}
+                      />
+                    </label>
                     <div className="justify-start self-stretch font-['Inter'] text-xs leading-none font-normal text-slate-500">
                       JPG, PNG 파일 (최대 5MB)
                     </div>
@@ -596,8 +606,8 @@ export const ManagerMyForm = () => {
                             prev ? { ...prev, password: e.target.value } : prev
                           )
                         }
-                        placeholder="8~20자, 대/소문자·숫자·특수문자 중 3가지 이상 포함"
-                        className="h-12 w-full rounded-lg bg-slate-50 px-4 pr-10 text-sm text-slate-700 placeholder-slate-400 outline outline-1 outline-slate-200"
+                        placeholder="비밀번호"
+                        className="h-12 w-full rounded-lg border border-gray-300 bg-white px-4 pr-10 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
                       />
                       <button
                         type="button"
@@ -632,7 +642,7 @@ export const ManagerMyForm = () => {
                           )
                         }
                         placeholder="비밀번호"
-                        className="h-12 w-full rounded-lg bg-slate-50 px-4 pr-10 text-sm text-slate-700 placeholder-slate-400 outline outline-1 outline-slate-200"
+                        className="h-12 w-full rounded-lg border border-gray-300 bg-white px-4 pr-10 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
                       />
                       <button
                         type="button"
