@@ -59,7 +59,7 @@ export const CustomerMyInfo: React.FC = () => {
           latitude: res.body.latitude,
           longitude: res.body.longitude
         })
-      } catch (error) {
+      } catch {
         setErrorToastMsg('회원 정보를 불러오지 못했습니다.')
       }
     }
@@ -83,7 +83,10 @@ export const CustomerMyInfo: React.FC = () => {
           `${chargedAmount.toLocaleString()}P가 충전되었습니다.`
         )
       } catch (error) {
-        console.error('포인트 정보 새로고침 실패:', error)
+        setErrorToastMsg(
+          (error as Error).message ||
+            '충전 후 회원 정보 새로고침에 실패했습니다.'
+        )
       }
     }
     fetchUpdatedInfo()
@@ -115,7 +118,9 @@ export const CustomerMyInfo: React.FC = () => {
       setEditMode(false)
       setSuccessToastMsg('회원정보가 성공적으로 수정되었습니다.')
     } catch (error) {
-      setErrorToastMsg('회원정보 수정에 실패했습니다.')
+      setErrorToastMsg(
+        (error as Error).message || '회원정보 수정에 실패했습니다.'
+      )
     } finally {
       setAddressLoading(false)
     }
@@ -288,6 +293,15 @@ export const CustomerMyInfo: React.FC = () => {
                   onCoordinatesChange={(lat, lng) =>
                     setEditForm(f => ({ ...f, latitude: lat, longitude: lng }))
                   }
+                  onAddressChange={(roadAddress, detailAddress, lat, lng) => {
+                    setEditForm(f => ({
+                      ...f,
+                      roadAddress,
+                      detailAddress,
+                      latitude: lat,
+                      longitude: lng
+                    }))
+                  }}
                 />
               </div>
             ) : (
