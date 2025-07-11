@@ -1,21 +1,28 @@
-import { RefreshCw } from "lucide-react";
+import { RefreshCw } from "lucide-react"
 
 interface ResetButtonProps {
-  onClick: () => void;
-  disabled?: boolean;
-  className?: string;
+  onClick: () => void
+  disabled?: boolean
+  className?: string
 }
 
-export const ResetButton = ({ onClick, disabled = false, className = "" }: ResetButtonProps) => {
+export const ResetButton = ({
+  onClick,
+  disabled = false,
+  className = ""
+}: ResetButtonProps) => {
   return (
     <button
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className={`h-9 px-4 bg-white border border-gray-300 rounded text-slate-600 text-sm font-medium hover:bg-gray-50 cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
-    >
+      className={`flex h-9 cursor-pointer items-center justify-center gap-1.5 rounded border border-gray-300 bg-white px-4 text-sm font-medium text-slate-600 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 ${className}`}>
+      <RefreshCw
+        size={15}
+        strokeWidth={2}
+      />
+
       <span>초기화</span>
-      <RefreshCw size={15} strokeWidth={2} />
     </button>
-  );
-};
+  )
+}

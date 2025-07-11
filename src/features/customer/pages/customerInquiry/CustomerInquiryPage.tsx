@@ -1,266 +1,148 @@
 // CustomerInquiryPage.tsx
-import React, { Fragment, useEffect, useState, useCallback, useRef } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { DEFAULT_PAGE_SIZE } from "@/shared/constants/constants";
-import { searchCustomerInquiries } from "@/features/customer/api/CustomerInquiries";
-import type { InquirySummary, SearchInquiriesRequest } from "@/shared/types/InquiryType";
-import Pagination from "@/shared/components/Pagination";
-import { useAuthStore } from "@/store/useAuthStore";
+import React, {
+  Fragment,
+  useEffect,
+  useState,
+  useCallback
+} from "react"
+import { Link, useNavigate, useSearchParams } from "react-router-dom"
+import { DEFAULT_PAGE_SIZE } from "@/shared/constants/constants"
+import { Plus } from "lucide-react"
+import { searchCustomerInquiries } from "@/features/customer/api/CustomerInquiries"
+import type {
+  InquirySummary,
+  SearchInquiriesRequest
+} from "@/shared/types/InquiryType"
+import Pagination from "@/shared/components/Pagination"
+import { useAuthStore } from "@/store/useAuthStore"
 
 export const CustomerInquiryPage: React.FC = () => {
-  const navigate = useNavigate();
-  const [fadeKey, setFadeKey] = useState(0);
-  const [inquiries, setInquiries] = useState<InquirySummary[]>([]);
-  const [total, setTotal] = useState(0);
-  const [loading, setLoading] = useState(false);
-
-  const isMounted = useRef(false);
+  const navigate = useNavigate()
+  const [urlParams] = useSearchParams()
+  const [fadeKey, setFadeKey] = useState(0)
+  const [inquiries, setInquiries] = useState<InquirySummary[]>([])
+  const [total, setTotal] = useState(0)
+  const [loading, setLoading] = useState(false)
 
   const [searchParams, setSearchParams] = useState<SearchInquiriesRequest>({
     fromCreatedAt: undefined,
     toCreatedAt: undefined,
     replyStatus: undefined,
-
     titleKeyword: undefined,
     contentKeyword: undefined,
     page: 0,
-    size: DEFAULT_PAGE_SIZE,
-  });
+    size: DEFAULT_PAGE_SIZE
+  })
 
-  // UI 상태 관리를 위한 별도 상태
-  const [uiState, setUiState] = useState({
-    dateRange: "", // "1m", "3m", "6m"
-    titleKeyword: "",
-    contentKeyword: "",
-    replyStatus: "", // "all", "replied", "pending"
-  });
+  // URL 파라미터에서 검색 조건 추출
+  useEffect(() => {
+    const startDate = urlParams.get("startDate")
+    const endDate = urlParams.get("endDate")
+    const replyStatus = urlParams.get("replyStatus")
+    const titleKeyword = urlParams.get("titleKeyword")
+    const contentKeyword = urlParams.get("contentKeyword")
 
-  // 날짜 표시를 위한 상태 추가
-  const [startDateDisplay, setStartDateDisplay] = useState<string>('');
+    setSearchParams(prev => ({
+      ...prev,
+      fromCreatedAt: startDate || undefined,
+      toCreatedAt: endDate || undefined,
+      replyStatus: replyStatus ? replyStatus === "true" : undefined,
+      titleKeyword: titleKeyword || undefined,
+      contentKeyword: contentKeyword || undefined,
+      page: 0
+    }))
+  }, [urlParams])
+
   // Helper function to format ISO date string to 'YYYY-MM-DD'
   const formatDateToYMD = (dateString: string): string => {
-    if (!dateString) return '';
-    const date = new Date(dateString);
-    return date.toISOString().slice(0, 10);
-  };
-
-  useEffect(() => {
-    const { accessToken } = useAuthStore.getState();
-    if (!accessToken) {
-      alert("로그인이 필요합니다.");
-      navigate("/auth/login");
-      return;
-    }
-
-    const fetchInitialData = async () => {
-      setLoading(true);
-      try {
-        // 문의사항 조회
-        const inquiriesRes = await searchCustomerInquiries(searchParams);
-
-        // 문의사항 설정
-        if (inquiriesRes?.body) {
-          setInquiries(inquiriesRes.body.content);
-          setTotal(inquiriesRes.body.page.totalElements);
-          setFadeKey((prev) => prev + 1);
-        }
-      } catch (error: any) {
-        const errorMessage = error.response?.data?.message || error.message || "문의사항 목록을 조회하는데 실패하였습니다.";
-        alert(errorMessage);
-        setInquiries([]);
-        setTotal(0);
-      } finally {
-        setLoading(false);
-        isMounted.current = true;
-      }
-    };
-
-    if (!isMounted.current) {
-      fetchInitialData();
-    }
-  }, [navigate, searchParams]);
+    if (!dateString) return ""
+    const date = new Date(dateString)
+    return date.toISOString().slice(0, 10)
+  }
 
   // 문의사항 조회 함수
-  const loadInquiries = useCallback(async (paramsToSearch: SearchInquiriesRequest) => {
-    if (!isMounted.current) return; // 초기 로딩 시에는 실행하지 않음
-
-    const { accessToken } = useAuthStore.getState();
-    if (!accessToken) {
-      alert("로그인이 필요합니다.");
-      navigate("/auth/login");
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const res = await searchCustomerInquiries(paramsToSearch);
-
-      if (res?.body) {
-        setInquiries(res.body.content);
-        setTotal(res.body.page.totalElements);
-        setFadeKey((prev) => prev + 1);
-      } else {
-        setInquiries([]);
-        setTotal(0);
+  const loadInquiries = useCallback(
+    async (paramsToSearch: SearchInquiriesRequest) => {
+      const { accessToken } = useAuthStore.getState()
+      if (!accessToken) {
+        alert("로그인이 필요합니다.")
+        navigate("/auth/login")
+        return
       }
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.message || error.message || "문의사항 목록을 조회하는데 실패하였습니다.";
-      alert(errorMessage);
-      setInquiries([]);
-      setTotal(0);
-    } finally {
-      setLoading(false);
-    }
-  }, [navigate]);
 
-  // searchParams 변경 시에만 문의사항 재조회
+      setLoading(true)
+      try {
+        const res = await searchCustomerInquiries(paramsToSearch)
+
+        if (res?.body) {
+          setInquiries(res.body.content)
+          setTotal(res.body.page.totalElements)
+          setFadeKey(prev => prev + 1)
+        } else {
+          setInquiries([])
+          setTotal(0)
+        }
+      } catch (error: unknown) {
+        const errorMessage =
+          (error as {
+            response?: { data?: { message?: string } }
+            message?: string
+          }).response?.data?.message ||
+          (error as { message?: string }).message ||
+          "문의사항 목록을 조회하는데 실패하였습니다."
+        alert(errorMessage)
+        setInquiries([])
+        setTotal(0)
+      } finally {
+        setLoading(false)
+      }
+    },
+    [navigate]
+  )
+
+  // searchParams 변경 시 문의사항 조회
   useEffect(() => {
-    if (isMounted.current) {
-      loadInquiries(searchParams);
-    }
-  }, [searchParams, loadInquiries]);
-
-  /**
-   * Helper function to format a Date object into 'YYYY-MM-DD' string
-   * for API calls.
-   */
-  const getFormattedDate = (date: Date): string => {
-    const year = date.getFullYear();
-    const month = (date.getMonth() + 1).toString().padStart(2, '0');
-    const day = date.getDate().toString().padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  };
-
-  /**
-   * Helper function to format a Date object into 'YY년 MM월 DD일' string
-   * for display purposes.
-   */
-  const getFormattedDateDisplay = (date: Date): string => {
-    const year = date.getFullYear().toString().slice(2); // '25'
-    const month = (date.getMonth() + 1).toString().padStart(2, '0'); // '06'
-    const day = date.getDate().toString().padStart(2, '0'); // '09'
-    return `${year}년 ${month}월 ${day}일`;
-  };
-
-  // Helper function to calculate date range based on range string
-  const getDateRange = (range: string): { fromDate: string; toDate: string } => {
-    const today = new Date();
-    let startDate = new Date();
-
-    if (range === "1m") {
-      startDate.setMonth(today.getMonth() - 1);
-      startDate.setDate(today.getDate() + 1);
-    } else if (range === "3m") {
-      startDate.setMonth(today.getMonth() - 3);
-      startDate.setDate(today.getDate() + 1);
-    } else if (range === "6m") {
-      startDate.setMonth(today.getMonth() - 6);
-      startDate.setDate(today.getDate() + 1);
-    } else {
-      return { fromDate: "", toDate: "" };
-    }
-    
-    return {
-      fromDate: getFormattedDate(startDate),
-      toDate: getFormattedDate(today)
-    };
-  };
-
-
-  // Handle date range button click
-  const handleDateRangeSearch = (range: string) => {
-    const { fromDate, toDate } = getDateRange(range);
-    
-    // UI 상태 업데이트
-    setUiState(prev => ({
-      ...prev,
-      dateRange: range
-    }));
-
-    if (range && fromDate && toDate) {
-      const newStartDate = new Date(fromDate);
-      setStartDateDisplay(getFormattedDateDisplay(newStartDate));
-    } else {
-      setStartDateDisplay('');
-    }
-
-    // 검색 파라미터 업데이트
-    setSearchParams((prev) => ({
-      ...prev,
-      fromCreatedAt: fromDate || undefined,
-      toCreatedAt: toDate || undefined,
-      page: 0,
-    }));
-  };
-
+    loadInquiries(searchParams)
+  }, [searchParams, loadInquiries])
 
   // Helper to update specific search parameter
-  const updateSearchParam = (key: keyof SearchInquiriesRequest, value: any) => {
-    setSearchParams((prev) => ({ ...prev, [key]: value }));
-  };
+  const updateSearchParam = (
+    key: keyof SearchInquiriesRequest,
+    value: unknown
+  ) => {
+    setSearchParams(prev => ({ ...prev, [key]: value }))
+  }
 
   // Handle page change
   const handlePageChange = (pageNumber: number) => {
-    updateSearchParam("page", pageNumber);
-  };
-
+    updateSearchParam("page", pageNumber)
+  }
 
   return (
     <Fragment>
       <div className="flex self-stretch">
-        <div className="flex-1 self-stretch inline-flex flex-col">
+        <div className="inline-flex flex-1 flex-col self-stretch">
           {/* Header Section */}
-          <div className="self-stretch h-16 px-6 bg-white border-b border-gray-200 inline-flex justify-between items-center">
-            <div className="justify-start text-gray-900 text-xl font-bold font-['Inter'] leading-normal">문의사항</div>
+          <div className="inline-flex h-16 items-center justify-between self-stretch border-b border-gray-200 bg-white px-6">
+            <div className="justify-start font-['Inter'] text-xl leading-normal font-bold text-gray-900">
+              문의사항
+            </div>
             <Link
               to="/my/inquiries/new"
-              className="h-10 px-4 bg-indigo-600 rounded-md flex justify-center items-center gap-2 cursor-pointer hover:bg-indigo-700 transition"
-            >
-              <span className="material-symbols-outlined text-white">add</span>
-              <span className="text-white text-sm font-semibold font-['Inter'] leading-none">문의하기</span>
+              className="flex h-10 cursor-pointer items-center justify-center gap-2 rounded-md bg-indigo-600 px-3 py-2 transition hover:bg-indigo-700">
+              <Plus className="h-4 w-4 text-white" />
+              <span className="font-['Inter'] text-sm leading-none font-semibold text-white">
+                문의하기
+              </span>
             </Link>
           </div>
 
-          <div className="self-stretch p-6 flex flex-col gap-6">
+          <div className="flex flex-col gap-6 self-stretch p-6">
             {/* Inquiry List Section */}
-            <div className="self-stretch p-6 bg-white border border-gray-200 rounded-lg shadow-sm flex flex-col gap-4">
-              <div className="flex justify-end items-center">
-                <div className="flex items-center gap-4">
-                  {/* Display selected date range */}
-                  {uiState.dateRange !== "" && startDateDisplay && (
-                    <div className="text-slate-600 text-sm font-medium">
-                      {startDateDisplay}~
-                    </div>
-                  )}
-                  <div className="relative">
-                    <select
-                      value={uiState.dateRange}
-                      onChange={(e) => handleDateRangeSearch(e.target.value)}
-                      className="h-10 pr-10 pl-4 text-sm rounded-md border border-slate-200 text-slate-700 bg-white appearance-none"
-                    >
-                      <option value="">전체</option>
-                      <option value="1m">최근 1개월</option>
-                      <option value="3m">최근 3개월</option>
-                      <option value="6m">최근 6개월</option>
-                    </select>
-                    <div className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2">
-                      <svg
-                        className="w-4 h-4 text-slate-400"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        viewBox="0 0 24 24"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
+            <div className="flex flex-col gap-4 self-stretch rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
               {/* Table Header */}
-              <div className="h-12 px-4 bg-slate-50 border-b border-slate-200 flex items-center">
-                <div className="w-[20%] text-center text-sm font-semibold text-slate-700"> 
+              <div className="flex h-12 items-center border-b border-slate-200 bg-slate-50 px-4">
+                <div className="w-[20%] text-center text-sm font-semibold text-slate-700">
                   문의 유형
                 </div>
                 <div className="w-[45%] text-center text-sm font-semibold text-slate-700">
@@ -276,16 +158,15 @@ export const CustomerInquiryPage: React.FC = () => {
 
               <div key={fadeKey}>
                 {inquiries.length === 0 && !loading ? (
-                  <div className="h-12 px-4 border-b border-slate-200 flex items-center justify-center text-sm text-slate-500">
+                  <div className="flex h-12 items-center justify-center border-b border-slate-200 px-4 text-sm text-slate-500">
                     조회된 문의사항이 없습니다.
                   </div>
                 ) : (
-                  inquiries.map((inquiry) => (
+                  inquiries.map(inquiry => (
                     <Link
                       key={inquiry.inquiryId}
                       to={`/my/inquiries/${inquiry.inquiryId}`}
-                      className="h-12 px-4 border-b border-slate-200 flex items-center hover:bg-slate-50 cursor-pointer transition"
-                    >
+                      className="flex h-12 cursor-pointer items-center border-b border-slate-200 px-4 transition hover:bg-slate-50">
                       <div className="w-[20%] text-center text-sm font-medium text-slate-700">
                         {inquiry.categoryName || "기타"}
                       </div>
@@ -295,14 +176,13 @@ export const CustomerInquiryPage: React.FC = () => {
                       <div className="w-[20%] text-center text-sm font-medium text-slate-700">
                         {formatDateToYMD(inquiry.createdAt)}
                       </div>
-                      <div className="w-[15%] flex justify-center items-center">
+                      <div className="flex w-[15%] items-center justify-center">
                         <span
-                          className={`px-3 py-1 text-sm rounded-2xl font-normal ${
+                          className={`rounded-2xl px-3 py-1 text-sm font-normal ${
                             inquiry.isReplied
                               ? "bg-blue-100 text-blue-800"
                               : "bg-gray-100 text-gray-600"
-                          }`}
-                        >
+                          }`}>
                           {inquiry.isReplied ? "답변완료" : "처리중"}
                         </span>
                       </div>
@@ -311,7 +191,7 @@ export const CustomerInquiryPage: React.FC = () => {
                 )}
 
                 {loading && inquiries.length === 0 && (
-                  <div className="h-16 px-4 border-b border-slate-200 flex items-center justify-center text-sm text-slate-500">
+                  <div className="flex h-16 items-center justify-center border-b border-slate-200 px-4 text-sm text-slate-500">
                     로딩 중...
                   </div>
                 )}
@@ -329,5 +209,5 @@ export const CustomerInquiryPage: React.FC = () => {
         </div>
       </div>
     </Fragment>
-  );
-};
+  )
+}
