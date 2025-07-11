@@ -165,7 +165,7 @@ export const CustomerSignup: React.FC = () => {
           <input
             name="phone"
             type="tel"
-            className="h-11 w-full rounded-lg border border-gray-300 bg-gray-50 px-4 text-sm text-gray-900 placeholder-gray-400 transition-colors focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-200 focus:outline-none"
+            className="h-11 w-full rounded-lg border border-gray-300 bg-white px-4 text-sm text-gray-900 placeholder-gray-400 outline-none"
             placeholder="숫자만 입력하세요 (예: 01012345678)"
             value={form.phone}
             disabled={isSubmitting}
@@ -185,7 +185,7 @@ export const CustomerSignup: React.FC = () => {
           </label>
           <input
             name="email"
-            className="h-11 w-full rounded-lg border border-gray-300 bg-gray-50 px-4 text-sm text-gray-900 placeholder-gray-400 transition-colors focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-200 focus:outline-none"
+            className="h-11 w-full rounded-lg border border-gray-300 bg-white px-4 text-sm text-gray-900 placeholder-gray-400 outline-none"
             value={form.email}
             disabled={isSubmitting}
             onChange={handleChange}
@@ -201,7 +201,7 @@ export const CustomerSignup: React.FC = () => {
           <input
             name="password"
             type={showPassword ? 'text' : 'password'}
-            className="h-11 w-full rounded-lg border border-gray-300 bg-gray-50 px-4 pr-10 text-sm text-gray-900 placeholder-gray-400 transition-colors focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-200 focus:outline-none"
+            className="h-11 w-full rounded-lg border border-gray-300 bg-white px-4 pr-10 text-sm text-gray-900 placeholder-gray-400 outline-none"
             value={form.password}
             disabled={isSubmitting}
             onChange={e => {
@@ -230,7 +230,7 @@ export const CustomerSignup: React.FC = () => {
           </label>
           <input
             name="userName"
-            className="h-11 w-full rounded-lg border border-gray-300 bg-gray-50 px-4 text-sm text-gray-900 placeholder-gray-400 transition-colors focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-200 focus:outline-none"
+            className="h-11 w-full rounded-lg border border-gray-300 bg-white px-4 text-sm text-gray-900 placeholder-gray-400 outline-none"
             value={form.userName}
             disabled={isSubmitting}
             onChange={handleChange}
@@ -247,7 +247,7 @@ export const CustomerSignup: React.FC = () => {
             <input
               type="date"
               name="birthDate"
-              className="h-11 w-full rounded-lg border border-gray-300 bg-gray-50 px-4 text-sm text-gray-900 transition-colors focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-200 focus:outline-none"
+              className="h-11 w-full rounded-lg border border-gray-300 bg-white px-4 text-sm text-gray-900 outline-none"
               value={form.birthDate || maxBirthDate}
               disabled={isSubmitting}
               onChange={handleChange}
@@ -263,7 +263,7 @@ export const CustomerSignup: React.FC = () => {
               value={form.gender}
               disabled={isSubmitting}
               onChange={handleChange}
-              className="h-11 w-full rounded-lg border border-gray-300 bg-gray-50 px-4 text-sm text-gray-900 transition-colors focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-200 focus:outline-none">
+              className="h-11 w-full rounded-lg border border-gray-300 bg-white px-4 text-sm text-gray-900 outline-none">
               <option value="MALE">남</option>
               <option value="FEMALE">여</option>
             </select>
@@ -271,27 +271,31 @@ export const CustomerSignup: React.FC = () => {
         </div>
 
         {/* 주소 - 수정된 부분 */}
-        <AddressSearch
-          roadAddress={form.roadAddress}
-          detailAddress={form.detailAddress}
-          errors={errors.address}
-          setRoadAddress={val => {
-            setForm(prev => ({ ...prev, roadAddress: val }))
-          }}
-          setDetailAddress={val => {
-            setForm(prev => ({ ...prev, detailAddress: val }))
-          }}
-          onCoordinatesChange={handleCoordinatesChange}
-          onAddressChange={(roadAddress, detailAddress, lat, lng) => {
-            setForm(prev => ({
-              ...prev,
-              roadAddress,
-              detailAddress,
-              latitude: lat,
-              longitude: lng
-            }))
-          }}
-        />
+        <div className="flex flex-col gap-2">
+          <label className="flex items-center gap-1 text-sm font-bold text-zinc-800">
+            주소 <span className="text-red-500">*</span>
+          </label>
+          <AddressSearch
+            roadAddress={form.roadAddress}
+            detailAddress={form.detailAddress}
+            setRoadAddress={val => {
+              setForm(prev => ({ ...prev, roadAddress: val }))
+            }}
+            setDetailAddress={val => {
+              setForm(prev => ({ ...prev, detailAddress: val }))
+            }}
+            onCoordinatesChange={handleCoordinatesChange}
+            onAddressChange={(roadAddress, detailAddress, lat, lng) => {
+              setForm(prev => ({
+                ...prev,
+                roadAddress,
+                detailAddress,
+                latitude: lat,
+                longitude: lng
+              }))
+            }}
+          />
+        </div>
 
         {/* 약관 동의 */}
         <div className="flex items-center space-x-2">

@@ -1,9 +1,9 @@
 import { useRef } from 'react'
+import { SearchButton } from './ui/SearchButton'
 
 interface AddressSearchProps {
   roadAddress: string
   detailAddress: string
-  errors?: string
   setRoadAddress: (val: string) => void
   setDetailAddress: (val: string) => void
   onCoordinatesChange?: (lat: number, lng: number) => void
@@ -24,6 +24,7 @@ declare global {
     }
     kakao: {
       maps: {
+        load: (callback: () => void) => void
         services: {
           Geocoder: new () => {
             addressSearch: (
@@ -54,7 +55,6 @@ const round7 = (num: number) => Math.round(num * 1e7) / 1e7
 const AddressSearch = ({
   roadAddress,
   detailAddress,
-  errors,
   setRoadAddress,
   setDetailAddress,
   onCoordinatesChange,
@@ -72,7 +72,7 @@ const AddressSearch = ({
 
           // 카카오 맵 API 초기화 후 좌표 검색
           const initializeKakaoMap = () => {
-            if (window.kakao) {
+            if (window.kakao && window.kakao.maps) {
               window.kakao.maps.load(() => {
                 const geocoder = new window.kakao.maps.services.Geocoder()
                 geocoder.addressSearch(
@@ -132,25 +132,26 @@ const AddressSearch = ({
 
   return (
     <div className="flex flex-col items-start justify-start gap-2 self-stretch">
-      <div className="justify-start self-stretch font-['Inter'] text-sm leading-none font-medium text-slate-700">
-        주소 *
+      <div className="flex w-full flex-col gap-2 md:flex-row md:gap-3">
+        <div className="min-w-0 flex-1">
+          <input
+            type="text"
+            value={roadAddress}
+            placeholder="도로명주소"
+            className="h-12 w-full cursor-pointer rounded-lg bg-slate-50 px-4 text-sm font-normal text-slate-700 outline outline-1 outline-offset-[-1px] outline-slate-200 outline-none"
+            readOnly
+            onClick={openPostcode}
+          />
+        </div>
+        <div className="w-full md:w-auto">
+          <SearchButton
+            type="button"
+            onClick={openPostcode}
+            className="h-12 w-full px-4 md:w-auto"
+          />
+        </div>
       </div>
-      <div className="flex w-full gap-2">
-        <input
-          type="text"
-          value={roadAddress}
-          placeholder="도로명주소"
-          className="h-12 flex-1 rounded-lg bg-slate-50 bg-transparent px-4 text-sm font-normal text-slate-700 outline outline-1 outline-offset-[-1px] outline-slate-200 outline-none"
-          readOnly
-        />
-        <button
-          type="button"
-          onClick={openPostcode}
-          className="rounded-lg bg-indigo-600 px-4 text-sm font-medium text-white transition hover:bg-indigo-700">
-          주소 검색
-        </button>
-      </div>
-      <div className="inline-flex h-12 items-center justify-start self-stretch rounded-lg bg-slate-50 px-4 outline outline-1 outline-offset-[-1px] outline-slate-200">
+      <div className="w-full">
         <input
           ref={detailInputRef}
           type="text"
@@ -158,17 +159,12 @@ const AddressSearch = ({
           value={detailAddress}
           onChange={e => {
             setDetailAddress(e.target.value)
-
-            if (onAddressChange) {
-              onAddressChange(roadAddress, e.target.value, 0, 0)
-            }
+            // 상세주소 변경 시에는 기존 좌표 정보를 유지
+            // onAddressChange는 우편번호 검색을 통해서만 호출되도록 수정
           }}
-          className="w-full bg-transparent text-sm font-normal text-slate-700 outline-none"
+          className="h-11 w-full rounded-lg border border-gray-300 bg-white px-4 text-sm text-gray-900 placeholder-gray-400 outline-none"
         />
       </div>
-      {errors && !roadAddress && (
-        <p className="text-xs text-red-500">{errors}</p>
-      )}
     </div>
   )
 }
