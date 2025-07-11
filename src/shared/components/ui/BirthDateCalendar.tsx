@@ -69,7 +69,10 @@ const BirthDateCalendar: React.FC<BirthDateCalendarProps> = ({
   // 달력 밖 클릭 시 닫기
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (calendarRef.current && !calendarRef.current.contains(event.target as Node)) {
+      if (
+        calendarRef.current &&
+        !calendarRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false)
         setIsYearMonthSelector(false)
       }
@@ -184,28 +187,6 @@ const BirthDateCalendar: React.FC<BirthDateCalendarProps> = ({
     )
   }
 
-  const canGoToPreviousYear = (years: number): boolean => {
-    const minBirthDate = getMinBirthDate()
-    const prevYear = new Date(
-      currentMonth.getFullYear() - years,
-      currentMonth.getMonth()
-    )
-    return (
-      prevYear >= new Date(minBirthDate.getFullYear(), minBirthDate.getMonth())
-    )
-  }
-
-  const canGoToNextYear = (years: number): boolean => {
-    const maxBirthDate = getMaxBirthDate()
-    const nextYear = new Date(
-      currentMonth.getFullYear() + years,
-      currentMonth.getMonth()
-    )
-    return (
-      nextYear <= new Date(maxBirthDate.getFullYear(), maxBirthDate.getMonth())
-    )
-  }
-
   const days = getDaysInMonth(currentMonth)
   const weekDays = ['일', '월', '화', '수', '목', '금', '토']
 
@@ -260,7 +241,9 @@ const BirthDateCalendar: React.FC<BirthDateCalendarProps> = ({
   }
 
   return (
-    <div className="relative" ref={calendarRef}>
+    <div
+      className="relative"
+      ref={calendarRef}>
       <div
         className="flex w-full cursor-pointer items-center gap-2 rounded-lg border border-gray-300 px-3 py-3 text-sm hover:border-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
         onClick={() => setIsOpen(!isOpen)}>

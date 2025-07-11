@@ -165,12 +165,6 @@ export const ManagerMyForm = () => {
   // 모든 선택된 시간 초기화
   const clearAllSelectedTimes = () => setSelectedTimes({})
 
-  // 선택된 시간 텍스트 포맷 (예: "월요일: 09시, 10시")
-  const formatSelectedTimeText = (day: string, hours: Set<string>) => {
-    const sorted = Array.from(hours).sort()
-    return `${day}요일: ${sorted.join(', ')}`
-  }
-
   // 한글 요일 → 영문 ENUM 매핑
   const convertToEnum = (dayKor: string): string => {
     switch (dayKor) {
