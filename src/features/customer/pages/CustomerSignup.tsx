@@ -14,12 +14,7 @@ import ErrorToast from '@/shared/components/ui/toast/ErrorToast'
 import { PrivacyPolicyModal } from '../modal/PrivacyPolicyModal'
 import BirthDateCalendar from '@/shared/components/ui/BirthDateCalendar'
 
-const today = new Date()
-const oneYearAgo = new Date(today)
-oneYearAgo.setFullYear(today.getFullYear() - 1)
-
-// yyyy-MM-dd 형식으로 문자열 변환
-const maxBirthDate = oneYearAgo.toISOString().split('T')[0]
+// BirthDateCalendar 컴포넌트에서 기본값을 자동으로 설정하므로 제거
 
 interface CustomerSignupForm extends CustomerSignupReq {
   termsAgreed: boolean
@@ -30,7 +25,7 @@ export const CustomerSignup: React.FC = () => {
     email: '',
     password: '',
     userName: '',
-    birthDate: maxBirthDate,
+    birthDate: '', // BirthDateCalendar가 자동으로 기본값 설정
     gender: 'MALE',
     phone: '',
     roadAddress: '',

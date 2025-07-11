@@ -211,12 +211,6 @@ export const ManagerSignup = () => {
 
   // 유효성 검사
   const validate = () => {
-    // 디버그: 요청 데이터 콘솔 출력
-    console.log('=== 매니저 회원가입 요청 데이터 ===')
-    console.log('Form 데이터:', form)
-    console.log('주소 데이터:', addressData)
-    console.log('================================')
-    
     const newErrors: Record<string, string> = {}
     if (!form.userName.trim()) newErrors.userName = '이름을 입력해주세요.'
     if (!form.specialty) newErrors.specialty = '특기를 선택해주세요.'
@@ -295,7 +289,6 @@ export const ManagerSignup = () => {
         profileImageFileId: form.profileImageFileId
       }
     }
-
 
     try {
       setIsSubmitting(true)
