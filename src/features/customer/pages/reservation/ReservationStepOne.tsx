@@ -13,7 +13,6 @@ import {
 } from '@/features/customer/api/CustomerReservation'
 import { formatPhoneNumber } from '@/shared/utils/format'
 import AddressSearch from '@/shared/components/AddressSearch'
-import { useAddressStore } from '@/store/useAddressStore'
 import { ReservationStepIndicator } from '@/features/customer/components/ReservationStepIndicator'
 import {
   MapPin,
@@ -27,8 +26,10 @@ import {
 export const ReservationStepOne: React.FC = () => {
   const navigate = useNavigate()
   const phoneRef = useRef<HTMLInputElement>(null)
-  const { roadAddress, detailAddress, latitude, longitude } = useAddressStore()
-  const setAddress = useAddressStore(state => state.setAddress)
+  const [roadAddress, setRoadAddress] = useState('')
+  const [detailAddress, setDetailAddress] = useState('')
+  const [latitude, setLatitude] = useState(0)
+  const [longitude, setLongitude] = useState(0)
 
   const [form, setForm] = useState<ReservationReqType>({
     mainServiceId: 0,
@@ -48,7 +49,7 @@ export const ReservationStepOne: React.FC = () => {
   const [categories, setCategories] = useState<ServiceCategoryTreeType[]>([])
   const [, setUserInfo] = useState<CustomerInfoType[]>([])
 
-  // 주소 store 값 변경 시 form 동기화
+  // 주소 값 변경 시 form 동기화
   useEffect(() => {
     setForm(prev => ({
       ...prev,
@@ -88,17 +89,15 @@ export const ReservationStepOne: React.FC = () => {
           latitude: customer.latitude ?? 0,
           longitude: customer.longitude ?? 0
         }))
-        setAddress(
-          customer.roadAddress ?? '',
-          customer.latitude ?? 0,
-          customer.longitude ?? 0,
-          customer.detailAddress ?? ''
-        )
+        setRoadAddress(customer.roadAddress ?? '')
+        setDetailAddress(customer.detailAddress ?? '')
+        setLatitude(customer.latitude ?? 0)
+        setLongitude(customer.longitude ?? 0)
       })
       .catch(console.error)
 
     return () => controller.abort()
-  }, [setAddress])
+  }, [])
 
   const selectedMain = categories.find(c => c.serviceId === form.mainServiceId)
   const children = selectedMain?.children ?? []
@@ -241,12 +240,12 @@ export const ReservationStepOne: React.FC = () => {
             <AddressSearch
               roadAddress={roadAddress}
               detailAddress={detailAddress}
-              setRoadAddress={value =>
-                setAddress(value, latitude ?? 0, longitude ?? 0, detailAddress)
-              }
-              setDetailAddress={value =>
-                setAddress(roadAddress, latitude ?? 0, longitude ?? 0, value)
-              }
+              setRoadAddress={setRoadAddress}
+              setDetailAddress={setDetailAddress}
+              onCoordinatesChange={(lat, lng) => {
+                setLatitude(lat)
+                setLongitude(lng)
+              }}
             />
           </div>
 
