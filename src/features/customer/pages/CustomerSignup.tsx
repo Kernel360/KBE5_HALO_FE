@@ -12,6 +12,7 @@ import type { CustomerSignupReq } from '../types/CustomerSignupType'
 import AddressSearch from '@/shared/components/AddressSearch'
 import ErrorToast from '@/shared/components/ui/toast/ErrorToast'
 import { PrivacyPolicyModal } from '../modal/PrivacyPolicyModal'
+import BirthDateCalendar from '@/shared/components/ui/BirthDateCalendar'
 
 const today = new Date()
 const oneYearAgo = new Date(today)
@@ -165,7 +166,7 @@ export const CustomerSignup: React.FC = () => {
           <input
             name="phone"
             type="tel"
-            className="h-11 w-full rounded-lg border border-gray-300 bg-white px-4 text-sm text-gray-900 placeholder-gray-400 outline-none"
+            className="h-11 w-full rounded-lg border border-gray-300 bg-white px-4 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
             placeholder="숫자만 입력하세요 (예: 01012345678)"
             value={form.phone}
             disabled={isSubmitting}
@@ -185,7 +186,7 @@ export const CustomerSignup: React.FC = () => {
           </label>
           <input
             name="email"
-            className="h-11 w-full rounded-lg border border-gray-300 bg-white px-4 text-sm text-gray-900 placeholder-gray-400 outline-none"
+            className="h-11 w-full rounded-lg border border-gray-300 bg-white px-4 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
             value={form.email}
             disabled={isSubmitting}
             onChange={handleChange}
@@ -201,7 +202,7 @@ export const CustomerSignup: React.FC = () => {
           <input
             name="password"
             type={showPassword ? 'text' : 'password'}
-            className="h-11 w-full rounded-lg border border-gray-300 bg-white px-4 pr-10 text-sm text-gray-900 placeholder-gray-400 outline-none"
+            className="h-11 w-full rounded-lg border border-gray-300 bg-white px-4 pr-10 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
             value={form.password}
             disabled={isSubmitting}
             onChange={e => {
@@ -230,7 +231,7 @@ export const CustomerSignup: React.FC = () => {
           </label>
           <input
             name="userName"
-            className="h-11 w-full rounded-lg border border-gray-300 bg-white px-4 text-sm text-gray-900 placeholder-gray-400 outline-none"
+            className="h-11 w-full rounded-lg border border-gray-300 bg-white px-4 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
             value={form.userName}
             disabled={isSubmitting}
             onChange={handleChange}
@@ -244,15 +245,16 @@ export const CustomerSignup: React.FC = () => {
             <label className="flex items-center gap-1 text-sm font-bold text-zinc-800">
               생년월일 <span className="text-red-500">*</span>
             </label>
-            <input
-              type="date"
-              name="birthDate"
-              className="h-11 w-full rounded-lg border border-gray-300 bg-white px-4 text-sm text-gray-900 outline-none"
-              value={form.birthDate || maxBirthDate}
-              disabled={isSubmitting}
-              onChange={handleChange}
-              max={maxBirthDate}
+            <BirthDateCalendar
+              selectedDate={form.birthDate}
+              onDateChange={(date) => {
+                setForm(prev => ({ ...prev, birthDate: date }))
+                setErrors(prev => ({ ...prev, birthDate: '' }))
+              }}
             />
+            {errors.birthDate && (
+              <p className="text-xs text-red-500">{errors.birthDate}</p>
+            )}
           </div>
           <div className="flex w-28 flex-col gap-2">
             <label className="flex items-center gap-1 text-sm font-bold text-zinc-800">
@@ -263,10 +265,13 @@ export const CustomerSignup: React.FC = () => {
               value={form.gender}
               disabled={isSubmitting}
               onChange={handleChange}
-              className="h-11 w-full rounded-lg border border-gray-300 bg-white px-4 text-sm text-gray-900 outline-none">
+              className="h-11 w-full rounded-lg border border-gray-300 bg-white px-4 text-sm text-gray-900 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200">
               <option value="MALE">남</option>
               <option value="FEMALE">여</option>
             </select>
+            {errors.gender && (
+              <p className="text-xs text-red-500">{errors.gender}</p>
+            )}
           </div>
         </div>
 
