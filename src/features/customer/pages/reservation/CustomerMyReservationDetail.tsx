@@ -1,52 +1,54 @@
-import { useEffect, useState } from "react"
-import HalfStar from "@/shared/components/HalfStar"
-import { Star, Pencil } from "lucide-react"
-import { useParams, useNavigate } from "react-router-dom"
+import { useEffect, useState } from 'react'
+import HalfStar from '@/shared/components/HalfStar'
+import { Star, Pencil } from 'lucide-react'
+import { useParams, useNavigate, useOutletContext } from 'react-router-dom'
 import {
   getCustomerReservationDetail,
   cancelReservationByCustomer
-} from "@/features/customer/api/CustomerReservation"
+} from '@/features/customer/api/CustomerReservation'
 import type {
   CustomerReservationDetailRspType,
   CustomerReservationCancelReqType,
   ReservationStatus
-} from "@/features/customer/types/CustomerReservationType"
-import { serviceCategoryIcons } from "@/shared/constants/ServiceIcons"
-import { DefaultServiceIcon } from "@/shared/constants/ServiceIcons"
+} from '@/features/customer/types/CustomerReservationType'
+import { serviceCategoryIcons } from '@/shared/constants/ServiceIcons'
+import { DefaultServiceIcon } from '@/shared/constants/ServiceIcons'
+import ProfileImagePreview from '@/shared/components/ui/ProfileImagePreview'
+import { ReservationCancelModal } from '@/features/customer/modal/ReservationCancelModal'
 
 const getKoreanStatus = (status: ReservationStatus) => {
   switch (status) {
-    case "CONFIRMED":
-      return "예약 완료"
-    case "COMPLETED":
-      return "방문 완료"
-    case "REQUESTED":
-      return "예약 요청"
-    case "CANCELED":
-      return "예약 취소"
-    case "IN_PROGRESS":
-      return "서비스 진행 중"
+    case 'CONFIRMED':
+      return '예약 완료'
+    case 'COMPLETED':
+      return '방문 완료'
+    case 'REQUESTED':
+      return '예약 요청'
+    case 'CANCELED':
+      return '예약 취소'
+    case 'IN_PROGRESS':
+      return '서비스 진행 중'
     default:
       return status
   }
 }
 
 const getStatusBadgeClasses = (status: ReservationStatus) => {
-  let classes = "px-3 py-1 rounded-md text-base font-bold "
+  let classes = 'px-3 py-1 rounded-md text-base font-bold '
   switch (status) {
-    case "CONFIRMED":
-      classes += " text-blue-600"
+    case 'CONFIRMED':
+      classes += ' text-blue-600'
       break
-    case "CANCELED":
-      classes += " text-red-400"
+    case 'CANCELED':
+      classes += ' text-red-400'
       break
-    case "IN_PROGRESS":
-      classes += " text-green-600"
+    case 'IN_PROGRESS':
+      classes += ' text-green-600'
       break
-    case "COMPLETED":
-    case "REQUESTED":
+    case 'COMPLETED':
+    case 'REQUESTED':
     default:
-      classes += " text-gray-600"
+      classes += ' text-gray-600'
       break
   }
   return classes
@@ -55,9 +57,39 @@ const getStatusBadgeClasses = (status: ReservationStatus) => {
 export const CustomerMyReservationDetail = () => {
   const { reservationId } = useParams()
   const navigate = useNavigate()
+  const { headerRef } = useOutletContext<{
+    headerRef: React.RefObject<{ refreshPoint: () => void }>
+  }>()
   const [reservation, setReservation] =
     useState<CustomerReservationDetailRspType | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false)
+  const [isCanceling, setIsCanceling] = useState(false)
+
+  // profileImageUrl 배열 문자열을 파싱하여 첫 번째 URL 반환
+  const getProfileImageUrl = (
+    profileImageUrl: string | null
+  ): string | null => {
+    if (!profileImageUrl) return null
+
+    try {
+      // JSON 배열 형태의 문자열을 파싱
+      const parsed = JSON.parse(profileImageUrl)
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed[0]
+      }
+    } catch {
+      // 파싱 실패 시 원본 문자열이 URL인지 확인
+      if (
+        typeof profileImageUrl === 'string' &&
+        profileImageUrl.startsWith('http')
+      ) {
+        return profileImageUrl
+      }
+    }
+
+    return null
+  }
 
   const fetchReservationDetail = async () => {
     if (!reservationId) return
@@ -68,10 +100,10 @@ export const CustomerMyReservationDetail = () => {
       if (response?.body) {
         setReservation(response.body)
       } else {
-        setError("예약 정보를 불러올 수 없습니다.")
+        setError('예약 정보를 불러올 수 없습니다.')
       }
     } catch (err) {
-      setError("예약 정보를 불러오는 중 오류가 발생했습니다.")
+      setError('예약 정보를 불러오는 중 오류가 발생했습니다.')
     }
   }
 
@@ -79,30 +111,24 @@ export const CustomerMyReservationDetail = () => {
     fetchReservationDetail()
   }, [reservationId])
 
-  const handleCancelReservation = async () => {
+  const handleCancelReservation = async (reason: string) => {
     if (!reservationId || !reservation) return
 
-    const confirmCancel = window.confirm("예약을 취소하시겠습니까?")
-    if (!confirmCancel) return
-
-    const reason = window.prompt("예약 취소 사유를 입력해주세요.")
-    if (reason === null) return // 사용자가 취소 버튼을 누른 경우
-    if (reason.trim() === "") {
-      alert("예약 취소 사유를 입력해주세요.")
-      return
-    }
-
+    setIsCanceling(true)
     try {
       const payload: CustomerReservationCancelReqType = {
-        cancelReason: reason.trim()
+        cancelReason: reason
       }
       await cancelReservationByCustomer(Number(reservationId), payload)
-      alert("예약이 취소되었습니다.")
+      alert('예약이 취소되었습니다.')
       // 예약 정보 새로고침
       fetchReservationDetail()
-    } catch (err) {
-      console.error("예약 취소 실패:", err)
-      alert("예약 취소에 실패했습니다. 다시 시도해주세요.")
+      // 헤더의 포인트 새로고침
+      headerRef?.current?.refreshPoint()
+    } catch {
+      alert('예약 취소에 실패했습니다. 다시 시도해주세요.')
+    } finally {
+      setIsCanceling(false)
     }
   }
 
@@ -148,7 +174,7 @@ export const CustomerMyReservationDetail = () => {
       <div className="flex items-center justify-between text-xl font-bold text-gray-900">
         <span>예약 상세 정보</span>
         <div className="flex items-center gap-4">
-          {reservation.reservationStatus === "COMPLETED" &&
+          {reservation.reservationStatus === 'COMPLETED' &&
             (reservation.review ? (
               <button
                 onClick={handleWriteReview}
@@ -191,8 +217,8 @@ export const CustomerMyReservationDetail = () => {
                   <div className="text-gray-800">
                     {(() => {
                       const date = new Date(reservation.requestDate)
-                      const dayOfWeek = date.toLocaleDateString("ko-KR", {
-                        weekday: "short"
+                      const dayOfWeek = date.toLocaleDateString('ko-KR', {
+                        weekday: 'short'
                       })
                       return `${reservation.requestDate} (${dayOfWeek})`
                     })()}
@@ -211,12 +237,12 @@ export const CustomerMyReservationDetail = () => {
                   <div className="text-gray-800">
                     {(() => {
                       const [hourStr, minuteStr] =
-                        reservation.startTime.split(":")
+                        reservation.startTime.split(':')
                       const hour = Number(hourStr)
                       const minute = Number(minuteStr)
                       const endHour = hour + reservation.turnaround
-                      const formattedStart = `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`
-                      const formattedEnd = `${String(endHour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`
+                      const formattedStart = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`
+                      const formattedEnd = `${String(endHour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`
                       return `${formattedStart} ~ ${formattedEnd} (${reservation.turnaround}시간)`
                     })()}
                   </div>
@@ -271,7 +297,9 @@ export const CustomerMyReservationDetail = () => {
                   <div className="mb-1 text-xs font-semibold text-gray-500">
                     메모
                   </div>
-                  <div className="text-gray-800">{reservation.memo}</div>
+                  <div className="text-gray-800">
+                    {reservation.memo || '작성하신 메모가 없습니다.'}
+                  </div>
                 </div>
               </div>
             </div>
@@ -280,11 +308,20 @@ export const CustomerMyReservationDetail = () => {
           {/* 매니저 정보 카드 */}
           {reservation.managerName && (
             <div className="mt-2 flex items-center justify-between rounded-lg bg-gray-50 p-4">
-              {/* 왼쪽: 프로필 아이콘 */}
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-500 text-white">
-                <span className="material-symbols-outlined text-3xl">
-                  person
-                </span>
+              {/* 왼쪽: 프로필 이미지 */}
+              <div className="flex-shrink-0">
+                <ProfileImagePreview
+                  src={getProfileImageUrl(
+                    (
+                      reservation as CustomerReservationDetailRspType & {
+                        profileImageUrl?: string
+                      }
+                    ).profileImageUrl || null
+                  )}
+                  alt={`${reservation.managerName} 매니저 프로필`}
+                  size="sm"
+                  className="shadow-sm ring-2 ring-white"
+                />
               </div>
 
               {/* 가운데: 이름 + 소개 */}
@@ -329,14 +366,14 @@ export const CustomerMyReservationDetail = () => {
                 <span className="ml-1 text-sm font-medium text-gray-700">
                   {reservation.mangerStatistic.averageRating.toFixed(1)} (
                   {reservation.mangerStatistic.reviewCount}
-                  {reservation.mangerStatistic.reviewCount >= 50 ? "+" : ""})
+                  {reservation.mangerStatistic.reviewCount >= 50 ? '+' : ''})
                 </span>
               </div>
             </div>
           )}
 
           {/* 리뷰 섹션 */}
-          {reservation.reservationStatus === "COMPLETED" &&
+          {reservation.reservationStatus === 'COMPLETED' &&
             reservation.review && (
               <div>
                 <div className="mb-3 text-base font-semibold text-gray-900">
@@ -436,6 +473,31 @@ export const CustomerMyReservationDetail = () => {
           </div>
         )}
 
+        {/* 결제 수단 */}
+        {(
+          reservation as CustomerReservationDetailRspType & {
+            paymentMethod?: string
+            paymentPrice?: number
+          }
+        ).paymentMethod && (
+          <div className="mt-4 flex justify-between text-sm text-gray-600">
+            <span>결제 수단</span>
+            <span>
+              {(
+                reservation as CustomerReservationDetailRspType & {
+                  paymentMethod?: string
+                }
+              ).paymentMethod === 'POINT'
+                ? '포인트'
+                : (
+                    reservation as CustomerReservationDetailRspType & {
+                      paymentMethod?: string
+                    }
+                  ).paymentMethod || '-'}
+            </span>
+          </div>
+        )}
+
         {/* 총 결제 금액 */}
         <div className="mt-4 flex justify-between border-t pt-2 font-bold text-indigo-600">
           <span>총 결제 금액</span>
@@ -454,11 +516,12 @@ export const CustomerMyReservationDetail = () => {
 
       {/* 버튼 영역 */}
       <div className="flex justify-end gap-2">
-        {["REQUESTED", "CONFIRMED"].includes(reservation.reservationStatus) && (
+        {['REQUESTED', 'CONFIRMED'].includes(reservation.reservationStatus) && (
           <button
-            onClick={handleCancelReservation}
-            className="font-base rounded-2xl bg-red-50 px-3 py-2 text-sm text-red-500 transition hover:bg-red-100">
-            예약 취소
+            onClick={() => setIsCancelModalOpen(true)}
+            disabled={isCanceling}
+            className="font-base rounded-2xl bg-red-50 px-3 py-2 text-sm text-red-500 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50">
+            {isCanceling ? '취소 처리 중...' : '예약 취소'}
           </button>
         )}
         {/* {reservation.reservationStatus === 'COMPLETED' &&
@@ -471,6 +534,17 @@ export const CustomerMyReservationDetail = () => {
             </button>
         )}*/}
       </div>
+
+      {/* 예약 취소 모달 */}
+      <ReservationCancelModal
+        isOpen={isCancelModalOpen}
+        onClose={() => setIsCancelModalOpen(false)}
+        onConfirm={reason => {
+          handleCancelReservation(reason)
+          setIsCancelModalOpen(false)
+        }}
+        loading={isCanceling}
+      />
     </div>
   )
 }
