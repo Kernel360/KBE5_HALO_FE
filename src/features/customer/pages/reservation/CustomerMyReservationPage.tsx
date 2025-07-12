@@ -166,20 +166,20 @@ export const CustomerMyReservationPage: React.FC = () => {
 
   return (
     <Fragment>
-      <div className="flex self-stretch">
+      <div className="flex w-full self-stretch">
         <div className="inline-flex flex-1 flex-col self-stretch">
           {/* Header Section */}
-          <div className="inline-flex h-16 items-center justify-between self-stretch border-b border-gray-200 bg-white px-6">
-            <div className="justify-start font-['Inter'] text-xl leading-normal font-bold text-gray-900">
+          <div className="inline-flex h-14 items-center justify-between self-stretch border-b border-gray-200 bg-white px-4 sm:h-16 sm:px-6">
+            <div className="justify-start font-['Inter'] text-lg font-bold leading-normal text-gray-900 sm:text-xl">
               나의 예약 내역
             </div>
           </div>
 
-          <div className="flex flex-col gap-6 self-stretch p-6">
+          <div className="flex flex-col gap-4 self-stretch p-4 sm:gap-6 sm:p-6">
             {/* Reservation List Section */}
-            <div className="flex flex-col gap-4 self-stretch rounded-lg bg-white p-6">
+            <div className="flex flex-col gap-4 self-stretch rounded-lg bg-white p-4 sm:p-6">
               {/* 예약 카드 반복 렌더링 부분 */}
-              <div key={fadeKey}>
+              <div key={fadeKey} className="space-y-4">
                 {loading ? (
                   <div className="flex h-16 items-center justify-center border-b border-slate-200 px-4 text-sm text-slate-500">
                     예약 내역 로딩 중...
@@ -210,12 +210,16 @@ export const CustomerMyReservationPage: React.FC = () => {
               </div>
 
               {/* Pagination */}
-              <Pagination
-                currentPage={searchParams.page}
-                totalItems={total}
-                pageSize={searchParams.size}
-                onPageChange={handlePageChange}
-              />
+              {total > 0 && (
+                <div className="mt-6 flex justify-center">
+                  <Pagination
+                    currentPage={searchParams.page}
+                    totalItems={total}
+                    pageSize={searchParams.size}
+                    onPageChange={handlePageChange}
+                  />
+                </div>
+              )}
             </div>
           </div>
         </div>
