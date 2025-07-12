@@ -125,22 +125,22 @@ const CustomerSidebar: React.FC = () => {
   }
 
   return (
-    <aside className="flex w-full max-w-xs flex-col space-y-6">
+    <aside className="flex w-full flex-col gap-6 px-2 sm:max-w-xs sm:px-0">
       {renderSearchSection()}
 
       {/* Customer Service Section - Already has bg-white, rounded-2xl, shadow-md, outline */}
-      <section className="flex w-full flex-col gap-4 rounded-2xl bg-white p-6 shadow-md outline outline-1 outline-offset-[-1px] outline-zinc-100">
+      <section className="flex w-full flex-col gap-4 rounded-2xl bg-white p-4 shadow-md outline outline-1 outline-offset-[-1px] outline-zinc-100 sm:p-6">
         <h2 className="text-base leading-tight font-semibold text-zinc-800">
           고객센터
         </h2>
         <div className="flex flex-col gap-2">
-          <p className="text-xl leading-normal font-bold text-zinc-800">
+          <p className="text-lg leading-normal font-bold text-zinc-800 sm:text-xl">
             1588-1234
           </p>
-          <p className="text-sm leading-none text-stone-500">
+          <p className="text-xs leading-none text-stone-500 sm:text-sm">
             평일 09:00-18:00
           </p>
-          <p className="text-sm leading-none text-stone-500">
+          <p className="text-xs leading-none text-stone-500 sm:text-sm">
             주말/공휴일 휴무
           </p>
         </div>
