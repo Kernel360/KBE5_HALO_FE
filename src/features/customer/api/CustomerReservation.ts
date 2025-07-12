@@ -5,7 +5,8 @@ import type {
   ReservationReqType,
   PreCancelReqType,
   CustomerReservationCancelReqType,
-  ReservationSearchConditionType
+  ReservationSearchConditionType,
+  ManagerMatchingReqType
 } from '@/features/customer/types/CustomerReservationType'
 
 // 서비스 카테고리 조회
@@ -102,5 +103,29 @@ export const cancelReservationByCustomer = async (
 // 예약 상세 조회
 export const getCustomerReservationDetail = async (reservationId: number) => {
   const res = await api.get(`/customers/reservations/${reservationId}`)
+  return res.data
+}
+
+// 매니저 매칭 조회(페이지네이션 및 정렬)
+export const getMatchingManagers = async (
+  payload: ManagerMatchingReqType & {
+    page?: number
+    size?: number
+    sortBy?: string
+    isAsc?: boolean
+  }
+) => {
+  const { page, size, sortBy, isAsc, ...bodyData } = payload
+  
+  // URL 파라미터로 페이지네이션과 정렬 정보 전달
+  const params = new URLSearchParams()
+  if (page !== undefined) params.append('page', page.toString())
+  if (size !== undefined) params.append('size', size.toString())
+  if (sortBy) {
+    params.append('sort', `${sortBy},${isAsc ? 'asc' : 'desc'}`)
+  }
+  
+  const url = `/customers/reservations/managers${params.toString() ? '?' + params.toString() : ''}`
+  const res = await api.post(url, bodyData)
   return res.data
 }

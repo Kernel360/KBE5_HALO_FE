@@ -102,9 +102,9 @@ export const ReservationStepOne: React.FC = () => {
   const additionalItems = children.filter(item => item.price > 0)
 
   const timeOptions = useMemo(() => {
-    // Generate hours from 6:00 to 20:00 (8PM) in 1-hour increments (6,7,...,20)
-    return Array.from({ length: 15 }, (_, i) => {
-      const hour = 6 + i
+    // Generate hours from 8:00 to 20:00 (8PM) in 1-hour increments (8,9,...,20)
+    return Array.from({ length: 13 }, (_, i) => {
+      const hour = 8 + i
       const timeStr = `${String(hour).padStart(2, '0')}:00`
 
       return timeStr
@@ -232,7 +232,7 @@ export const ReservationStepOne: React.FC = () => {
             />
             <div className="relative">
               <select
-                className="h-11 w-full appearance-none rounded-lg border border-gray-300 bg-gray-50 px-4 pr-10 text-sm text-gray-900 transition-colors focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-200 focus:outline-none"
+                className="h-11 w-full appearance-none rounded-lg border border-gray-300 bg-white px-4 pr-10 text-sm text-gray-900 transition-colors focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-200 focus:outline-none"
                 value={form.startTime}
                 onChange={e => handleChange('startTime', e.target.value)}>
                 <option
@@ -309,13 +309,12 @@ export const ReservationStepOne: React.FC = () => {
               id="phone"
               type="tel"
               ref={phoneRef}
-              className="h-11 w-full rounded-md border border-gray-300 bg-gray-50 px-4 text-sm text-gray-900 placeholder-gray-400"
+              className="h-11 w-full rounded-md border border-gray-300 bg-white px-4 text-sm text-gray-900 placeholder-gray-400 transition-colors focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-200 focus:outline-none"
               placeholder="숫자만 입력하세요 (예: 01012345678)"
               value={form.phone}
               onChange={handlePhoneChange}
             />
           </div>
-
           {/* 5. 전달 사항 */}
           <div className="flex flex-col gap-5 rounded-xl border border-gray-200 bg-white p-6">
             <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-900">
@@ -326,7 +325,7 @@ export const ReservationStepOne: React.FC = () => {
               전달 사항
             </h2>
             <textarea
-              className="h-24 rounded-md border border-gray-300 bg-gray-50 px-3 py-2"
+              className="h-24 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 transition-colors focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-200 focus:outline-none"
               placeholder="반려동물 유무와 기타 요청사항을 입력해주세요."
               value={form.memo}
               onChange={e => handleChange('memo', e.target.value)}

@@ -147,7 +147,7 @@ export const ServiceTypeSelector: React.FC<ServiceTypeSelectorProps> = ({
             {additionalItems.map(item => (
               <label
                 key={item.serviceId}
-                className={`cursor-pointer rounded border bg-white p-2 text-sm transition-none ${
+                className={`cursor-pointer rounded border-2 bg-white p-2 text-sm transition-none ${
                   selectedAdditionalServiceIds.includes(item.serviceId)
                     ? 'border-indigo-500 font-semibold text-indigo-900'
                     : 'border-gray-200 text-gray-900'
