@@ -102,13 +102,14 @@ export const CustomerMyReservationDetail = () => {
       } else {
         setError('예약 정보를 불러올 수 없습니다.')
       }
-    } catch (err) {
+    } catch {
       setError('예약 정보를 불러오는 중 오류가 발생했습니다.')
     }
   }
 
   useEffect(() => {
     fetchReservationDetail()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reservationId])
 
   const handleCancelReservation = async (reason: string) => {
@@ -423,8 +424,21 @@ export const CustomerMyReservationDetail = () => {
       </div>
 
       {/* 결제 정보 */}
-      <div className="mt-5 mb-2 text-base font-semibold text-gray-900">
-        결제 정보
+      <div className="mt-5 mb-2 flex items-center justify-between">
+        <span className="text-base font-semibold text-gray-900">결제 정보</span>
+        {reservation.paidAt && (
+          <span className="text-sm text-gray-600">
+            결제 날짜:{' '}
+            {new Date(reservation.paidAt).toLocaleString('ko-KR', {
+              year: 'numeric',
+              month: '2-digit',
+              day: '2-digit',
+              hour: '2-digit',
+              minute: '2-digit',
+              hour12: false
+            })}
+          </span>
+        )}
       </div>
       <div className="rounded-xl bg-white px-6 py-4 text-sm text-slate-800 shadow">
         {/* 기본 서비스 */}
@@ -474,26 +488,13 @@ export const CustomerMyReservationDetail = () => {
         )}
 
         {/* 결제 수단 */}
-        {(
-          reservation as CustomerReservationDetailRspType & {
-            paymentMethod?: string
-            paymentPrice?: number
-          }
-        ).paymentMethod && (
+        {reservation.paymentMethod && (
           <div className="mt-4 flex justify-between text-sm text-gray-600">
             <span>결제 수단</span>
             <span>
-              {(
-                reservation as CustomerReservationDetailRspType & {
-                  paymentMethod?: string
-                }
-              ).paymentMethod === 'POINT'
+              {reservation.paymentMethod === 'POINT'
                 ? '포인트'
-                : (
-                    reservation as CustomerReservationDetailRspType & {
-                      paymentMethod?: string
-                    }
-                  ).paymentMethod || '-'}
+                : reservation.paymentMethod || '-'}
             </span>
           </div>
         )}
