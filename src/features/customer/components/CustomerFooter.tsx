@@ -1,30 +1,51 @@
-import { Fragment } from "react";
+import { Fragment, useState } from 'react'
+import { PrivacyPolicyModal } from '@/features/customer/modal/PrivacyPolicyModal'
 
 export const CustomerFooter = () => {
+  const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false)
   return (
     <Fragment>
-      <div className="self-stretch px-28 py-14 bg-zinc-800 inline-flex flex-col justify-start items-start gap-10">
-        <div className="self-stretch inline-flex justify-between items-start">
-          <div className="flex justify-start items-center gap-2">
-            <div className="w-8 h-8 bg-white rounded-lg inline-flex flex-col justify-center items-center">
-              <div className="justify-start text-indigo-600 text-base font-bold font-['Inter'] leading-tight">H</div>
+      <div className="flex flex-col items-start justify-start gap-6 bg-zinc-800 px-4 py-8 sm:gap-8 sm:px-8 sm:py-12 lg:gap-10 lg:px-28 lg:py-14">
+        <div className="flex w-full flex-col items-start justify-between gap-4 sm:flex-row sm:items-center sm:gap-6">
+          <div className="flex items-center justify-start gap-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white">
+              <div className="font-['Inter'] text-base leading-tight font-bold text-indigo-600">
+                H
+              </div>
             </div>
-            <div className="justify-start text-white text-xl font-bold font-['Inter'] leading-normal">HaloCare</div>
+            <div className="font-['Inter'] text-xl leading-normal font-bold text-white">
+              HaloCare
+            </div>
           </div>
-          <div className="flex justify-end items-center gap-6">
-            <div className="justify-start text-white text-sm font-normal font-['Inter'] leading-none">회사소개</div>
-            <div className="justify-start text-white text-sm font-normal font-['Inter'] leading-none">고객센터</div>
-            <div className="justify-start text-white text-sm font-normal font-['Inter'] leading-none">이용약관</div>
-            <div className="justify-start text-white text-sm font-bold font-['Inter'] leading-none">개인정보처리방침</div>
+          <div className="flex items-center justify-start sm:justify-end">
+            <button
+              onClick={() => setIsPrivacyModalOpen(true)}
+              className="cursor-pointer font-['Inter'] text-sm leading-none font-bold text-white transition-colors hover:text-gray-300">
+              개인정보처리방침
+            </button>
           </div>
         </div>
-        <div className="self-stretch flex flex-col justify-start items-start gap-2">
-          <div className="self-stretch justify-start text-neutral-400 text-sm font-normal font-['Inter'] leading-none">주식회사 할로케어 | 대표: 홍길동 | 사업자등록번호: 123-45-67890</div>
-          <div className="self-stretch justify-start text-neutral-400 text-sm font-normal font-['Inter'] leading-none">서울특별시 강남구 테헤란로 123 할로케어빌딩 8층</div>
-          <div className="self-stretch justify-start text-neutral-400 text-sm font-normal font-['Inter'] leading-none">고객센터: 1588-1234 (평일 09:00-18:00, 주말/공휴일 휴무)</div>
-          <div className="self-stretch justify-start text-neutral-400 text-sm font-normal font-['Inter'] leading-none">© 2023 HaloCare. All rights reserved.</div>
+        <div className="flex w-full flex-col items-start justify-start gap-2">
+          <div className="w-full font-['Inter'] text-xs leading-relaxed font-normal text-neutral-400 sm:text-sm sm:leading-none">
+            주식회사 할로케어 | 대표: 홍길동 | 사업자등록번호: 123-45-67890
+          </div>
+          <div className="w-full font-['Inter'] text-xs leading-relaxed font-normal text-neutral-400 sm:text-sm sm:leading-none">
+            서울특별시 강남구 테헤란로 123 할로케어빌딩 8층
+          </div>
+          <div className="w-full font-['Inter'] text-xs leading-relaxed font-normal text-neutral-400 sm:text-sm sm:leading-none">
+            고객센터: 1588-1234 (평일 09:00-18:00, 주말/공휴일 휴무)
+          </div>
+          <div className="w-full font-['Inter'] text-xs leading-relaxed font-normal text-neutral-400 sm:text-sm sm:leading-none">
+            © 2023 HaloCare. All rights reserved.
+          </div>
         </div>
       </div>
+
+      {/* Privacy Policy Modal */}
+      <PrivacyPolicyModal
+        isOpen={isPrivacyModalOpen}
+        onClose={() => setIsPrivacyModalOpen(false)}
+      />
     </Fragment>
-  );
-};
+  )
+}
