@@ -78,7 +78,7 @@ export const ServiceDetailModal: React.FC<ServiceDetailModalProps> = ({
                   {additionalServices.map(item => (
                     <div
                       key={item.serviceId}
-                      className="cursor-pointer rounded border border-gray-200 bg-white p-2 text-xs">
+                      className="rounded border border-gray-200 bg-white p-2 text-xs">
                       <div className="flex flex-col items-start gap-1">
                         <div className="font-medium text-gray-900">
                           {item.serviceName}

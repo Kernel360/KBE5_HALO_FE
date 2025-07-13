@@ -1,7 +1,10 @@
-import { Fragment } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/store/useAuthStore'
 import { Gift, Sparkles } from 'lucide-react'
+import { getServiceCategories } from '@/features/customer/api/CustomerReservation'
+import type { ServiceCategoryTreeType } from '@/features/customer/types/CustomerReservationType'
+import { ServiceDetailModal } from '@/features/customer/modal/ServiceDetailModal'
 import homeIcon from '@/assets/home.svg'
 import airconIcon from '@/assets/aircon.svg'
 import strollerIcon from '@/assets/stroller.svg'
@@ -9,6 +12,36 @@ import strollerIcon from '@/assets/stroller.svg'
 export const CustomerMain = () => {
   const navigate = useNavigate()
   const { accessToken } = useAuthStore()
+  const [serviceCategories, setServiceCategories] = useState<
+    ServiceCategoryTreeType[]
+  >([])
+  const [selectedService, setSelectedService] = useState<ServiceCategoryTreeType | null>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+
+  const handleServiceDetailClick = (service: ServiceCategoryTreeType) => {
+    setSelectedService(service)
+    setIsModalOpen(true)
+  }
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false)
+    setSelectedService(null)
+  }
+
+  useEffect(() => {
+    const fetchServiceCategories = async () => {
+      try {
+        const response = await getServiceCategories()
+        if (response?.body) {
+          setServiceCategories(response.body)
+        }
+      } catch (error) {
+        console.error('서비스 카테고리 조회 실패:', error)
+      }
+    }
+
+    fetchServiceCategories()
+  }, [])
 
   return (
     <Fragment>
@@ -129,60 +162,44 @@ export const CustomerMain = () => {
           </div>
 
           <div className="grid gap-6 sm:gap-8 md:grid-cols-2 lg:grid-cols-3">
-            <div className="flex flex-col items-center rounded-xl bg-white p-6 text-center sm:rounded-2xl sm:p-8">
-              <img
-                src={homeIcon}
-                alt="가사 아이콘"
-                className="mb-4 h-16 w-16 object-contain sm:mb-6 sm:h-20 sm:w-20"
-              />
-              <h3 className="mb-3 text-xl font-bold text-gray-900 sm:mb-4 sm:text-2xl">
-                가사 서비스
-              </h3>
-              <p className="mb-4 text-sm text-gray-600 sm:mb-6 sm:text-base">
-                일상적인 집안일부터 대청소까지, 전문 매니저가 도와드립니다.
-              </p>
-              <button className="rounded-lg border-2 border-indigo-600 px-4 py-2 text-sm font-semibold text-indigo-600 sm:px-6 sm:py-3 sm:text-base">
-                자세히 보기
-              </button>
-            </div>
+            {serviceCategories.map((category, index) => {
+              // 기존 이미지들을 순서대로 사용
+              const icons = [homeIcon, airconIcon, strollerIcon]
+              const icon = icons[index % icons.length]
 
-            <div className="flex flex-col items-center rounded-xl bg-white p-6 text-center sm:rounded-2xl sm:p-8">
-              <img
-                src={airconIcon}
-                alt="에어컨 청소 아이콘"
-                className="mb-4 h-16 w-16 object-contain sm:mb-6 sm:h-20 sm:w-20"
-              />
-              <h3 className="mb-3 text-xl font-bold text-gray-900 sm:mb-4 sm:text-2xl">
-                에어컨 청소
-              </h3>
-              <p className="mb-4 text-sm text-gray-600 sm:mb-6 sm:text-base">
-                에어컨 내부 세척부터 필터 교체까지, 쾌적한 공기를 위한
-                서비스입니다.
-              </p>
-              <button className="rounded-lg border-2 border-indigo-600 px-4 py-2 text-sm font-semibold text-indigo-600 sm:px-6 sm:py-3 sm:text-base">
-                자세히 보기
-              </button>
-            </div>
-
-            <div className="flex flex-col items-center rounded-xl bg-white p-6 text-center sm:rounded-2xl sm:p-8 md:col-span-2 lg:col-span-1">
-              <img
-                src={strollerIcon}
-                alt="돌봄 아이콘"
-                className="mb-4 h-16 w-16 object-contain sm:mb-6 sm:h-20 sm:w-20"
-              />
-              <h3 className="mb-3 text-xl font-bold text-gray-900 sm:mb-4 sm:text-2xl">
-                돌봄 서비스
-              </h3>
-              <p className="mb-4 text-sm text-gray-600 sm:mb-6 sm:text-base">
-                아이돌봄, 노인돌봄 등 맞춤형 돌봄 서비스를 제공합니다.
-              </p>
-              <button className="rounded-lg border-2 border-indigo-600 px-4 py-2 text-sm font-semibold text-indigo-600 sm:px-6 sm:py-3 sm:text-base">
-                자세히 보기
-              </button>
-            </div>
+              return (
+                <div
+                  key={category.serviceId}
+                  className="flex flex-col items-center rounded-xl bg-white p-6 text-center sm:rounded-2xl sm:p-8">
+                  <img
+                    src={icon}
+                    alt={`${category.serviceName} 아이콘`}
+                    className="mb-4 h-16 w-16 object-contain sm:mb-6 sm:h-20 sm:w-20"
+                  />
+                  <h3 className="mb-3 text-xl font-bold text-gray-900 sm:mb-4 sm:text-2xl">
+                    {category.serviceName}
+                  </h3>
+                  <p className="mb-4 text-sm text-gray-600 sm:mb-6 sm:text-base">
+                    {category.description}
+                  </p>
+                  <button 
+                    onClick={() => handleServiceDetailClick(category)}
+                    className="rounded-lg border-2 border-indigo-600 px-4 py-2 text-sm font-semibold text-indigo-600 transition-colors hover:bg-indigo-600 hover:text-white sm:px-6 sm:py-3 sm:text-base">
+                    자세히 보기
+                  </button>
+                </div>
+              )
+            })}
           </div>
         </div>
       </div>
+
+      {/* Service Detail Modal */}
+      <ServiceDetailModal 
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        service={selectedService}
+      />
     </Fragment>
   )
 }
