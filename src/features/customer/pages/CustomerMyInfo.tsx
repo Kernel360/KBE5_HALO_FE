@@ -4,7 +4,7 @@ import type {
   UserInfoUpdateInfoType
 } from '../types/CustomerInfoType'
 import { getCustomerInfo, updateCustomerInfo } from '../api/customerAuth'
-import { User, MapPin } from 'lucide-react'
+import { User, MapPin, Gift, PenLine, Save } from 'lucide-react'
 import { PointChargingModal } from '@/features/customer/modal/PointChargingModal'
 import SuccessToast from '@/shared/components/ui/toast/SuccessToast'
 import ErrorToast from '@/shared/components/ui/toast/ErrorToast'
@@ -130,21 +130,24 @@ export const CustomerMyInfo: React.FC = () => {
 
   return (
     <main className="w-full bg-white py-6">
-      <div className="mx-auto w-full max-w-3xl space-y-6">
+      <div className="mx-auto w-full max-w-4xl space-y-6">
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-bold text-zinc-800">회원 정보</h2>
           {editMode ? (
             <div className="flex gap-2">
               <button
                 type="button"
-                className="rounded bg-green-500 px-3 py-1 text-xs font-semibold text-white transition-colors hover:bg-green-600 disabled:opacity-50"
                 onClick={handleSaveEdit}
-                disabled={addressLoading}>
-                저장
+                disabled={addressLoading}
+                className="flex min-w-[80px] items-center justify-center gap-1 rounded-lg bg-indigo-600 px-4 py-1.5 hover:bg-indigo-700 disabled:opacity-50">
+                <Save
+                  size={16}
+                  className="text-white"
+                />
+                <span className="text-sm font-semibold text-white">저장</span>
               </button>
               <button
                 type="button"
-                className="rounded bg-gray-300 px-3 py-1 text-xs font-semibold text-zinc-700 transition-colors hover:bg-gray-400"
                 onClick={() => {
                   setEditMode(false)
                   setEditForm({
@@ -154,59 +157,87 @@ export const CustomerMyInfo: React.FC = () => {
                     latitude: info.latitude,
                     longitude: info.longitude
                   })
-                }}>
+                }}
+                className="flex min-w-[64px] items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-1.5 text-sm font-semibold text-gray-600 hover:bg-gray-100">
                 취소
               </button>
             </div>
           ) : (
             <button
-              className="rounded bg-indigo-500 px-3 py-1 text-xs font-semibold text-white transition-colors hover:bg-indigo-600"
+              className="flex h-9 cursor-pointer items-center gap-2 rounded-md border border-[#4f39f6] px-3 text-sm font-semibold text-[#4f39f6] hover:bg-indigo-50"
               onClick={() => setEditMode(true)}>
+              <PenLine size={16} />
               수정
             </button>
           )}
         </div>
 
         {/* 기본 정보 */}
-        <div className="rounded-xl bg-white p-6 shadow">
-          <div className="mb-4 flex items-center gap-2">
+        <div className="rounded-xl bg-white p-6 shadow-lg">
+          <div className="mb-6 flex items-center gap-2">
             <User className="h-5 w-5 text-indigo-600" />
-            <h3 className="text-lg font-semibold text-zinc-800">회원 정보</h3>
+            <h3 className="text-lg font-semibold text-zinc-800">기본 정보</h3>
           </div>
-          <div className="flex gap-8">
-            {/* 왼쪽: 이름, 연락처 */}
-            <div className="flex-1 space-y-4">
-              <div className="w-full">
-                <label className="text-sm font-medium text-zinc-700">
+          <div className="space-y-6">
+            {/* 첫 번째 줄: 이름, 생년월일, 성별 */}
+            <div className="grid gap-4 md:grid-cols-3">
+              <div>
+                <label className="mb-2 block text-sm font-medium text-zinc-700">
                   이름 (한글)
                 </label>
                 <input
                   name="userName"
-                  className="input"
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 disabled:bg-gray-100"
                   value={info.userName}
                   disabled
                 />
               </div>
-              <div className="w-full">
-                <label className="text-sm font-medium text-zinc-700">
+              <div>
+                <label className="mb-2 block text-sm font-medium text-zinc-700">
+                  생년월일
+                </label>
+                <input
+                  type="date"
+                  name="birthDate"
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 disabled:bg-gray-100"
+                  value={info.birthDate}
+                  disabled
+                />
+              </div>
+              <div>
+                <label className="mb-2 block text-sm font-medium text-zinc-700">
+                  성별
+                </label>
+                <input
+                  name="gender"
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 disabled:bg-gray-100"
+                  value={info.gender}
+                  disabled
+                />
+              </div>
+            </div>
+
+            {/* 두 번째 줄: 연락처, 이메일 */}
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <label className="mb-2 block text-sm font-medium text-zinc-700">
                   연락처
                 </label>
                 <input
                   name="phone"
-                  className="input"
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 disabled:bg-gray-100"
                   value={info.phone}
                   disabled
                 />
               </div>
               <div>
-                <label className="text-sm font-medium text-zinc-700">
+                <label className="mb-2 block text-sm font-medium text-zinc-700">
                   이메일
                 </label>
                 {editMode ? (
                   <input
                     name="email"
-                    className="input"
-                    style={editMode ? { border: '1px solid #6366f1' } : {}}
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
                     value={editForm.email}
                     onChange={e =>
                       setEditForm(f => ({ ...f, email: e.target.value }))
@@ -215,72 +246,47 @@ export const CustomerMyInfo: React.FC = () => {
                 ) : (
                   <input
                     name="email"
-                    className="input bg-gray-100"
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 disabled:bg-gray-100"
                     value={info.email}
                     disabled
                   />
                 )}
               </div>
             </div>
+          </div>
+        </div>
 
-            {/* 오른쪽: 생년월일, 성별, 포인트 */}
-            <div className="flex-1 space-y-4">
-              <div className="w-full">
-                <label className="text-sm font-medium text-zinc-700">
-                  생년월일
-                </label>
-                <input
-                  type="date"
-                  name="birthDate"
-                  className="input"
-                  value={info.birthDate}
-                  disabled
-                />
-              </div>
-              <div className="w-full">
-                <label className="text-sm font-medium text-zinc-700">
-                  성별
-                </label>
-                <input
-                  name="gender"
-                  className="input"
-                  value={info.gender}
-                  disabled
-                />
-              </div>
-              <div>
-                <div className="mb-1 flex items-center justify-between">
-                  <label className="text-sm font-bold text-indigo-600">
-                    포인트
-                  </label>
-                  <button
-                    onClick={() => setIsChargingModalOpen(true)}
-                    className="rounded bg-indigo-500 px-3 py-1 text-xs font-semibold text-white transition-colors hover:bg-indigo-600">
-                    충전
-                  </button>
-                </div>
-                <input
-                  name="point"
-                  className="input bg-gray-100"
-                  value={`${info.point.toLocaleString()} P`}
-                  disabled
-                />
+        {/* 포인트 섹션 */}
+        <div className="rounded-xl bg-white p-6 shadow-lg">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Gift className="h-5 w-5 text-indigo-600" />
+              <h3 className="text-lg font-semibold text-zinc-800">내 포인트</h3>
+            </div>
+            <div className="flex flex-col items-end gap-1">
+              {!editMode && (
+                <button
+                  onClick={() => setIsChargingModalOpen(true)}
+                  className="mb-1 flex h-7 cursor-pointer items-center justify-center gap-1 rounded border border-[#4f39f6] px-2 py-0.5 text-xs font-semibold text-[#4f39f6] hover:bg-indigo-50">
+                  충전
+                </button>
+              )}
+              <div className="text-xl font-bold text-gray-900">
+                {info.point.toLocaleString()} P
               </div>
             </div>
           </div>
         </div>
 
         {/* 주소 정보 */}
-        <div
-          className={`rounded-xl bg-white p-6 shadow${editMode ? 'border-1 border-indigo-400' : ''}`}>
-          <div className="mb-4 flex items-center gap-2">
+        <div className="rounded-xl bg-white p-6 shadow-lg">
+          <div className="mb-6 flex items-center gap-2">
             <MapPin className="h-5 w-5 text-indigo-600" />
-            <h3 className="text-lg font-semibold text-zinc-800">회원 주소</h3>
+            <h3 className="text-lg font-semibold text-zinc-800">주소 정보</h3>
           </div>
           <div className="space-y-4">
             {editMode ? (
               <div>
-                <div className="mb-2 flex items-center"></div>
                 <AddressSearch
                   roadAddress={editForm.roadAddress}
                   detailAddress={editForm.detailAddress}
@@ -305,30 +311,30 @@ export const CustomerMyInfo: React.FC = () => {
                 />
               </div>
             ) : (
-              <>
+              <div className="grid gap-4 md:grid-cols-2">
                 <div>
-                  <label className="text-sm font-medium text-zinc-700">
+                  <label className="mb-2 block text-sm font-medium text-zinc-700">
                     도로명 주소
                   </label>
                   <input
                     name="roadAddress"
-                    className="input"
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 disabled:bg-gray-100"
                     value={address.roadAddress}
                     disabled
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-zinc-700">
+                  <label className="mb-2 block text-sm font-medium text-zinc-700">
                     상세 주소
                   </label>
                   <input
                     name="detailAddress"
-                    className="input"
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 disabled:bg-gray-100"
                     value={address.detailAddress}
                     disabled
                   />
                 </div>
-              </>
+              </div>
             )}
           </div>
         </div>

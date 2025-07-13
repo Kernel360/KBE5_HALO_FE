@@ -61,9 +61,7 @@ export interface ReservationConfirmRspType {
   detailAddress: string
   managerName: string
   serviceName: string
-
   reservationStatus: string
-
   extraServices: ServiceCategoryTreeType
   price: number
 }
@@ -77,11 +75,25 @@ export interface ReservationConfirmReqType {
   selectedManagerId: number
 }
 
+// 페이지네이션 정보 타입
+export interface PageInfo {
+  size: number
+  number: number
+  totalElements: number
+  totalPages: number
+}
+
+// 매니저 매칭 페이지네이션 응답 타입
+export interface ManagerMatchingPageRspType {
+  content: ManagerMatchingRspType[]
+  page: PageInfo
+}
+
 // 예약 매칭 응답 타입
 export interface ReservationMatchedRspType {
   reservation: ReservationRspType
   requestCategory: ServiceCategoryTreeType
-  matchedManagers: ManagerMatchingRspType[]
+  matchedManagers: ManagerMatchingPageRspType
 }
 
 // 매니저 매칭 응답 타입
@@ -91,10 +103,22 @@ export interface ManagerMatchingRspType {
   averageRating: number
   reviewCount: number
   reservationCount: number
-  profileImageId: number
+  profileImageId: number | null
+  profileImageUrl: string | null
+  specialty: string | null
   bio: string
-  feedbackType: 'GOOD' | 'BAD' | null // enum 값에 맞게 조정
   recentReservationDate: string // ISO 날짜 문자열
+}
+
+// 매니저 매칭 요청 타입
+export interface ManagerMatchingReqType {
+  roadAddress: string
+  detailAddress: string
+  latitude: number
+  longitude: number
+  requestDate: string // ISO 날짜 문자열
+  startTime: string // "HH:mm" 또는 "HH:mm:ss" 형식 문자열
+  turnaround: number
 }
 
 // 예약 확정 전 취소 요청 타입
@@ -159,6 +183,9 @@ export interface CustomerReservationDetailRspType {
   mangerStatistic: ManagerStatistic
   reservationCancel: ReservationCancel | null
   review: Review | null
+  paymentMethod?: string
+  paymentPrice?: number
+  paidAt?: string // 결제 완료 시간, ISO 형식
 }
 
 //예약 취소
