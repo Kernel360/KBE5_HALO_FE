@@ -183,6 +183,9 @@ export interface CustomerReservationDetailRspType {
   mangerStatistic: ManagerStatistic
   reservationCancel: ReservationCancel | null
   review: Review | null
+  paymentMethod?: string
+  paymentPrice?: number
+  paidAt?: string // 결제 완료 시간, ISO 형식
 }
 
 //예약 취소
