@@ -50,7 +50,7 @@ export const AdminLogin = () => {
 
   return (
     <Fragment>
-      <div className="flex min-h-screen w-full items-center justify-center bg-gray-50 px-2 py-8">
+      <div className="flex min-h-screen w-full items-center justify-center bg-slate-100 px-2 py-8">
         <div className="flex w-full max-w-4xl flex-col-reverse items-center gap-8 md:flex-row md:gap-12">
           <FeatureCard
             icon={<>★</>}

@@ -1,20 +1,45 @@
 import React from 'react'
 
 interface GoogleLoginButtonProps {
-  onClick: () => void
   disabled?: boolean
   className?: string
+  role: 'customers' | 'managers'
+}
+
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID
+const GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth'
+
+const getGoogleAuthUrl = (role: 'customers' | 'managers') => {
+
+  const redirectUri = `${window.location.origin}/${role}/oauth/success`
+  const params = new URLSearchParams({
+    client_id: GOOGLE_CLIENT_ID,
+    redirect_uri: redirectUri,
+    response_type: 'code',
+    access_type: 'offline',
+    scope:
+      'https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email',
+    prompt: 'consent'
+  })
+
+  console.log(params.toString())
+
+  return `${GOOGLE_AUTH_URL}?${params.toString()}`
 }
 
 export const GoogleLoginButton: React.FC<GoogleLoginButtonProps> = ({
-  onClick,
   disabled = false,
-  className = ''
+  className = '',
+  role
 }) => {
+  const handleGoogleLogin = () => {
+    window.location.href = getGoogleAuthUrl(role)
+  }
+
   return (
     <button
       type="button"
-      onClick={onClick}
+      onClick={handleGoogleLogin}
       disabled={disabled}
       className={`flex h-11 w-full items-center justify-center gap-3 rounded-lg border border-gray-200 bg-white text-base font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 ${className}`}
       style={{ minHeight: '2.75rem' }}

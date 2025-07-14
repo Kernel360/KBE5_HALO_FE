@@ -42,7 +42,6 @@ export const signupCustomer = async (signupData: CustomerSignupReq) => {
 // 수요자 로그인
 export const loginCustomer = async (phone: string, password: string) => {
   const res = await api.post('/customers/auth/login', { phone, password })
-
   if (!res.data.success) {
     // 성공 여부 수동 체크 후 에러 던지기
     if (res.data.message?.trim()) alert(res.data.message)

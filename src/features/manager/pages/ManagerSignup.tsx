@@ -6,7 +6,7 @@ import {
   isValidPassword,
   isValidEmail
 } from '@/shared/utils/validation'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { signupManager } from '@/features/manager/api/managerAuth'
 import { createFileGroup } from '@/shared/utils/fileUpload'
 import { getServiceCategories } from '@/features/manager/api/managerMy'
@@ -42,6 +42,8 @@ const hours = Array.from(
 
 export const ManagerSignup = () => {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const isOAuth = searchParams.get('oauth') === '1'
 
   // 에러 상태
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -134,6 +136,20 @@ export const ManagerSignup = () => {
     }
     upload()
   }, [files])
+
+  // 소셜 로그인으로 온 경우 쿼리에서 name, email, password 값을 읽어 초기값으로 반영
+  useEffect(() => {
+    const name = searchParams.get('name') || ''
+    const email = searchParams.get('email') || ''
+    const password = searchParams.get('password') || ''
+    setForm(prev => ({
+      ...prev,
+      userName: name || prev.userName,
+      email: email || prev.email,
+      password: password || prev.password,
+      confirmPassword: password || prev.confirmPassword
+    }))
+  }, [])
 
   // 공통 입력값 변경 핸들러 (checkbox 포함)
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -292,7 +308,7 @@ export const ManagerSignup = () => {
 
     try {
       setIsSubmitting(true)
-      await signupManager(requestBody as any)
+      await signupManager(requestBody)
       navigate('/managers/auth/login', { state: { signupSuccess: true } })
     } catch (err) {
       const message =
@@ -398,12 +414,18 @@ export const ManagerSignup = () => {
             </label>
             <input
               name="userName"
-              className="h-11 w-full rounded-lg border border-gray-300 bg-white px-4 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+              className={`h-11 w-full rounded-lg border border-gray-300 bg-white px-4 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200${isOAuth ? 'cursor-not-allowed bg-slate-100' : ''}`}
               value={form.userName}
               disabled={isSubmitting}
               onChange={handleChange}
-              placeholder="홍길동"
+              placeholder="이름을 입력하세요"
+              readOnly={isOAuth}
             />
+            {isOAuth && (
+              <span className="mt-1 text-xs text-gray-400">
+                소셜 로그인으로 입력된 정보는 수정할 수 없습니다.
+              </span>
+            )}
           </div>
 
           {/* 특기(서비스 카테고리) */}
@@ -467,12 +489,18 @@ export const ManagerSignup = () => {
             <input
               name="email"
               type="email"
-              className="h-11 w-full rounded-lg border border-gray-300 bg-white px-4 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+              className={`h-11 w-full rounded-lg border border-gray-300 bg-white px-4 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200${isOAuth ? 'cursor-not-allowed bg-slate-100' : ''}`}
               value={form.email}
               disabled={isSubmitting}
               onChange={handleChange}
-              placeholder="example@example.com"
+              placeholder="example@email.com"
+              readOnly={isOAuth}
             />
+            {isOAuth && (
+              <span className="mt-1 text-xs text-gray-400">
+                소셜 로그인으로 입력된 정보는 수정할 수 없습니다.
+              </span>
+            )}
           </div>
 
           {/* 비밀번호 */}
@@ -483,11 +511,12 @@ export const ManagerSignup = () => {
             <input
               name="password"
               type={showPassword ? 'text' : 'password'}
-              className="h-11 w-full rounded-lg border border-gray-300 bg-white px-4 pr-10 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+              className={`h-11 w-full rounded-lg border border-gray-300 bg-white px-4 pr-10 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200${isOAuth ? 'cursor-not-allowed bg-slate-100' : ''}`}
               value={form.password}
               disabled={isSubmitting}
               onChange={handleChange}
-              placeholder="영문, 숫자, 특수문자 조합 8자 이상"
+              placeholder="비밀번호를 입력하세요"
+              readOnly={isOAuth}
             />
             <button
               type="button"
@@ -509,11 +538,12 @@ export const ManagerSignup = () => {
             <input
               name="confirmPassword"
               type={showConfirmPassword ? 'text' : 'password'}
-              className="h-11 w-full rounded-lg border border-gray-300 bg-white px-4 pr-10 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+              className={`h-11 w-full rounded-lg border border-gray-300 bg-white px-4 pr-10 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200${isOAuth ? 'cursor-not-allowed bg-slate-100' : ''}`}
               value={form.confirmPassword}
               disabled={isSubmitting}
               onChange={handleChange}
               placeholder="비밀번호를 다시 입력해주세요"
+              readOnly={isOAuth}
             />
             <button
               type="button"
@@ -525,6 +555,11 @@ export const ManagerSignup = () => {
                 <Eye className="h-5 w-5 text-gray-500" />
               )}
             </button>
+            {isOAuth && (
+              <span className="mt-1 text-xs text-gray-400">
+                소셜 로그인으로 입력된 정보는 수정할 수 없습니다.
+              </span>
+            )}
           </div>
 
           {/* 생년월일 + 성별 */}

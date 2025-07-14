@@ -5,6 +5,7 @@ import { Button } from './Button'
 import FormField from './FormField'
 import { Input } from './Input'
 import { Eye, EyeOff } from 'lucide-react'
+import { GoogleLoginButton } from './GoogleLoginButton'
 
 export interface LoginCardProps {
   title1: string
@@ -28,6 +29,7 @@ export interface LoginCardProps {
   loading?: boolean
   bottomText?: React.ReactNode
   className?: string
+  googleRole?: 'customer' | 'manager'
 }
 
 export const LoginCard: React.FC<LoginCardProps> = ({
@@ -51,7 +53,8 @@ export const LoginCard: React.FC<LoginCardProps> = ({
   buttonText = '로그인',
   loading = false,
   bottomText,
-  className = ''
+  className = '',
+  googleRole
 }) => {
   return (
     <Card variant="login" className={`w-[480px] flex-col gap-0 p-0 ${className}`}>
@@ -108,9 +111,14 @@ export const LoginCard: React.FC<LoginCardProps> = ({
                   tabIndex={-1}
                   className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-400 hover:text-gray-700"
                   onClick={onToggleShowPassword}
-                  aria-label={showPassword ? '비밀번호 숨기기' : '비밀번호 보기'}
-                >
-                  {showPassword ? <Eye className="h-5 w-5 text-gray-500" /> : <EyeOff className="h-5 w-5 text-gray-500" />}
+                  aria-label={
+                    showPassword ? '비밀번호 숨기기' : '비밀번호 보기'
+                  }>
+                  {showPassword ? (
+                    <Eye className="h-5 w-5 text-gray-500" />
+                  ) : (
+                    <EyeOff className="h-5 w-5 text-gray-500" />
+                  )}
                 </button>
               </div>
               {passwordError && (
@@ -138,13 +146,21 @@ export const LoginCard: React.FC<LoginCardProps> = ({
           <Button
             type="submit"
             className="h-12 w-full rounded-lg bg-indigo-600 text-lg font-bold text-white shadow transition hover:bg-indigo-700 focus:bg-indigo-700"
-            disabled={loading}
-          >
+            disabled={loading}>
             {loading ? '로딩...' : buttonText}
           </Button>
+          {googleRole && (
+            <div className="mt-4 w-full">
+              <GoogleLoginButton role={googleRole} />
+            </div>
+          )}
         </form>
         {/* 안내 문구 및 하단 커스텀 영역 */}
-        {bottomText && <div className="mt-2 text-center text-xs text-gray-400">{bottomText}</div>}
+        {bottomText && (
+          <div className="mt-2 text-center text-xs text-gray-400">
+            {bottomText}
+          </div>
+        )}
       </CardContent>
     </Card>
   )

@@ -55,11 +55,22 @@ import { GuardLayout } from '@/shared/components/GuardLayout'
 import CustomerNotFound from '@/features/customer/pages/CustomerNotFound'
 import ManagerNotFound from '@/features/manager/pages/ManagerNotFound'
 import AdminNotFound from '@/features/admin/pages/AdminNotFound'
+import OAuthFailPage from '@/shared/components/OAuthFailPage'
+import OAuthSuccessPage from '@/shared/components/OAuthSuccessPage'
+import OAuthProgressPage from '@/shared/components/ui/OAuthProgressPage'
 
 export const router = createBrowserRouter([
   /** 수요자 로그인 (가드 제외) */
 
   { path: '/auth/login', element: <CustomerLogin /> },
+
+  /** OAuth 실패 안내 */
+  { path: '/oauth-fail', element: <OAuthFailPage /> },
+
+  /** OAuth 성공 안내 */
+  { path: '/oauth-success', element: <OAuthSuccessPage /> },
+  { path: '/customers/oauth/success', element: <OAuthProgressPage /> },
+  { path: '/managers/oauth/success', element: <OAuthProgressPage /> },
 
   /** 매니저 로그인/회원가입 */
   {

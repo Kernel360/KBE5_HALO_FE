@@ -11,7 +11,9 @@ import { FeatureCard } from '@/shared/components/ui/FeatureCard'
 export const ManagerLogin = () => {
   const [loginPhone, setPhone] = useState('')
   const [loginPassword, setPassword] = useState('')
-  const [errors, setErrors] = useState<{ phone?: string; password?: string }>({})
+  const [errors, setErrors] = useState<{ phone?: string; password?: string }>(
+    {}
+  )
   const [toast, setToast] = useState<{ open: boolean; message: string }>({
     open: false,
     message: ''
@@ -34,7 +36,8 @@ export const ManagerLogin = () => {
       newErrors.phone = '연락처 형식이 올바르지 않습니다. 예: 010-1234-5678'
     }
     if (!isValidPassword(loginPassword)) {
-      newErrors.password = '비밀번호는 8~20자, 대/소문자/숫자/특수문자 중 3가지 이상 포함하여야 합니다.'
+      newErrors.password =
+        '비밀번호는 8~20자, 대/소문자/숫자/특수문자 중 3가지 이상 포함하여야 합니다.'
     }
     setErrors(newErrors)
     if (Object.keys(newErrors).length > 0) return
@@ -60,7 +63,7 @@ export const ManagerLogin = () => {
 
   return (
     <Fragment>
-      <div className="flex min-h-screen w-full items-center justify-center bg-gray-50 px-2 py-8">
+      <div className="flex min-h-screen w-full items-center justify-center bg-slate-100 px-2 py-8">
         <div className="flex w-full max-w-4xl flex-col-reverse items-center gap-8 md:flex-row md:gap-12">
           <FeatureCard
             icon={<>★</>}
@@ -70,17 +73,20 @@ export const ManagerLogin = () => {
               {
                 title: '예약 관리',
                 desc: '예약 현황 확인 및 일정 관리',
-                detail: '💡 예약 현황을 한눈에 확인하고, 일정을 효율적으로 관리할 수 있습니다.'
+                detail:
+                  '💡 예약 현황을 한눈에 확인하고, 일정을 효율적으로 관리할 수 있습니다.'
               },
               {
                 title: '고객 문의 응답',
                 desc: '고객 문의 내역 확인 및 답변',
-                detail: '💡 고객 문의 내역을 확인하고, 신속하게 답변할 수 있습니다.'
+                detail:
+                  '💡 고객 문의 내역을 확인하고, 신속하게 답변할 수 있습니다.'
               },
               {
                 title: '내 정보/계약 관리',
                 desc: '프로필, 계약, 정산 내역 확인',
-                detail: '💡 내 프로필, 계약 현황, 정산 내역을 쉽고 빠르게 확인할 수 있습니다.'
+                detail:
+                  '💡 내 프로필, 계약 현황, 정산 내역을 쉽고 빠르게 확인할 수 있습니다.'
               }
             ]}
           />
@@ -111,6 +117,7 @@ export const ManagerLogin = () => {
                 </Link>
               </>
             }
+            googleRole="managers"
           />
         </div>
         <ErrorToast
