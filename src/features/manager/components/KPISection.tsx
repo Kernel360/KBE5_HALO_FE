@@ -123,28 +123,6 @@ export const KPISection = () => {
       .finally(() => setSettlementLoading(false))
   }, [])
 
-  // 증감률 계산
-  {
-    /*
-  let weekTrend: string | null = null
-  let weekTrendUp = true
-  if (weekCount !== null && lastWeekCount !== null) {
-    if (lastWeekCount === 0 && weekCount > 0) {
-      weekTrend = '+100%'
-      weekTrendUp = true
-    } else if (lastWeekCount === 0 && weekCount === 0) {
-      weekTrend = '0%'
-      weekTrendUp = false
-    } else {
-      const diff = weekCount - lastWeekCount
-      const percent = ((diff / lastWeekCount) * 100).toFixed(1)
-     // weekTrend = (diff >= 0 ? '+' : '') + percent + '%'
-     // weekTrendUp = diff >= 0
-    }
-  }
-    */
-  }
-
   // 클릭 시 이동 함수
   const handleWeekCardClick = () => {
     const weekDates = getThisWeekDates().map(d => d.toISOString().slice(0, 10))
@@ -155,8 +133,12 @@ export const KPISection = () => {
   const handleRequestedCardClick = () => {
     navigate(`/managers/reservations?status=REQUESTED`)
   }
-  const handleWarningClick = () => {
-    setWarningOpen(true)
+  const handleRatingCardClick = () => {
+    navigate(`/managers/reviews`)
+  }
+
+  const handleSettleCardClick = () => {
+    navigate(`/managers/payments`)
   }
 
   return (
@@ -176,16 +158,6 @@ export const KPISection = () => {
           <span className="text-3xl font-bold text-indigo-700">
             {weekLoading ? '...' : weekError ? weekError : `${weekCount ?? 0}`}
           </span>
-          {/* 증감 내역
-          <span
-            className={`flex items-center text-sm font-semibold ${weekTrendUp ? 'text-green-600' : 'text-red-500'}`}>
-            {weekTrendUp ? (
-              <ArrowTrendingUpIcon className="mr-0.5 h-4 w-4" />
-            ) : (
-              <ArrowTrendingDownIcon className="mr-0.5 h-4 w-4" />
-            )}
-            {weekTrend ?? '-'}
-          </span> */}
         </div>
         <span className="mt-1 text-xs text-slate-400">전체 예약 수</span>
       </button>
@@ -204,11 +176,6 @@ export const KPISection = () => {
           <span className="text-3xl font-bold text-rose-600">
             {loading ? '...' : error ? error : `${requestedCount ?? 0}`}
           </span>
-          {/* 증감 내역
-          <span className="flex items-center text-sm font-semibold text-green-600">
-            <ArrowTrendingUpIcon className="mr-0.5 h-4 w-4" />
-            +1
-          </span> */}
         </div>
         <span className="mt-1 text-xs text-slate-400">확정 대기</span>
       </button>
@@ -216,7 +183,7 @@ export const KPISection = () => {
       <button
         type="button"
         className="flex flex-col items-start gap-2 rounded-2xl border border-slate-100 bg-white p-6 shadow transition hover:shadow-md focus:outline-none"
-        onClick={handleWarningClick}>
+        onClick={handleRatingCardClick}>
         <div className="mb-1 flex items-center gap-2">
           <StarIcon className="h-6 w-6 text-yellow-400" />
           <span className="text-base font-semibold text-slate-700">
@@ -225,10 +192,6 @@ export const KPISection = () => {
         </div>
         <div className="flex items-end gap-2">
           <span className="text-3xl font-bold text-yellow-500">4.8</span>
-          <span className="flex items-center text-sm font-semibold text-red-500">
-            <ArrowTrendingDownIcon className="mr-0.5 h-4 w-4" />
-            -0.1
-          </span>
         </div>
         <span className="mt-1 text-xs text-slate-400">최근 30일</span>
       </button>
@@ -236,7 +199,7 @@ export const KPISection = () => {
       <button
         type="button"
         className="flex flex-col items-start gap-2 rounded-2xl border border-slate-100 bg-white p-6 shadow transition hover:shadow-md focus:outline-none"
-        onClick={handleWarningClick}>
+        onClick={handleSettleCardClick}>
         <div className="mb-1 flex items-center gap-2">
           <BanknotesIcon className="h-6 w-6 text-emerald-500" />
           <span className="text-base font-semibold text-slate-700">
