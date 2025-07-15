@@ -54,10 +54,6 @@ export const CustomerSignup: React.FC = () => {
     const newEmail = searchParams.get('email') || ''
     const newPassword = searchParams.get('password') || ''
 
-    console.log('newName', newName)
-    console.log('newEmail', newEmail)
-    console.log('newPassword', newPassword)
-
     setForm(prev => ({
       ...prev,
       userName: newName || prev.userName,
@@ -215,7 +211,7 @@ export const CustomerSignup: React.FC = () => {
           </label>
           <input
             name="email"
-            className={`h-11 w-full rounded-lg border border-gray-300 bg-white px-4 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200${isOAuth ? ' cursor-not-allowed bg-slate-100' : ''}`}
+            className={`h-11 w-full rounded-lg border border-gray-300 bg-white px-4 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200${isOAuth ? 'cursor-not-allowed bg-slate-100' : ''}`}
             value={form.email}
             disabled={isSubmitting}
             onChange={handleChange}
@@ -237,7 +233,7 @@ export const CustomerSignup: React.FC = () => {
           <input
             name="password"
             type={showPassword ? 'text' : 'password'}
-            className={`h-11 w-full rounded-lg border border-gray-300 bg-white px-4 pr-10 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200${isOAuth ? ' cursor-not-allowed bg-slate-100' : ''}`}
+            className={`h-11 w-full rounded-lg border border-gray-300 bg-white px-4 pr-10 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200${isOAuth ? 'cursor-not-allowed bg-slate-100' : ''}`}
             value={form.password}
             disabled={isSubmitting || !!(provider && providerId)}
             onChange={handleChange}
@@ -268,7 +264,7 @@ export const CustomerSignup: React.FC = () => {
           </label>
           <input
             name="userName"
-            className={`h-11 w-full rounded-lg border border-gray-300 bg-white px-4 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200${isOAuth ? ' cursor-not-allowed bg-slate-100' : ''}`}
+            className={`h-11 w-full rounded-lg border border-gray-300 bg-white px-4 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200${isOAuth ? 'cursor-not-allowed bg-slate-100' : ''}`}
             value={form.userName}
             disabled={isSubmitting}
             onChange={handleChange}

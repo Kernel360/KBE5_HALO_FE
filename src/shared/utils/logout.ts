@@ -4,10 +4,17 @@ import { logoutCustomer } from '@/features/customer/api/customerAuth'
 import { logoutManager } from '@/features/manager/api/managerAuth'
 import { logoutAdmin } from '@/features/admin/api/adminAuth'
 
+// Minimal response type for logout API
+interface LogoutResponse {
+  data: {
+    success: boolean
+    message?: string
+  }
+}
+
 export const logout = async () => {
-  const handleLogoutResponse = (res: any) => {
+  const handleLogoutResponse = (res: LogoutResponse) => {
     if (!res.data.success) {
-      if (res.data.message?.trim()) alert(res.data.message)
       throw new Error(res.data.message || '로그아웃에 실패했습니다.')
     }
     return res.data.message
@@ -35,9 +42,8 @@ export const logout = async () => {
       default:
         throw new Error('알 수 없는 사용자 역할')
     }
-  } catch (err) {
-    console.warn('catch 진입', err)
-    console.warn('서버 로그아웃 실패 (무시하고 클라이언트 초기화 진행)', err)
+  } catch {
+    // 서버 로그아웃 실패 시 무시하고 클라이언트 초기화만 진행
   } finally {
     useAuthStore.getState().clearTokens()
     useUserStore.getState().clearUser()
