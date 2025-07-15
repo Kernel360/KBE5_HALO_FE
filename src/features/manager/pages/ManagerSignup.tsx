@@ -44,6 +44,8 @@ export const ManagerSignup = () => {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const isOAuth = searchParams.get('oauth') === '1'
+  const provider = searchParams.get('provider') || ''
+  const providerId = searchParams.get('providerId') || ''
 
   // 에러 상태
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -237,9 +239,11 @@ export const ManagerSignup = () => {
     if (!newErrors.email && form.email && !isValidEmail(form.email)) {
       newErrors.emailFormat = '이메일 형식이 올바르지 않습니다.'
     }
-    if (!isValidPassword(form.password))
+    // provider, providerId가 없을 때만 비밀번호 검증
+    if (!(provider && providerId) && !isValidPassword(form.password)) {
       newErrors.password =
         '8~20자, 대소문자/숫자/특수문자 중 3가지 이상 포함해야 합니다.'
+    }
     if (form.password !== form.confirmPassword)
       newErrors.confirmPassword = '비밀번호가 일치하지 않습니다.'
     if (!form.birthDate) newErrors.birthDate = '생년월일을 입력해주세요.'
@@ -288,6 +292,7 @@ export const ManagerSignup = () => {
         email: form.email,
         password: form.password,
         status: 'ACTIVE'
+        ,...(provider && providerId ? { provider, providerId } : {})
       },
       userInfoSignupReqDTO: {
         birthDate: form.birthDate,

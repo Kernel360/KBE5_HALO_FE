@@ -57,7 +57,7 @@ import ManagerNotFound from '@/features/manager/pages/ManagerNotFound'
 import AdminNotFound from '@/features/admin/pages/AdminNotFound'
 import OAuthFailPage from '@/shared/components/OAuthFailPage'
 import OAuthSuccessPage from '@/shared/components/OAuthSuccessPage'
-import OAuthProgressPage from '@/shared/components/ui/OAuthProgressPage'
+import OAuthProgressPage from '@/shared/components/OAuthProgressPage'
 
 export const router = createBrowserRouter([
   /** 수요자 로그인 (가드 제외) */

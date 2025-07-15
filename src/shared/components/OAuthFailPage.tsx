@@ -21,9 +21,9 @@ const OAuthFailPage = () => {
   }, [count])
 
   const handleRetry = () => {
-    if (role === 'CUSTOMER') {
+    if (role === 'customer') {
       navigate('/auth/login')
-    } else if (role === 'MANAGER') {
+    } else if (role === 'manager') {
       navigate('/managers/auth/login')
     } else {
       navigate('/auth/login') // fallback: 무조건 고객 로그인 페이지로 이동

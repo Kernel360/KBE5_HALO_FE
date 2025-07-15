@@ -17,7 +17,10 @@ const transformToCustomerSignupReqDTO = (
       phone: signupData.phone,
       userName: signupData.userName,
       email: signupData.email,
-      password: signupData.password
+      password: signupData.password,
+      ...(signupData.provider && signupData.providerId
+        ? { provider: signupData.provider, providerId: signupData.providerId }
+        : {})
     },
     userInfoSignupReqDTO: {
       birthDate: signupData.birthDate,

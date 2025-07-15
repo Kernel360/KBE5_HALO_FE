@@ -11,6 +11,7 @@ import { Eye, EyeOff } from 'lucide-react'
 import type { CustomerSignupReq } from '../types/CustomerSignupType'
 import AddressSearch from '@/shared/components/AddressSearch'
 import ErrorToast from '@/shared/components/ui/toast/ErrorToast'
+import SuccessToast from '@/shared/components/ui/toast/SuccessToast'
 import { PrivacyPolicyModal } from '../modal/PrivacyPolicyModal'
 import BirthDateCalendar from '@/shared/components/ui/BirthDateCalendar'
 
@@ -40,9 +41,12 @@ export const CustomerSignup: React.FC = () => {
   const [errorToast, setErrorToast] = useState({ open: false, message: '' })
   const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [successToast, setSuccessToast] = useState(false)
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const isOAuth = searchParams.get('oauth') === '1'
+  const provider = searchParams.get('provider') || ''
+  const providerId = searchParams.get('providerId') || ''
 
   useEffect(() => {
     // 소셜 로그인으로 온 경우 쿼리에서 name, email, password 값을 읽어 초기값으로 반영
@@ -99,9 +103,11 @@ export const CustomerSignup: React.FC = () => {
       newErrors.phoneFormat = '연락처 형식이 올바르지 않습니다.'
     if (form.email.trim() && !isValidEmail(form.email))
       newErrors.emailFormat = '이메일 형식이 올바르지 않습니다.'
-    if (!isValidPassword(form.password))
+    // provider, providerId가 없을 때만 비밀번호 검증
+    if (!(provider && providerId) && !isValidPassword(form.password)) {
       newErrors.password =
         '8~20자, 대소문자/숫자/특수문자 중 3가지 이상 포함해야 합니다.'
+    }
     if (!form.userName.trim()) newErrors.userName = '이름을 입력해주세요.'
     if (!form.birthDate) newErrors.birthDate = '생년월일을 선택해주세요.'
     if (!form.gender) newErrors.gender = '성별을 선택해주세요.'
@@ -140,13 +146,14 @@ export const CustomerSignup: React.FC = () => {
     }
 
     const payload: CustomerSignupReq = {
-      ...form
+      ...form,
+      ...(provider && providerId ? { provider, providerId } : {})
     }
 
     try {
       setIsSubmitting(true)
       await signupCustomer(payload)
-      navigate('/auth/login', { state: { signupSuccess: true } })
+      setSuccessToast(true)
     } catch (error: unknown) {
       const message =
         (error as { response?: { data?: { message?: string } } })?.response
@@ -158,6 +165,13 @@ export const CustomerSignup: React.FC = () => {
 
   return (
     <div className="flex w-full justify-center px-4 py-12">
+      <SuccessToast
+        open={successToast}
+        message="회원가입이 완료되었습니다! 로그인 페이지로 이동합니다."
+        onClose={() =>
+          navigate('/auth/login', { state: { signupSuccess: true } })
+        }
+      />
       <ErrorToast
         open={errorToast.open}
         message={errorToast.message}
@@ -209,7 +223,9 @@ export const CustomerSignup: React.FC = () => {
             readOnly={isOAuth}
           />
           {isOAuth && (
-            <span className="mt-1 text-xs text-gray-400">소셜 로그인으로 입력된 정보는 수정할 수 없습니다.</span>
+            <span className="mt-1 text-xs text-gray-400">
+              소셜 로그인으로 입력된 정보는 수정할 수 없습니다.
+            </span>
           )}
         </div>
 
@@ -223,13 +239,15 @@ export const CustomerSignup: React.FC = () => {
             type={showPassword ? 'text' : 'password'}
             className={`h-11 w-full rounded-lg border border-gray-300 bg-white px-4 pr-10 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200${isOAuth ? ' cursor-not-allowed bg-slate-100' : ''}`}
             value={form.password}
-            disabled={isSubmitting}
+            disabled={isSubmitting || !!(provider && providerId)}
             onChange={handleChange}
             placeholder="비밀번호를 입력하세요"
-            readOnly={isOAuth}
+            readOnly={isOAuth || !!(provider && providerId)}
           />
           {isOAuth && (
-            <span className="mt-1 text-xs text-gray-400">소셜 로그인으로 입력된 정보는 수정할 수 없습니다.</span>
+            <span className="mt-1 text-xs text-gray-400">
+              소셜 로그인으로 입력된 정보는 수정할 수 없습니다.
+            </span>
           )}
           <button
             type="button"
@@ -258,7 +276,9 @@ export const CustomerSignup: React.FC = () => {
             readOnly={isOAuth}
           />
           {isOAuth && (
-            <span className="mt-1 text-xs text-gray-400">소셜 로그인으로 입력된 정보는 수정할 수 없습니다.</span>
+            <span className="mt-1 text-xs text-gray-400">
+              소셜 로그인으로 입력된 정보는 수정할 수 없습니다.
+            </span>
           )}
         </div>
 
@@ -270,7 +290,7 @@ export const CustomerSignup: React.FC = () => {
             </label>
             <BirthDateCalendar
               selectedDate={form.birthDate}
-              onDateChange={(date) => {
+              onDateChange={date => {
                 setForm(prev => ({ ...prev, birthDate: date }))
                 setErrors(prev => ({ ...prev, birthDate: '' }))
               }}

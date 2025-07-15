@@ -13,6 +13,8 @@ const OAuthSuccessPage = () => {
   const name = searchParams.get('name') || ''
   const email = searchParams.get('email') || ''
   const password = searchParams.get('password') || ''
+  const provider = searchParams.get('provider') || ''
+  const providerId = searchParams.get('providerId') || ''
   // accessToken은 login 함수에서 처리됨
 
   const [count, setCount] = useState(3)
@@ -22,9 +24,9 @@ const OAuthSuccessPage = () => {
   useEffect(() => {
     if (!isNew) {
       // 기존 회원: 바로 메인(또는 매니저 메인)으로 이동
-      if (role === 'CUSTOMERS') {
+      if (role === 'CUSTOMER') {
         navigate('/')
-      } else if (role === 'MANAGERS') {
+      } else if (role === 'MANAGER') {
         navigate('/managers')
       } else {
         navigate('/')
@@ -40,20 +42,32 @@ const OAuthSuccessPage = () => {
   }, [count, isNew, role, navigate])
 
   const handleNext = () => {
-    if (role === 'CUSTOMERS') {
+    if (role === 'CUSTOMER') {
       if (isNew) {
         navigate({
           pathname: '/auth/signup',
-          search: `?name=${encodeURIComponent(name)}&email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}&oauth=1`
+          search:
+            `?name=${encodeURIComponent(name)}` +
+            `&email=${encodeURIComponent(email)}` +
+            `&password=${encodeURIComponent(password)}` +
+            `&provider=${encodeURIComponent(provider)}` +
+            `&providerId=${encodeURIComponent(providerId)}` +
+            `&oauth=1`
         })
       } else {
         navigate('/')
       }
-    } else if (role === 'MANAGERS') {
+    } else if (role === 'MANAGER') {
       if (isNew) {
         navigate({
           pathname: '/managers/auth/signup',
-          search: `?name=${encodeURIComponent(name)}&email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}&oauth=1`
+          search:
+            `?name=${encodeURIComponent(name)}` +
+            `&email=${encodeURIComponent(email)}` +
+            `&password=${encodeURIComponent(password)}` +
+            `&provider=${encodeURIComponent(provider)}` +
+            `&providerId=${encodeURIComponent(providerId)}` +
+            `&oauth=1`
         })
       } else {
         navigate('/managers')

@@ -6,6 +6,7 @@ import { formatPhoneNumber } from '@/shared/utils/format'
 import { FeatureCard } from '@/shared/components/ui/FeatureCard'
 import { LoginCard } from '@/shared/components/ui/LoginCard'
 import ErrorToast from '@/shared/components/ui/toast/ErrorToast'
+import SuccessToast from '@/shared/components/ui/toast/SuccessToast'
 
 export const CustomerLogin = () => {
   const [loginPhone, setPhone] = useState('')
@@ -113,9 +114,14 @@ export const CustomerLogin = () => {
                 </Link>
               </>
             }
-            googleRole="customers"
+            googleRole="customer"
           />
         </div>
+        <SuccessToast
+          open={showSuccess}
+          message="회원가입이 완료되었습니다! 로그인 후 서비스를 이용해보세요."
+          onClose={() => setShowSuccess(false)}
+        />
         <ErrorToast
           open={toast.open}
           message={toast.message}
