@@ -3,8 +3,7 @@ import {
   CalendarDaysIcon,
   BellAlertIcon,
   StarIcon,
-  BanknotesIcon,
-  ArrowTrendingDownIcon
+  BanknotesIcon
 } from '@heroicons/react/24/solid'
 import { searchManagerReservations } from '@/features/manager/api/managerReservation'
 import { getExpectedSettlementThisWeek } from '@/features/manager/api/managerPayment'
