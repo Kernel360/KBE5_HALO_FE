@@ -68,9 +68,8 @@ export const CustomerLogin = () => {
       <div className="flex min-h-screen w-full items-center justify-center bg-slate-100 px-2 py-8">
         <div className="flex w-full max-w-4xl flex-col-reverse items-center gap-8 md:flex-row md:gap-12">
           <FeatureCard
-            icon={<> 31</>}
+            icon={<>★</>}
             title="고객 주요 기능"
-            subtitle="HaloCare에서 이런 서비스를 이용할 수 있어요!"
             features={[
               {
                 title: '간편 예약',

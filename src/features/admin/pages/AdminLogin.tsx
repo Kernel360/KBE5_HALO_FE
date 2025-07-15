@@ -55,7 +55,6 @@ export const AdminLogin = () => {
           <FeatureCard
             icon={<>★</>}
             title="관리자 주요 기능"
-            subtitle="무엇을 할 수 있나요?"
             features={[
               {
                 title: '계정/권한 관리',

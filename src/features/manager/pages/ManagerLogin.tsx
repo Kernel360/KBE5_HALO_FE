@@ -68,7 +68,6 @@ export const ManagerLogin = () => {
           <FeatureCard
             icon={<>★</>}
             title="매니저 주요 기능"
-            subtitle="무엇을 할 수 있나요?"
             features={[
               {
                 title: '예약 관리',
