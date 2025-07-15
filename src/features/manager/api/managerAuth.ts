@@ -5,7 +5,7 @@ import type { createManagerSignup } from '../types/ManagerAuthType';
 // 매니저 로그인
 export const loginManager = async (phone: string, password: string) => {
   const res = await api.post('/managers/auth/login', { phone, password });
-
+  // 권한별 header 설정 필요
   if (!res.data.success) {
     // 성공 여부 수동 체크 후 에러 던지기
     if (res.data.message?.trim()) alert(res.data.message);
