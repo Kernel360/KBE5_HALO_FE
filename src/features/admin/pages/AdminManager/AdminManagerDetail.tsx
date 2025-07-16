@@ -92,11 +92,9 @@ export const AdminManagerDetail = () => {
 
   if (loading)
     return (
-      <Loading
-        message="매니저 정보를 불러오는 중..."
-        size="lg"
-        className="h-screen"
-      />
+      <div className="flex items-center justify-center min-h-screen w-full">
+        <Loading message="매니저 정보를 불러오는 중..." size="lg" />
+      </div>
     );
   if (error) {
     return (
