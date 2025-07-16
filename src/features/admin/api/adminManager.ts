@@ -1,5 +1,6 @@
 import api from '@/services/axios'
 import qs from 'qs'
+import type { AdminManagerReview } from '@/features/admin/types/AdminManagerType'
 
 // 전체 매니저 목록 조회
 export const fetchAdminManagers = async (params?: {
@@ -16,7 +17,7 @@ export const fetchAdminManagers = async (params?: {
 }) => {
   const cleanedParams = Object.fromEntries(
     Object.entries(params || {}).filter(
-      ([, value]) => value !== undefined && value !== '',
+      ([, value]) => value !== undefined && value !== ''
     )
   )
   const res = await api.get('/admin/managers', {
@@ -61,5 +62,16 @@ export const approveTerminateManager = async (managerId: number) => {
   const res = await api.patch(`/admin/managers/terminate/${managerId}`)
   if (!res.data.success)
     throw new Error(res.data.message || '계약해지 승인에 실패했습니다.')
+  return res.data.body
+}
+
+// 매니저 리뷰 목록 조회
+export const fetchAdminManagerReviews = async (
+  managerId: number | string,
+  params?: Record<string, string | number>
+): Promise<{ content: AdminManagerReview[]; page?: Record<string, any> }> => {
+  const res = await api.get(`/admin/reviews/${managerId}`, { params })
+  if (!res.data.success)
+    throw new Error(res.data.message || '매니저 리뷰 조회에 실패했습니다.')
   return res.data.body
 }

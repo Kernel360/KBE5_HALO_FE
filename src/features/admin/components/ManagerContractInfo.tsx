@@ -1,13 +1,34 @@
-import React from "react";
-import { ContractStatusBadge } from "@/shared/components/ui/ContractStatusBadge";
-import type { AdminManagerDetail } from "@/features/admin/types/AdminManagerType";
-import Button from "@/shared/components/ui/Button";
+import React from 'react'
+import { ContractStatusBadge } from '@/shared/components/ui/ContractStatusBadge'
+import type { AdminManagerDetail } from '@/features/admin/types/AdminManagerType'
+import Button from '@/shared/components/ui/Button'
+import { ManagerSubmissionFilesSection } from './ManagerDetailInfo'
+import type { SubmissionFileMeta } from './ManagerDetailInfo'
+
+// 계약 상태 한글 매핑 함수 (AdminManagerDetail.tsx와 동일하게 복사)
+const getContractStatusLabel = (status: string) => {
+  switch (status) {
+    case 'PENDING':
+      return '승인대기'
+    case 'APPROVED':
+      return '승인'
+    case 'REJECTED':
+      return '승인거절'
+    case 'TERMINATION_PENDING':
+      return '해지대기'
+    case 'TERMINATED':
+      return '계약해지'
+    default:
+      return status
+  }
+}
 
 interface ManagerContractInfoProps {
   manager: AdminManagerDetail;
   onApprove: () => void;
   onReject: () => void;
   onTerminateApprove: () => void;
+  fileMetas?: SubmissionFileMeta[];
 }
 
 const ManagerContractInfo: React.FC<ManagerContractInfoProps> = ({
@@ -15,6 +36,7 @@ const ManagerContractInfo: React.FC<ManagerContractInfoProps> = ({
   onApprove,
   onReject,
   onTerminateApprove,
+  fileMetas = [],
 }) => {
   return (
     <div className="w-full p-8 bg-white rounded-xl shadow flex flex-col gap-4">
@@ -27,10 +49,12 @@ const ManagerContractInfo: React.FC<ManagerContractInfoProps> = ({
           {manager.contractAt || "-"}
         </div>
       </div>
-      <div className="inline-flex justify-start items-center gap-2">
+      {/* 제출 서류(첨부파일) 영역 */}
+      <ManagerSubmissionFilesSection fileMetas={fileMetas} />
+      <div className="inline-flex items-center justify-start gap-2">
         <div className="w-40 text-slate-500 text-sm font-medium">계약 상태</div>
-        <div className="h-7 px-3 flex justify-center items-center">
-          <ContractStatusBadge status={manager.status} />
+        <div className="flex-1">
+          <ContractStatusBadge status={manager.contractStatus} />
         </div>
       </div>
       {manager.status === "TERMINATED" &&

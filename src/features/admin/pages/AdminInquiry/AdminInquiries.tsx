@@ -1,22 +1,26 @@
-import { Fragment, useEffect, useState, useRef } from "react";
-import { Link } from "react-router-dom";
-import { Search } from "lucide-react";
-import { searchAdminInquiries, getAllInquiryCategories, 
-    getAllInquiryAuthorTypes, type EnumValue } from "@/features/admin/api/adminInquiry";
-import ErrorToast from "@/shared/components/ui/toast/ErrorToast";
-import SuccessToast from "@/shared/components/ui/toast/SuccessToast";
-import Toast from "@/shared/components/ui/toast/Toast";
-
+import React, { useEffect, useState, useRef, Fragment } from 'react'
+import { Link } from 'react-router-dom'
+import { Search } from 'lucide-react'
+import {
+  searchAdminInquiries,
+  fetchAdminInquiryCategories,
+  fetchAdminInquiryAuthorTypes,
+} from '@/features/admin/api/adminInquiry'
+import type { EnumValue } from '@/features/admin/api/adminInquiry'
+import ErrorToast from '@/shared/components/ui/toast/ErrorToast'
+import SuccessToast from '@/shared/components/ui/toast/SuccessToast'
+import Toast from '@/shared/components/ui/toast/Toast'
 import type {
-  InquirySummary,SearchInquiriesRequest,
-} from "@/features/admin/types/AdminInquiryType";
+  SearchInquiriesRequest,
+  InquirySummary
+} from '@/features/admin/types/AdminInquiryType'
+import { isValidDateRange } from '@/shared/utils/validation'
+import { DEFAULT_PAGE_SIZE } from '@/shared/constants/constants'
+import TableSection from '../../components/TableSection'
+import AdminPagination from '@/features/admin/components/AdminPagination'
+import { ResetButton } from '@/shared/components/ui/ResetButton'
 
-import { isValidDateRange } from "@/shared/utils/validation";
-import { DEFAULT_PAGE_SIZE } from "@/shared/constants/constants";
-import { TableSection } from "../../components/TableSection";
-import { AdminPagination } from "@/features/admin/components/AdminPagination";
-import { ResetButton } from "@/shared/components/ui/ResetButton";
-import { SearchButton } from "@/shared/components/ui/SearchButton";
+import { SearchButton } from '@/shared/components/ui/SearchButton'
 
 export const AdminInquiries = () => {
   const [fadeKey, setFadeKey] = useState(0);
@@ -87,8 +91,8 @@ export const AdminInquiries = () => {
     const fetchInitialData = async () => {
       try {
         const [categoriesData, authorTypesData] = await Promise.all([
-          getAllInquiryCategories(),
-          getAllInquiryAuthorTypes()
+          fetchAdminInquiryCategories(),
+          fetchAdminInquiryAuthorTypes()
         ]);
         
         // categoriesData는 객체 형태이므로 값들을 배열로 변환

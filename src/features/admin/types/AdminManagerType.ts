@@ -25,6 +25,7 @@ export interface AdminManagerDetail {
   roadAddress: string
   detailAddress: string
   status: string
+  contractStatus: string
   availableTimes: AvailableTime[]
   averageRating: number | null
   reservationCount: number
@@ -43,4 +44,17 @@ export interface AvailableTime {
   timeId: number | null
   dayOfWeek: string
   time: string
+}
+
+// 관리자에서 매니저 리뷰 조회용 타입
+export interface AdminManagerReview {
+  reviewId: number
+  reservationId: number
+  authorId: number
+  authorName: string
+  rating: number
+  content: string
+  serviceId: number
+  serviceName: string
+  createdAt: string
 }

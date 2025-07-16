@@ -6,7 +6,7 @@ import { Loading } from '@/shared/components/ui/Loading'
 import ErrorToast from '@/shared/components/ui/toast/ErrorToast'
 import { Button } from '@/shared/components/ui/Button'
 import { Card } from '@/shared/components/ui/Card'
-import { AddressMapCard } from '@/features/manager/components/AddressMapCard'
+import { AddressMapCardForCustomer } from '@/features/manager/components/AddressMapCard'
 
 export const ManagerMy = () => {
   const [manager, setManager] = useState<ManagerInfo | null>(null);
@@ -95,7 +95,7 @@ export const ManagerMy = () => {
 
         {/* 2. 서비스 지역(주소+지도) */}
         <Card className="flex flex-col gap-4 rounded-xl border border-gray-200 bg-white p-6 shadow-md">
-          <AddressMapCard
+          <AddressMapCardForCustomer
             reservation={{
               roadAddress: manager.roadAddress,
               detailAddress: manager.detailAddress
