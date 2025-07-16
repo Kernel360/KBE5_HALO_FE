@@ -4,18 +4,6 @@ import { googleOAuthLogin } from '@/shared/utils/googleOAuth'
 import { useAuthStore } from '@/store/useAuthStore'
 import { useUserStore } from '@/store/useUserStore'
 
-// 디버깅용 로그를 localStorage에 저장하는 함수
-const logToLocalStorage = (message: string, data?: unknown) => {
-  const prev = localStorage.getItem('debug-logs')
-  const logs = prev ? JSON.parse(prev) : []
-  logs.push({
-    time: new Date().toISOString(),
-    message,
-    data
-  })
-  localStorage.setItem('debug-logs', JSON.stringify(logs))
-}
-
 const OAuthProgressPage: React.FC = () => {
   const location = useLocation()
   const navigate = useNavigate()
@@ -35,38 +23,33 @@ const OAuthProgressPage: React.FC = () => {
   const error = searchParams.get('error')
 
   useEffect(() => {
-    // OAuth 진행상황 로그 저장
-    logToLocalStorage('OAuthProgressPage useEffect 진입', {
-      code,
-      error,
-      role
-    })
     // 에러 쿼리 감지 시 실패 처리 및 실패 페이지 이동
     if (error) {
-      logToLocalStorage('OAuthProgressPage: error 쿼리 감지', error)
       setStatus('error')
       navigate(`/oauth-fail?role=${role}`)
       return
     }
     // code가 없으면 실패 처리 및 실패 페이지 이동
     if (!code) {
-      logToLocalStorage('OAuthProgressPage: code 없음', null)
       setStatus('error')
       navigate(`/oauth-fail?role=${role}`)
       return
     }
     setStatus('pending')
-    logToLocalStorage('OAuthProgressPage: googleOAuthLogin 호출', {
-      role,
-      code
-    })
     // 구글 OAuth 로그인 API 호출
     googleOAuthLogin(role, code)
       .then(res => {
-        logToLocalStorage('OAuthProgressPage: googleOAuthLogin 성공', res)
         const data = res.data || {}
         const isNew = !!data.new // 신규 가입자인지 여부
-        console.log('isNew', isNew)
+        const responseRole = data.role || '' // 응답 role
+        const roleUpper = role === 'manager' ? 'MANAGER' : 'CUSTOMER'
+        if (responseRole && responseRole !== roleUpper) {
+          setStatus('error')
+          navigate(
+            `/oauth-fail?role=${role}&message=${encodeURIComponent('해당 페이지에 권한이 없습니다.')}`
+          )
+          return
+        }
         if (!isNew) {
           // accessToken: 헤더에서 추출
           const rawHeader = res.headers['authorization']
@@ -78,24 +61,13 @@ const OAuthProgressPage: React.FC = () => {
           // provider, providerId 추가 (백엔드에서 전달 시)
           const provider = data.provider || ''
           const providerId = data.providerId || ''
-          logToLocalStorage('OAuthProgressPage: zustand 저장 직전', {
-            accessToken,
-            userName,
-            email,
-            statusValue
-          })
           // zustand 전역 상태에 토큰 및 유저 정보 저장
-          const roleUpper = role === 'manager' ? 'MANAGER' : 'CUSTOMER'
           useAuthStore
             .getState()
             .setTokens(accessToken, roleUpper)
           useUserStore
             .getState()
             .setUser(email, userName, statusValue, provider, providerId)
-          logToLocalStorage('OAuthProgressPage: zustand 저장 완료', {
-            auth: useAuthStore.getState(),
-            user: useUserStore.getState()
-          })
         }
         setStatus('success')
         // SuccessPage로 이동 시 isNew도 쿼리로 넘김
@@ -107,16 +79,6 @@ const OAuthProgressPage: React.FC = () => {
         const provider = data.provider || ''
         const providerId = data.providerId || ''
         setTimeout(() => {
-          logToLocalStorage('OAuthProgressPage: navigate to success', {
-            role,
-            isNew,
-            userName,
-            email,
-            statusValue,
-            password,
-            provider,
-            providerId
-          })
           // 성공 페이지로 이동 (필요 정보 쿼리로 전달)
           navigate(
             `/oauth-success?role=${role}` +
@@ -130,9 +92,8 @@ const OAuthProgressPage: React.FC = () => {
           )
         }, 100)
       })
-      .catch(err => {
+      .catch(() => {
         // 로그인 실패 시 실패 페이지로 이동
-        logToLocalStorage('OAuthProgressPage: googleOAuthLogin 실패', err)
         setStatus('error')
         navigate(`/oauth-fail?role=${role}`)
       })

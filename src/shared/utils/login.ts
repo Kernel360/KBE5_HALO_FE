@@ -53,7 +53,7 @@ export const login = async (role: Role, phone: string, password: string) => {
 
   // 상태 저장
   useAuthStore.getState().setTokens(accessToken, role)
-  useUserStore.getState().setUser(phone, userName, status)
+  useUserStore.getState().setUser(phone, userName, status, null, null)
 
   return { accessToken, userName }
 }

@@ -9,7 +9,7 @@ const OAuthFailPage = () => {
   const message = searchParams.get('message')
   const role = searchParams.get('role') // 'customer' or 'manager'
 
-  const [count, setCount] = useState(5)
+  const [count, setCount] = useState(3)
 
   useEffect(() => {
     if (count === 0) {

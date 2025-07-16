@@ -16,6 +16,7 @@ import { FileUploadSection } from '@/shared/components/FileUploadSection'
 import ErrorToast from '@/shared/components/ui/toast/ErrorToast'
 import { PrivacyPolicyModal } from '@/features/customer/modal/PrivacyPolicyModal'
 import BirthDateCalendar from '@/shared/components/ui/BirthDateCalendar'
+import type { ManagerSignupReqDTO } from '@/features/manager/types/ManagerAuthType'
 
 interface ManagerSignupForm {
   phone: string
@@ -285,14 +286,14 @@ export const ManagerSignup = () => {
 
     if (!isValid) return
 
-    const requestBody = {
+    const requestBody: ManagerSignupReqDTO = {
       userSignupReqDTO: {
         phone: form.phone,
         userName: form.userName,
         email: form.email,
         password: form.password,
-        status: 'ACTIVE'
-        ,...(provider && providerId ? { provider, providerId } : {})
+        status: 'ACTIVE',
+        ...(provider && providerId ? { provider, providerId } : {})
       },
       userInfoSignupReqDTO: {
         birthDate: form.birthDate,

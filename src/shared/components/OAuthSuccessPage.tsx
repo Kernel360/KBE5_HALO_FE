@@ -19,8 +19,6 @@ const OAuthSuccessPage = () => {
 
   const [count, setCount] = useState(3)
 
-  console.log('role', role)
-
   useEffect(() => {
     if (!isNew) {
       // 기존 회원: 바로 메인(또는 매니저 메인)으로 이동
@@ -87,8 +85,7 @@ const OAuthSuccessPage = () => {
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
-              strokeWidth={2}
-            >
+              strokeWidth={2}>
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -112,8 +109,7 @@ const OAuthSuccessPage = () => {
             </p>
             <button
               className="mt-6 w-full rounded-lg bg-indigo-600 px-4 py-2 font-semibold text-white shadow transition-colors hover:bg-indigo-700"
-              onClick={handleNext}
-            >
+              onClick={handleNext}>
               회원가입으로 이동
             </button>
           </>
