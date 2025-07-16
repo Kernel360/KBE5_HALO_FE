@@ -20,3 +20,33 @@ export interface createManagerSignup {
   provider?: string
   providerId?: string
 }
+
+export interface ManagerSignupReqDTO {
+  userSignupReqDTO: {
+    phone: string
+    userName: string
+    email: string
+    password: string
+    status: string
+    provider?: string
+    providerId?: string
+  }
+  userInfoSignupReqDTO: {
+    birthDate: string
+    gender: string
+    latitude: number
+    longitude: number
+    roadAddress: string
+    detailAddress: string
+  }
+  availableTimeReqDTOList: {
+    dayOfWeek: string
+    time: string
+  }[]
+  managerReqDTO: {
+    specialty: number | string
+    bio: string
+    fileId: number | null
+    profileImageFileId: number | null
+  }
+}

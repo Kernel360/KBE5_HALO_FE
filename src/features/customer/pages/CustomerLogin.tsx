@@ -114,7 +114,7 @@ export const CustomerLogin = () => {
                 </Link>
               </>
             }
-            googleRole="customer"
+            googleRole="customers"
           />
         </div>
         <SuccessToast

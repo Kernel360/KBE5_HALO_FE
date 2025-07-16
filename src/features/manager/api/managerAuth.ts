@@ -1,5 +1,5 @@
 import api from '@/services/axios';
-import type { createManagerSignup } from '../types/ManagerAuthType';
+import type { ManagerSignupReqDTO } from '../types/ManagerAuthType';
 
 
 // 매니저 로그인
@@ -33,7 +33,7 @@ export const logoutManager = async () => {
 
 
 // 매니저 회원가입
-export const signupManager = async (requestBody: createManagerSignup) => {
+export const signupManager = async (requestBody: ManagerSignupReqDTO) => {
   const res = await api.post("/managers/auth/signup", requestBody );
 
   if (!res.data.success) {

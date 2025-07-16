@@ -358,8 +358,7 @@ export const AdminAccounts = () => {
                     const phone = typeof row.phone === 'string' ? row.phone : ''
                     const userName = typeof row.userName === 'string' ? row.userName : ''
                     const adminId = row.adminId as string | number
-                    const isRoot = myUserName && myUserName.includes('root')
-                    const isSelf = phone === myPhone
+      
                     return (
                       <div
                         key={typeof row.adminId === 'string' || typeof row.adminId === 'number' ? row.adminId : ''}

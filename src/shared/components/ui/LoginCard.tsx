@@ -29,7 +29,7 @@ export interface LoginCardProps {
   loading?: boolean
   bottomText?: React.ReactNode
   className?: string
-  googleRole?: 'customer' | 'manager'
+  googleRole?: 'customers' | 'managers'
 }
 
 export const LoginCard: React.FC<LoginCardProps> = ({
