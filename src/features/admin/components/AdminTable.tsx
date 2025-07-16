@@ -71,8 +71,9 @@ export function AdminTable<T>({
               <td
                 colSpan={columns.length}
                 className="h-[40vh] w-full p-0 text-center align-middle"
+                style={{ verticalAlign: 'middle', padding: 0 }}
               >
-                <div className="h-[40vh] flex-col items-center justify-center text-base text-gray-400">
+                <div className="flex h-[40vh] w-full items-center justify-center text-base text-gray-400">
                   {emptyMessage}
                 </div>
               </td>

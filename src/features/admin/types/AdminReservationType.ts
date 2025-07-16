@@ -1,7 +1,7 @@
 // 예약 목록 조회 요청 파라미터 타입
 export interface AdminReservationSearchParams {
-  customerName?: string
-  managerName?: string
+  customerNameKeyword?: string
+  managerNameKeyword?: string
   address?: string
   startDate?: string
   endDate?: string
@@ -123,8 +123,8 @@ export const RESERVATION_STATUS_OPTIONS = [
 
 // 결제 상태 옵션
 export const PAYMENT_STATUS_OPTIONS = [
-  { value: 'PENDING', label: '결제대기' },
-  { value: 'COMPLETED', label: '결제완료' },
-  { value: 'FAILED', label: '결제실패' },
-  { value: 'REFUNDED', label: '환불완료' }
+  { value: 'SUCCESS', label: '결제 성공' },
+  { value: 'FAILED', label: '결제 실패' },
+  { value: 'CANCELED', label: '결제 취소' },
+  { value: 'REFUNDED', label: '환불' }
 ] as const

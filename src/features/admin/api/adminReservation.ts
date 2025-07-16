@@ -32,8 +32,8 @@ export const fetchAdminReservations = async (
   // 빈 값인 파라미터 제거
   const cleanedParams = Object.fromEntries(
     Object.entries({
-      customerName: params?.customerName,
-      managerName: params?.managerName,
+      customerNameKeyword: params?.customerNameKeyword,
+      managerNameKeyword: params?.managerNameKeyword,
       address: params?.address,
       fromRequestDate: params?.fromRequestDate,
       toRequestDate: params?.toRequestDate,
@@ -44,7 +44,8 @@ export const fetchAdminReservations = async (
       page: params?.page,
       size: params?.size,
       sort: params?.sort
-    }).filter(([, value]) => value !== undefined && value !== ''))
+    }).filter(([, value]) => value !== undefined && value !== '')
+  )
 
   const res = await api.get('/admin/reservations', {
     params: cleanedParams,
