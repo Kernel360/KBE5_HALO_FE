@@ -50,6 +50,7 @@ import { AdminBannerDetail } from '@/features/admin/pages/AdminBanner/AdminBanne
 import { AdminBannerForm } from '@/features/admin/pages/AdminBanner/AdminBanneerForm'
 import { AdminInquiries } from '@/features/admin/pages/AdminInquiry/AdminInquiries'
 import { AdminInquiryDetail } from '@/features/admin/pages/AdminInquiry/AdminInquiryDetail'
+import { AdminSettlements } from '@/features/admin/pages/AdminSettlement/AdminSettlements'
 
 // 공통
 import { GuardLayout } from '@/shared/components/GuardLayout'
@@ -241,6 +242,14 @@ export const router = createBrowserRouter([
                 path: ':inquiryId',
                 element: <AdminInquiryDetail />
               }
+            ]
+          },
+          // // 정산 관리 목록
+          {
+            path: 'settlements',
+            children: [
+              // 목록
+              { index: true, element: <AdminSettlements /> }
             ]
           },
           // // 공지/이벤트 목록
