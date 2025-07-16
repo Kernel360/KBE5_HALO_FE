@@ -4,11 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { searchAdminInquiries } from '../api/adminInquiry'
 import { getExpectedSettlementThisWeek } from '../api/adminSettlement'
 import { ChevronRight, ArrowUp, ArrowDown } from 'lucide-react'
-import {
-  BanknotesIcon,
-  ArrowTrendingUpIcon,
-  ArrowTrendingDownIcon
-} from '@heroicons/react/24/solid'
+import { BanknotesIcon } from '@heroicons/react/24/solid'
 
 const EXCLUDE_STATUSES = ['ACTIVE', 'REJECTED', 'TERMINATED'] // "승인대기"(예: WAITING)는 제외
 
@@ -19,7 +15,7 @@ export const AdminMain = () => {
   const [pendingInquiries, setPendingInquiries] = useState<any[]>([])
   const [pendingInquiriesLoading, setPendingInquiriesLoading] = useState(false)
   const [totalPendingInquiries, setTotalPendingInquiries] = useState(0)
-  
+
   // 이번주 예상 정산 금액 상태
   const [thisWeekSettlement, setThisWeekSettlement] = useState<{
     thisWeekEstimated: number
@@ -27,7 +23,7 @@ export const AdminMain = () => {
   } | null>(null)
   const [settlementLoading, setSettlementLoading] = useState(false)
   const [settlementError, setSettlementError] = useState<string | null>(null)
-  
+
   const navigate = useNavigate()
 
   // 하드코딩된 추이 데이터 (실제 API 연동 전용)
@@ -36,7 +32,7 @@ export const AdminMain = () => {
     completedReservation: { value: 186, trend: '8% 증가' },
     todayReservation: { value: 24, trend: '+12%' }
   }
-  
+
   // 이번주 날짜 범위 계산
   const getThisWeekRange = () => {
     const today = new Date()
@@ -45,7 +41,7 @@ export const AdminMain = () => {
     monday.setDate(today.getDate() - dayOfWeek + 1) // 월요일
     const sunday = new Date(monday)
     sunday.setDate(monday.getDate() + 6) // 일요일
-    
+
     return {
       startDate: monday.toISOString().split('T')[0],
       endDate: sunday.toISOString().split('T')[0]
@@ -143,7 +139,7 @@ export const AdminMain = () => {
     }
     fetchPendingInquiries()
   }, [])
-  
+
   // 이번주 예상 정산 금액 조회
   useEffect(() => {
     const fetchThisWeekSettlement = async () => {
@@ -279,7 +275,8 @@ export const AdminMain = () => {
                 <div className="flex w-fit items-center gap-1 rounded bg-indigo-50 px-2 py-0.5">
                   <BanknotesIcon className="h-3 w-3 text-indigo-500" />
                   <span className="text-xs font-medium text-indigo-700">
-                    수수료: {settlementLoading
+                    수수료:{' '}
+                    {settlementLoading
                       ? '...'
                       : settlementError
                         ? '-'
