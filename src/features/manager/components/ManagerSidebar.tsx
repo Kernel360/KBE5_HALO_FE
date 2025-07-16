@@ -6,41 +6,16 @@ import { useUserStore } from '@/store/useUserStore'
 export const ManagerSidebar = () => {
   const navigate = useNavigate()
   const location = useLocation()
-  const { userName, status } = useUserStore()
+  const { userName } = useUserStore()
 
   const menuItems = [
     { name: '대시보드', path: '/managers' },
     { name: '예약 관리', path: '/managers/reservations' },
+    { name: '정산 관리', path: '/managers/payments' },
     { name: '리뷰 관리', path: '/managers/reviews' },
     { name: '문의 내역', path: '/managers/inquiries' },
-    //{ name: "정산 관리", path: "/managers/payments" },
     { name: '마이페이지', path: '/managers/my' }
   ]
-
-  const allowedMenusByStatus: Record<string, string[]> = {
-    ACTIVE: [
-      '대시보드',
-      '마이페이지',
-      '예약 관리',
-      '리뷰 관리',
-      '문의 내역',
-      '정산 관리'
-    ],
-    PENDING: ['마이페이지', '문의 내역'],
-    REJECTED: ['마이페이지', '문의 내역'],
-    TERMINATION_PENDING: [
-      '대시보드',
-      '마이페이지',
-      '예약 관리',
-      '리뷰 관리',
-      '문의 내역',
-      '정산 관리'
-    ]
-  }
-
-  const filteredMenuItems = menuItems.filter(item =>
-    (allowedMenusByStatus[status ?? ''] ?? []).includes(item.name)
-  )
 
   const handleLogout = async () => {
     await logout()
@@ -77,7 +52,7 @@ export const ManagerSidebar = () => {
         <div className="flex flex-1 flex-col overflow-hidden">
           <div className="flex-1 overflow-y-auto">
             <div className="flex flex-col gap-1">
-              {filteredMenuItems.map(({ name, path }) => {
+              {menuItems.map(({ name, path }) => {
                 const isActive =
                   path === '/managers'
                     ? location.pathname === path
