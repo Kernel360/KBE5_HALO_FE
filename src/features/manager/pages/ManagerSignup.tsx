@@ -6,7 +6,7 @@ import {
   isValidPassword,
   isValidEmail
 } from '@/shared/utils/validation'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { signupManager } from '@/features/manager/api/managerAuth'
 import { createFileGroup } from '@/shared/utils/fileUpload'
 import { getServiceCategories } from '@/features/manager/api/managerMy'
@@ -16,6 +16,7 @@ import { FileUploadSection } from '@/shared/components/FileUploadSection'
 import ErrorToast from '@/shared/components/ui/toast/ErrorToast'
 import { PrivacyPolicyModal } from '@/features/customer/modal/PrivacyPolicyModal'
 import BirthDateCalendar from '@/shared/components/ui/BirthDateCalendar'
+import type { ManagerSignupReqDTO } from '@/features/manager/types/ManagerAuthType'
 
 interface ManagerSignupForm {
   phone: string
@@ -42,6 +43,10 @@ const hours = Array.from(
 
 export const ManagerSignup = () => {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const isOAuth = searchParams.get('oauth') === '1'
+  const provider = searchParams.get('provider') || ''
+  const providerId = searchParams.get('providerId') || ''
 
   // 에러 상태
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -135,6 +140,20 @@ export const ManagerSignup = () => {
     upload()
   }, [files])
 
+  // 소셜 로그인으로 온 경우 쿼리에서 name, email, password 값을 읽어 초기값으로 반영
+  useEffect(() => {
+    const name = searchParams.get('name') || ''
+    const email = searchParams.get('email') || ''
+    const password = searchParams.get('password') || ''
+    setForm(prev => ({
+      ...prev,
+      userName: name || prev.userName,
+      email: email || prev.email,
+      password: password || prev.password,
+      confirmPassword: password || prev.confirmPassword
+    }))
+  }, [])
+
   // 공통 입력값 변경 핸들러 (checkbox 포함)
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target
@@ -221,9 +240,11 @@ export const ManagerSignup = () => {
     if (!newErrors.email && form.email && !isValidEmail(form.email)) {
       newErrors.emailFormat = '이메일 형식이 올바르지 않습니다.'
     }
-    if (!isValidPassword(form.password))
+    // provider, providerId가 없을 때만 비밀번호 검증
+    if (!(provider && providerId) && !isValidPassword(form.password)) {
       newErrors.password =
         '8~20자, 대소문자/숫자/특수문자 중 3가지 이상 포함해야 합니다.'
+    }
     if (form.password !== form.confirmPassword)
       newErrors.confirmPassword = '비밀번호가 일치하지 않습니다.'
     if (!form.birthDate) newErrors.birthDate = '생년월일을 입력해주세요.'
@@ -265,13 +286,14 @@ export const ManagerSignup = () => {
 
     if (!isValid) return
 
-    const requestBody = {
+    const requestBody: ManagerSignupReqDTO = {
       userSignupReqDTO: {
         phone: form.phone,
         userName: form.userName,
         email: form.email,
         password: form.password,
-        status: 'ACTIVE'
+        status: 'ACTIVE',
+        ...(provider && providerId ? { provider, providerId } : {})
       },
       userInfoSignupReqDTO: {
         birthDate: form.birthDate,
@@ -292,7 +314,7 @@ export const ManagerSignup = () => {
 
     try {
       setIsSubmitting(true)
-      await signupManager(requestBody as any)
+      await signupManager(requestBody)
       navigate('/managers/auth/login', { state: { signupSuccess: true } })
     } catch (err) {
       const message =
@@ -398,12 +420,18 @@ export const ManagerSignup = () => {
             </label>
             <input
               name="userName"
-              className="h-11 w-full rounded-lg border border-gray-300 bg-white px-4 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+              className={`h-11 w-full rounded-lg border border-gray-300 bg-white px-4 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200${isOAuth ? 'cursor-not-allowed bg-slate-100' : ''}`}
               value={form.userName}
               disabled={isSubmitting}
               onChange={handleChange}
-              placeholder="홍길동"
+              placeholder="이름을 입력하세요"
+              readOnly={isOAuth}
             />
+            {isOAuth && (
+              <span className="mt-1 text-xs text-gray-400">
+                소셜 로그인으로 입력된 정보는 수정할 수 없습니다.
+              </span>
+            )}
           </div>
 
           {/* 특기(서비스 카테고리) */}
@@ -467,12 +495,18 @@ export const ManagerSignup = () => {
             <input
               name="email"
               type="email"
-              className="h-11 w-full rounded-lg border border-gray-300 bg-white px-4 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+              className={`h-11 w-full rounded-lg border border-gray-300 bg-white px-4 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200${isOAuth ? 'cursor-not-allowed bg-slate-100' : ''}`}
               value={form.email}
               disabled={isSubmitting}
               onChange={handleChange}
-              placeholder="example@example.com"
+              placeholder="example@email.com"
+              readOnly={isOAuth}
             />
+            {isOAuth && (
+              <span className="mt-1 text-xs text-gray-400">
+                소셜 로그인으로 입력된 정보는 수정할 수 없습니다.
+              </span>
+            )}
           </div>
 
           {/* 비밀번호 */}
@@ -483,11 +517,12 @@ export const ManagerSignup = () => {
             <input
               name="password"
               type={showPassword ? 'text' : 'password'}
-              className="h-11 w-full rounded-lg border border-gray-300 bg-white px-4 pr-10 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+              className={`h-11 w-full rounded-lg border border-gray-300 bg-white px-4 pr-10 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200${isOAuth ? 'cursor-not-allowed bg-slate-100' : ''}`}
               value={form.password}
               disabled={isSubmitting}
               onChange={handleChange}
-              placeholder="영문, 숫자, 특수문자 조합 8자 이상"
+              placeholder="비밀번호를 입력하세요"
+              readOnly={isOAuth}
             />
             <button
               type="button"
@@ -509,11 +544,12 @@ export const ManagerSignup = () => {
             <input
               name="confirmPassword"
               type={showConfirmPassword ? 'text' : 'password'}
-              className="h-11 w-full rounded-lg border border-gray-300 bg-white px-4 pr-10 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+              className={`h-11 w-full rounded-lg border border-gray-300 bg-white px-4 pr-10 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200${isOAuth ? 'cursor-not-allowed bg-slate-100' : ''}`}
               value={form.confirmPassword}
               disabled={isSubmitting}
               onChange={handleChange}
               placeholder="비밀번호를 다시 입력해주세요"
+              readOnly={isOAuth}
             />
             <button
               type="button"
@@ -525,6 +561,11 @@ export const ManagerSignup = () => {
                 <Eye className="h-5 w-5 text-gray-500" />
               )}
             </button>
+            {isOAuth && (
+              <span className="mt-1 text-xs text-gray-400">
+                소셜 로그인으로 입력된 정보는 수정할 수 없습니다.
+              </span>
+            )}
           </div>
 
           {/* 생년월일 + 성별 */}

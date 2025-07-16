@@ -1,335 +1,417 @@
-import { Fragment, useState, useEffect } from "react";
-import { searchManagerPayments } from "@/features/manager/api/managerPayment";
-import type { ManagerPayments as Payments } from "@/features/manager/types/ManagerPaymentType";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { Fragment, useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
+import {
+  getSettlementWithPaging,
+  getSettlementSummary
+} from '@/features/manager/api/managerPayment'
+import type { ManagerSettlementRspType as Payments } from '@/features/manager/types/ManagerPaymentType'
+import { AdminPagination } from '@/features/admin/components/AdminPagination'
+import DateRangeCalendar from '@/shared/components/ui/DateRangeCalendar'
+import { ResetButton } from '@/shared/components/ui/ResetButton'
+import { SearchButton } from '@/shared/components/ui/SearchButton'
+import ErrorToast from '@/shared/components/ui/toast/ErrorToast'
+import {
+  BanknotesIcon,
+  ArrowTrendingUpIcon,
+  ArrowTrendingDownIcon
+} from '@heroicons/react/24/solid'
 
 export const ManagerPayments = () => {
-  const [fadeKey, setFadeKey] = useState(0);
-  const [expandedRow, setExpandedRow] = useState<number | null>(null);
-  const [resetTrigger, setResetTrigger] = useState(false);
+  const navigate = useNavigate()
+  const [fadeKey, setFadeKey] = useState(0)
+  const [resetTrigger, setResetTrigger] = useState(false)
 
-  const [payments, setPayments] = useState<Payments[]>([]);
-  const [totalPrice, setTotalPrice] = useState(0);
-  const [commission, setCommission] = useState(0);
-  const [settlementAmount, setSettlementAmount] = useState(0);
+  const [payments, setPayments] = useState<Payments[]>([])
+  const [, setTotalAmount] = useState(0)
 
-  const now = new Date();
-  const [searchYear, setSearchYear] = useState<number>(now.getFullYear());
-  const [searchMonth, setSearchMonth] = useState(now.getMonth() + 1);
-  const [searchWeekIndexInMonth, setSearchWeekIndexInMonth] = useState<number | "">("");
-  const [weekOptions, setWeekOptions] = useState<number[]>([]);
+  // KPI 금액 상태
+  const [weekAmount, setWeekAmount] = useState<number | null>(null)
+  const [lastWeekAmount, setLastWeekAmount] = useState<number | null>(null)
+  const [monthAmount, setMonthAmount] = useState<number | null>(null)
+  const [kpiLoading, setKpiLoading] = useState(false)
+  const [kpiError, setKpiError] = useState<string | null>(null)
 
-  // 월요일 기준 주차 수 계산
-  const getMondayWeekCount = (year: number, month: number): number => {
-    const firstDay = new Date(year, month - 1, 1);
-    const lastDay = new Date(year, month, 0);
-    let count = 0;
+  // 페이지네이션 상태
+  const [currentPage, setCurrentPage] = useState(0)
+  const [totalPages, setTotalPages] = useState(0)
+  const [totalElements, setTotalElements] = useState(0)
+  const pageSize = 10
 
-    for (let d = new Date(firstDay); d <= lastDay; d.setDate(d.getDate() + 1)) {
-      if (d.getDay() === 1) count++;
+  // 에러 토스트 상태
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+
+  // 이번달 1일부터 오늘까지 계산
+  const getThisMonthRange = () => {
+    const today = new Date()
+    // 이번달 1일
+    const firstDay = new Date(today.getFullYear(), today.getMonth(), 1)
+    return {
+      firstDay: firstDay.toISOString().split('T')[0],
+      today: today.toISOString().split('T')[0]
     }
+  }
 
-    return count;
-  };
+  const thisMonth = getThisMonthRange()
+  const [startDate, setStartDate] = useState<string>(thisMonth.firstDay)
+  const [endDate, setEndDate] = useState<string>(thisMonth.today)
 
-  // 현재 날짜가 몇 번째 주차에 속하는지 계산
-  const getCurrentWeekIndex = (date: Date, year: number, month: number): number | "" => {
-    const firstDay = new Date(year, month - 1, 1);
-    const mondays: Date[] = [];
-
-    for (let d = new Date(firstDay); d.getMonth() === month - 1; d.setDate(d.getDate() + 1)) {
-      if (d.getDay() === 1) {
-        mondays.push(new Date(d));
-      }
-    }
-
-    for (let i = 0; i < mondays.length; i++) {
-      const start = mondays[i];
-      const end = new Date(start);
-      end.setDate(end.getDate() + 6);
-
-      if (date >= start && date <= end) {
-        return i + 1;
-      }
-    }
-
-    return "";
-  };
-
+  // KPI 데이터 불러오기
   useEffect(() => {
-    if (searchYear && searchMonth) {
-      const weekCount = getMondayWeekCount(searchYear, searchMonth);
-      const weekList = Array.from({ length: weekCount }, (_, i) => i + 1);
-      setWeekOptions(weekList);
-      if (now.getFullYear() === searchYear && now.getMonth() + 1 === searchMonth) {
-        const currentWeek = getCurrentWeekIndex(now, searchYear, searchMonth);
-        setSearchWeekIndexInMonth(currentWeek);
-      } else {
-        setSearchWeekIndexInMonth("");
+    const fetchKPI = async () => {
+      setKpiLoading(true)
+      setKpiError(null)
+      try {
+        const summary = await getSettlementSummary()
+        setWeekAmount(summary.thisWeekEstimated)
+        setLastWeekAmount(summary.lastWeekSettled)
+        setMonthAmount(summary.thisMonthSettled)
+      } catch {
+        setKpiError('정산 요약 정보를 불러오지 못했습니다.')
+      } finally {
+        setKpiLoading(false)
       }
     }
-  }, [searchYear, searchMonth]);
+    fetchKPI()
+  }, [])
 
-  useEffect(() => {
-    if (
-      resetTrigger &&
-      searchYear &&
-      searchMonth &&
-      searchWeekIndexInMonth
-    ) {
-      handleSearch();
-      setResetTrigger(false);
-    }
-  }, [resetTrigger, searchYear, searchMonth, searchWeekIndexInMonth]);
-  
   // 검색
-  const handleSearch = async () => {
-    if (!searchYear) {
-      alert("연도를 입력해주세요.");
-    }
-    if (!searchMonth) {
-      alert("월을 입력해주세요.");
-    }
-    if (!searchWeekIndexInMonth) {
-      alert("주차를 입력해주세요.");
+  const handleSearch = async (page: number = 0) => {
+    if (!startDate || !endDate) {
+      setErrorMessage('시작일과 종료일을 입력해주세요.')
+      return
     }
 
-    if (!searchWeekIndexInMonth || !searchYear || !searchMonth) return;
-    
     try {
-      const data = await searchManagerPayments({
-        searchYear,
-        searchMonth,
-        searchWeekIndexInMonth,
-      });
+      const data = await getSettlementWithPaging(
+        {
+          startDate,
+          endDate
+        },
+        page,
+        pageSize
+      )
 
-      setPayments(data);
+      setPayments(data.content)
+      setCurrentPage(data.page.number)
+      setTotalPages(data.page.totalPages)
+      setTotalElements(data.page.totalElements)
 
       // 총합 계산
-      const total = data.reduce((sum: number, item: any) => sum + item.totalPrice, 0);
-      const comm = data.reduce((sum: number, item: any) => sum + item.commission, 0);
-      const settlement = data.reduce((sum: number, item: any) => sum + item.settlementAmount, 0);
+      const total = data.content.reduce(
+        (sum: number, item: Payments) => sum + item.totalAmount,
+        0
+      )
 
-      setTotalPrice(total);
-      setCommission(comm);
-      setSettlementAmount(settlement);
-      setFadeKey((prev) => prev + 1);
-    } catch (err) {
-      console.error(err);
+      setTotalAmount(total)
+      setFadeKey(prev => prev + 1)
+    } catch {
+      setErrorMessage('정산 내역 조회 중 오류가 발생했습니다.')
     }
-  };
+  }
+
+  useEffect(() => {
+    if (resetTrigger) {
+      handleSearch()
+      setResetTrigger(false)
+    }
+  }, [resetTrigger])
+
+  // 페이지 로드 시 초기 조회
+  useEffect(() => {
+    handleSearch()
+  }, [])
 
   // 초기화
   const handleReset = () => {
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = today.getMonth() + 1;
+    const resetMonth = getThisMonthRange()
+    setStartDate(resetMonth.firstDay)
+    setEndDate(resetMonth.today)
+    setCurrentPage(0)
+    setResetTrigger(true)
+  }
 
-    setSearchYear(year);
-    setSearchMonth(month);
+  // 날짜 범위 변경 핸들러
+  const handleDateRangeChange = (newStartDate: string, newEndDate: string) => {
+    setStartDate(newStartDate)
+    setEndDate(newEndDate)
+  }
 
-    const currentWeek = getCurrentWeekIndex(today, year, month);
-    setSearchWeekIndexInMonth(currentWeek);
+  // 페이지 변경
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page)
+    handleSearch(page)
+  }
 
-    setResetTrigger(true);
-  };
+  // 예약 상세페이지로 이동
+  const handleRowClick = (reservationId: number) => {
+    navigate(`/managers/reservations/${reservationId}`)
+  }
+
+  // KPI 카드 UI (가독성+컴팩트+넓이 확장)
+  const kpiCard = (
+    <div className="mt-4 mb-2 ml-2 grid w-full max-w-6xl grid-cols-1 gap-3 md:grid-cols-3">
+      {/* 이번주 예상 정산 */}
+      <div className="flex w-full min-w-[220px] flex-col items-start gap-1 rounded-xl border border-slate-100 bg-white p-3 shadow-sm md:min-w-[260px]">
+        <div className="mb-0.5 flex items-center gap-1">
+          <BanknotesIcon className="h-4 w-4 text-emerald-500" />
+          <span className="text-xs font-bold text-slate-800">
+            이번주 예상 정산
+          </span>
+        </div>
+        <div className="flex items-end gap-1">
+          <span className="text-2xl font-extrabold text-emerald-600">
+            {kpiLoading
+              ? '...'
+              : kpiError
+                ? '-'
+                : `${weekAmount?.toLocaleString() ?? 0}원`}
+          </span>
+          {weekAmount !== null && lastWeekAmount !== null && (
+            <span
+              className={`flex items-center text-xs font-semibold ${weekAmount >= lastWeekAmount ? 'text-green-600' : 'text-red-500'}`}>
+              {weekAmount >= lastWeekAmount ? (
+                <ArrowTrendingUpIcon className="mr-0.5 h-3 w-3" />
+              ) : (
+                <ArrowTrendingDownIcon className="mr-0.5 h-3 w-3" />
+              )}
+              {lastWeekAmount === 0
+                ? '0%'
+                : `${(((weekAmount - lastWeekAmount) / (lastWeekAmount || 1)) * 100).toFixed(1)}%`}
+            </span>
+          )}
+        </div>
+        <span className="mt-0.5 mb-0.5 text-xs text-slate-400">
+          이번주 월~일
+        </span>
+        <span className="mt-0.5 mb-0.5 text-xs text-slate-400">
+          예약 확정, 방문 완료 포함
+        </span>
+      </div>
+      {/* 저번주 정산금액 */}
+      <div className="flex w-full min-w-[220px] flex-col items-start gap-1 rounded-xl border border-slate-100 bg-white p-3 shadow-sm md:min-w-[260px]">
+        <div className="mb-0.5 flex items-center gap-1">
+          <BanknotesIcon className="h-4 w-4 text-blue-400" />
+          <span className="text-xs font-bold text-slate-800">
+            저번주 정산금액
+          </span>
+        </div>
+        <div className="flex items-end gap-1">
+          <span className="text-2xl font-extrabold text-blue-600">
+            {kpiLoading
+              ? '...'
+              : kpiError
+                ? '-'
+                : `${lastWeekAmount?.toLocaleString() ?? 0}원`}
+          </span>
+        </div>
+        <span className="mt-0.5 mb-0.5 text-xs text-slate-400">
+          지난주 월~일
+        </span>
+      </div>
+      {/* 이번달 정산금액 */}
+      <div className="flex w-full min-w-[220px] flex-col items-start gap-1 rounded-xl border border-slate-100 bg-white p-3 shadow-sm md:min-w-[260px]">
+        <div className="mb-0.5 flex items-center gap-1">
+          <BanknotesIcon className="h-4 w-4 text-indigo-400" />
+          <span className="text-xs font-bold text-slate-800">
+            이번달 정산 금액
+          </span>
+        </div>
+        <div className="flex items-end gap-1">
+          <span className="text-2xl font-extrabold text-indigo-600">
+            {kpiLoading
+              ? '...'
+              : kpiError
+                ? '-'
+                : `${monthAmount?.toLocaleString() ?? 0}원`}
+          </span>
+        </div>
+        <span className="mt-0.5 mb-0.5 text-xs text-slate-400">
+          이번달 1일~전주 일요일
+        </span>
+      </div>
+    </div>
+  )
 
   return (
     <Fragment>
-      <div className="flex-1 flex flex-col justify-start items-start w-full min-w-0">
-        <div className="self-stretch h-16 px-6 bg-white border-b border-gray-200 inline-flex justify-between items-center">
-          <div className="justify-start text-gray-900 text-xl font-bold font-['Inter'] leading-normal">정산 관리</div>
+      <div className="flex w-full min-w-0 flex-1 flex-col items-start justify-start">
+        <div className="inline-flex h-16 items-center justify-between self-stretch border-b border-gray-200 bg-white px-6">
+          <div className="justify-start font-['Inter'] text-xl leading-normal font-bold text-gray-900">
+            정산 관리
+          </div>
         </div>
-        
-        <div className="self-stretch p-6 flex flex-col justify-start items-start gap-6">
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleSearch();
-            }}
-            className="self-stretch p-6 bg-white rounded-xl shadow-[0px_2px_12px_0px_rgba(0,0,0,0.04)] flex flex-col gap-4"
-          >
-            {/* 검색 조건 제목 */}
-            <div className="text-slate-800 text-lg font-semibold font-['Inter'] leading-snug">
-              검색 조건
+
+        {/* KPI 카드 */}
+        {kpiCard}
+        <div className="mt-0 flex flex-col items-start justify-start gap-3 self-stretch p-6">
+          <div className="hidden min-w-[320px] flex-row items-center justify-between gap-6 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 shadow-none transition-all md:flex">
+            {/* 필터 그룹 (왼쪽) */}
+            <div className="flex flex-1 flex-row items-center gap-6">
+              {/* 기간 필터 */}
+              <div className="flex min-w-[180px] flex-row items-center gap-3">
+                <label className="min-w-[32px] text-sm font-semibold text-slate-600">
+                  서비스 기간
+                </label>
+                <div className="w-[280px]">
+                  <DateRangeCalendar
+                    startDate={startDate}
+                    endDate={endDate}
+                    onDateRangeChange={handleDateRangeChange}
+                  />
+                </div>
+              </div>
             </div>
-
-            {/* 입력창 + 버튼 */}
-            <div className="w-full flex flex-wrap items-end gap-4">
-              {/* 연도 */}
-              <div className="w-28 flex flex-col gap-1">
-                <label className="self-stretch justify-start text-slate-700 text-sm font-medium font-['Inter'] leading-nonetext-sm text-slate-700 font-medium">연도</label>
-                <select
-                  value={searchYear}
-                  onChange={(e) => setSearchYear(Number(e.target.value))}
-                  className="w-full h-12 px-4 bg-slate-50 rounded-lg border border-slate-200 text-slate-700 text-sm focus:outline-indigo-500"
-                >
-                  {Array.from({ length: new Date().getFullYear() - 2025 + 1 }, (_, i) => 2025 + i).map((year) => (
-                      <option key={year} value={year}>
-                        {year}년
-                      </option>
-                    ))}
-                </select>
-              </div>
-
-              {/* 월 */}
-              <div className="w-28 flex flex-col gap-1">
-                <label className="self-stretch justify-start text-slate-700 text-sm font-medium font-['Inter'] leading-nonetext-sm text-slate-700 font-medium">월</label>
-                <select
-                  value={searchMonth}
-                  onChange={(e) => setSearchMonth(Number(e.target.value))}
-                  className="w-full h-12 px-4 bg-slate-50 rounded-lg border border-slate-200 text-slate-700 text-sm focus:outline-indigo-500"
-                >
-                  {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
-                    <option key={m} value={m}>
-                      {m}월
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* 주차 */}
-              <div className="w-28 flex flex-col gap-1">
-                <label className="self-stretch justify-start text-slate-700 text-sm font-medium font-['Inter'] leading-nonetext-sm text-slate-700 font-medium">주차</label>
-                <select
-                  value={searchWeekIndexInMonth}
-                  onChange={(e) => setSearchWeekIndexInMonth(Number(e.target.value))}
-                  disabled={!weekOptions.length}
-                  className="w-full h-12 px-4 bg-slate-50 rounded-lg border border-slate-200 text-slate-700 text-sm focus:outline-indigo-500"
-                >
-                  <option value="">-- 선택 --</option>
-                  {weekOptions.map((w) => (
-                    <option key={w} value={w}>
-                      {w}주차
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* 버튼들 */}
-              <div className="flex gap-2 ml-auto pt-5">
-                <button
-                  type="button"
+            {/* 검색 영역 (오른쪽) */}
+            <div className="ml-auto w-auto flex-shrink-0">
+              <form
+                onSubmit={e => {
+                  e.preventDefault()
+                  handleSearch()
+                }}
+                className="flex flex-row items-center gap-2 bg-transparent p-0">
+                <ResetButton
                   onClick={handleReset}
-                  className="w-28 h-12 bg-slate-100 rounded-lg flex justify-center items-center text-slate-500 text-sm font-medium font-['Inter'] leading-none hover:bg-slate-200 transition cursor-pointer"
-                >
-                  초기화
-                </button>
-                <button
+                  className="h-8 px-4 text-xs"
+                />
+                <SearchButton
                   type="submit"
-                  className="w-28 h-12 bg-indigo-600 rounded-lg flex justify-center items-center text-white text-sm font-medium font-['Inter'] leading-none hover:bg-indigo-700 transition cursor-pointer"
-                >
-                  검색
-                </button>
-              </div>
-            </div>
-          </form>
-
-          <div className="w-full flex items-center gap-8">
-            {/* 금액 */}
-            <div className="flex-1 h-28 p-5 bg-white rounded-xl shadow border border-green-200 flex flex-col justify-between">
-              <div className="text-green-500 text-base font-semibold">금액</div>
-              <div className="text-slate-900 text-3xl font-bold leading-10">{totalPrice.toLocaleString()}원</div>
-            </div>
-
-            {/* - 기호 */}
-            <div className="h-28 flex items-center justify-center text-4xl font-extrabold text-slate-400 select-none">
-              -
-            </div>
-
-            {/* 수수료 */}
-            <div className="flex-1 h-28 p-5 bg-white rounded-xl shadow border border-rose-200 flex flex-col justify-between">
-              <div className="text-rose-500 text-base font-semibold">수수료</div>
-              <div className="text-slate-900 text-3xl font-bold leading-10">{commission.toLocaleString()}원</div>
-            </div>
-
-            {/* = 기호 */}
-            <div className="h-28 flex items-center justify-center text-4xl font-extrabold text-indigo-500 select-none">
-              =
-            </div>
-
-            {/* 정산 금액 */}
-            <div className="flex-1 h-28 p-5 bg-white rounded-xl shadow border border-indigo-300 flex flex-col justify-between">
-              <div className="text-indigo-600 text-base font-semibold">정산 금액</div>
-              <div className="text-indigo-600 text-3xl font-bold leading-10">{settlementAmount.toLocaleString()}원</div>
+                  className="h-8 px-4 text-xs"
+                />
+              </form>
             </div>
           </div>
 
-          <div className="self-stretch p-6 bg-white rounded-xl shadow-[0px_2px_12px_0px_rgba(0,0,0,0.04)] flex flex-col justify-start items-start">
-            <div className="self-stretch inline-flex justify-between items-center pb-4">
-              <div className="justify-start text-slate-800 text-lg font-semibold font-['Inter'] leading-snug">정산 상세 내역</div>
+          <div className="flex flex-col items-start justify-start self-stretch rounded-xl bg-white p-6 shadow-[0px_2px_12px_0px_rgba(0,0,0,0.04)]">
+            <div className="inline-flex items-center justify-between self-stretch pb-4">
+              <div className="justify-start font-['Inter'] text-lg leading-snug font-semibold text-slate-800">
+                정산 내역
+              </div>
+              <div className="inline-flex items-center justify-end self-stretch">
+                <div className="font-['Inter'] text-sm leading-none font-normal text-slate-500">
+                  총 {totalElements}건
+                </div>
+              </div>
             </div>
-            <div className="self-stretch h-12 px-4 bg-slate-50 border-b border-slate-200 inline-flex justify-start items-center">
-              <div className="flex-1 flex justify-center items-center">
-                <div className="flex-1 flex justify-center items-center">
-                  <div className="flex-1 flex justify-center items-center gap-4">
-                    <div className="w-[5%] text-center text-sm font-semibold text-slate-700 font-semibold font-['Inter'] leading-none">예약번호</div>
-                    <div className="w-[10%] text-center text-sm font-semibold text-slate-700 font-semibold font-['Inter'] leading-none">고객명</div>
-                    <div className="w-[10%] text-center text-sm font-semibold text-slate-700 font-semibold font-['Inter'] leading-none">요청날짜</div>
-                    <div className="w-[15%] text-center text-sm font-semibold text-slate-700 font-semibold font-['Inter'] leading-none">요청시간</div>
-                    <div className="w-[10%] text-center text-sm font-semibold text-slate-700 font-semibold font-['Inter'] leading-none">서비스</div>
-                    <div className="w-[10%] text-center text-sm font-semibold text-slate-700 font-semibold font-['Inter'] leading-none">추가서비스</div>
-                    <div className="w-[10%] text-center text-sm font-semibold text-slate-700 font-semibold font-['Inter'] leading-none">서비스금액</div>
-                    <div className="w-[10%] text-center text-sm font-semibold text-slate-700 font-semibold font-['Inter'] leading-none">추가서비스금액</div>
-                    <div className="w-[10%] text-center text-sm font-semibold text-slate-700 font-semibold font-['Inter'] leading-none">총 금액</div>
-                    <div className="w-[10%] text-center text-sm font-semibold text-slate-700 font-semibold font-['Inter'] leading-none">수수료</div>
-                    <div className="w-[10%] text-center text-sm font-semibold text-slate-700 font-semibold font-['Inter'] leading-none">정산 금액</div>
+            {/* 데스크탑 테이블 헤더 */}
+            <div className="hidden h-12 items-center justify-start self-stretch border-b border-slate-200 bg-slate-50 px-4 md:inline-flex">
+              <div className="flex flex-1 items-center justify-center">
+                <div className="flex flex-1 items-center justify-center">
+                  <div className="flex flex-1 items-center justify-center gap-4">
+                    <div className="w-[13%] text-center font-['Inter'] text-sm leading-none font-semibold text-slate-700">
+                      서비스 날짜
+                    </div>
+                    <div className="w-[13%] text-center font-['Inter'] text-sm leading-none font-semibold text-slate-700">
+                      시작시간
+                    </div>
+                    <div className="w-[13%] text-center font-['Inter'] text-sm leading-none font-semibold text-slate-700">
+                      소요시간
+                    </div>
+                    <div className="w-[20%] text-center font-['Inter'] text-sm leading-none font-semibold text-slate-700">
+                      서비스명
+                    </div>
+                    <div className="w-[22%] text-center font-['Inter'] text-sm leading-none font-semibold text-slate-700">
+                      총 금액
+                    </div>
+                    <div className="w-[19%] text-center font-['Inter'] text-sm leading-none font-semibold text-slate-700">
+                      정산일
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div key={fadeKey} className="w-full fade-in">
-              { payments.length === 0 ? (
-                <div className="self-stretch h-16 px-4 border-b border-slate-200 flex items-center text-center">
-                  <div className="w-full text-sm text-slate-500">조회된 정산 내역이 없습니다.</div>
+            <div
+              key={fadeKey}
+              className="fade-in max-h-[480px] min-h-[480px] w-full overflow-y-auto">
+              {payments.length === 0 ? (
+                <div className="flex h-16 items-center self-stretch border-b border-slate-200 px-4 text-center">
+                  <div className="w-full text-sm text-slate-500">
+                    조회된 정산 내역이 없습니다.
+                  </div>
                 </div>
               ) : (
-                payments.map(payment => {
-                  const isExpanded = expandedRow === payment.reservationId;
-                  return (
-                    <Fragment key={payment.reservationId}>
-                      <div key={payment.reservationId} className="self-stretch h-16 px-4 border-b border-slate-200 flex items-center text-center gap-4">
-                        <div className="w-[5%] text-center text-sm text-slate-700 font-medium font-['Inter'] leading-none">{payment.reservationId}</div>
-                        <div className="w-[10%] text-center text-sm text-slate-700 font-medium font-['Inter'] leading-none">{payment.customerName}</div>
-                        <div className="w-[10%] text-center text-sm text-slate-700 font-medium font-['Inter'] leading-none">{payment.requestDate}</div>
-                        <div className="w-[15%] text-center text-sm text-slate-700 font-medium font-['Inter'] leading-none">{payment.reservationTime} (총 {payment.turnaround}시간)</div>
-                        <div className="w-[10%] text-center text-sm text-slate-700 font-medium font-['Inter'] leading-none">{payment.serviceName}</div>
-                        <div className="w-[10%] text-center text-sm text-slate-700 font-medium font-['Inter'] leading-none">
-                          <div className="inline-flex items-center justify-center gap-1 cursor-pointer" onClick={() => setExpandedRow(isExpanded ? null : payment.reservationId)}>
-                            {payment.extraServices?.length ? `총 ${payment.extraServices.length}건` : `-`}
-                            {payment.extraServices?.length ? (isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />) : null}
-                          </div>
-                        </div>
-                        <div className="w-[10%] text-center text-sm text-slate-700 font-medium font-['Inter'] leading-none">{payment.price.toLocaleString()}원</div>
-                        <div className="w-[10%] text-center text-sm text-slate-700 font-medium font-['Inter'] leading-none">{payment.extraPrice.toLocaleString()}원</div>
-                        <div className="w-[10%] text-center text-sm text-slate-700 font-medium font-['Inter'] leading-none">{payment.totalPrice.toLocaleString()}원</div>
-                        <div className="w-[10%] text-center text-sm text-slate-700 font-medium font-['Inter'] leading-none">{payment.commission.toLocaleString()}원</div>
-                        <div className="w-[10%] text-center text-sm text-slate-700 font-medium font-['Inter'] leading-none">{payment.settlementAmount.toLocaleString()}원</div>
+                payments.map(payment => (
+                  <div key={payment.settlementId}>
+                    {/* 데스크탑 테이블 행 */}
+                    <div
+                      onClick={() => handleRowClick(payment.reservationId)}
+                      className="hidden h-12 cursor-pointer items-center gap-4 self-stretch border-b border-slate-200 px-4 text-center transition-colors hover:bg-slate-50 md:flex">
+                      <div className="hidden">{payment.settlementId}</div>
+                      <div className="hidden">{payment.reservationId}</div>
+                      <div className="w-[13%] text-center font-['Inter'] text-sm leading-none font-medium text-slate-700">
+                        {payment.requestDate}
                       </div>
+                      <div className="w-[13%] text-center font-['Inter'] text-sm leading-none font-medium text-slate-700">
+                        {payment.startTime.split(' ')[1]?.substring(0, 5)}
+                      </div>
+                      <div className="w-[13%] text-center font-['Inter'] text-sm leading-none font-medium text-slate-700">
+                        {payment.turnaround}시간
+                      </div>
+                      <div className="w-[20%] text-center font-['Inter'] text-sm leading-none font-medium text-slate-700">
+                        {payment.serviceName}
+                      </div>
+                      <div className="w-[22%] text-center font-['Inter'] text-sm leading-none font-medium text-slate-700">
+                        {payment.totalAmount.toLocaleString()}원
+                      </div>
+                      <div className="w-[19%] text-center font-['Inter'] text-sm leading-none font-medium text-slate-700">
+                        {payment.settledAt.split(' ')[0]}
+                      </div>
+                    </div>
 
-                      {/* 토글 내용 */}
-                      {isExpanded && payment.extraServices?.length && (
-                        <div className="w-full px-6 py-3 bg-slate-100 border-b border-slate-200 text-sm text-slate-700">
-                          <div className="ml-[40%] w-[30%]">
-                            <div className="text-sm font-semibold mb-2">추가 서비스 내역</div>
-                            {payment.extraServices.map((es, idx) => (
-                              <div key={idx} className="flex justify-between py-1 border-t border-slate-200 first:border-t-0">
-                                <div>{es.extraServiceName}</div>
-                                <div>{es.extraPrice?.toLocaleString()}원</div>
-                              </div>
-                            ))}
+                    {/* 모바일 카드 */}
+                    <div
+                      onClick={() => handleRowClick(payment.reservationId)}
+                      className="mb-3 cursor-pointer rounded-lg border border-slate-200 bg-white p-4 transition-colors hover:bg-slate-50 md:hidden">
+                      <div className="flex flex-col gap-3">
+                        <div className="flex items-center justify-between">
+                          <div className="text-sm font-semibold text-slate-800">
+                            {payment.serviceName}
+                          </div>
+                          <div className="text-sm font-bold text-green-600">
+                            {payment.totalAmount.toLocaleString()}원
                           </div>
                         </div>
-                      )}
-                    </Fragment>
-                  );
-                })
+                        <div className="flex items-center justify-between text-sm text-slate-600">
+                          <div>서비스 날짜</div>
+                          <div>{payment.requestDate}</div>
+                        </div>
+                        <div className="flex items-center justify-between text-sm text-slate-600">
+                          <div>시작시간 / 소요시간</div>
+                          <div>
+                            {payment.startTime.split(' ')[1]?.substring(0, 5)} /{' '}
+                            {payment.turnaround}시간
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between text-sm text-slate-600">
+                          <div>정산일</div>
+                          <div>{payment.settledAt.split(' ')[0]}</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))
               )}
+            </div>
+
+            {/* 페이지네이션 */}
+            <div className="flex w-full justify-center border-t border-slate-200 px-4 py-3">
+              <AdminPagination
+                page={currentPage}
+                totalPages={totalPages}
+                onChange={handlePageChange}
+                className="mx-auto pt-0"
+              />
             </div>
           </div>
         </div>
       </div>
+
+      {/* 에러 토스트 */}
+      <ErrorToast
+        open={!!errorMessage}
+        message={errorMessage || ''}
+        onClose={() => setErrorMessage(null)}
+      />
     </Fragment>
-  );
-};
+  )
+}

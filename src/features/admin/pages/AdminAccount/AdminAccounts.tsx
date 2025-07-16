@@ -1,126 +1,141 @@
-import { Fragment, useState, useEffect, useRef } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Fragment, useState, useEffect, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   fetchAdminAccounts,
-  deleteAdminAccount,
-} from "@/features/admin/api/adminAuth";
-import { TableSection } from "../../components/TableSection";
-import { AdminTable } from "../../components/AdminTable";
-import { AdminPagination } from "../../components/AdminPagination";
-import Toast from "@/shared/components/ui/toast/Toast";
-import Card from "@/shared/components/ui/Card";
-import CardContent from "@/shared/components/ui/CardContent";
-import Button from "@/shared/components/ui/Button";
-import AdminSearchForm from "../../components/AdminSearchForm";
-import AccountStatusBadge from "@/shared/components/ui/AccountStatusBadge";
-import { ConfirmModal } from "@/shared/components/ui/modal";
-import { useUserStore } from "@/store/useUserStore";
-import ErrorToast from "@/shared/components/ui/toast/ErrorToast";
-import SuccessToast from "@/shared/components/ui/toast/SuccessToast";
+  deleteAdminAccount
+} from '@/features/admin/api/adminAuth'
+import { TableSection } from '../../components/TableSection'
+import { AdminTable } from '../../components/AdminTable'
+import { AdminPagination } from '../../components/AdminPagination'
+import Toast from '@/shared/components/ui/toast/Toast'
+import Card from '@/shared/components/ui/Card'
+import CardContent from '@/shared/components/ui/CardContent'
+import Button from '@/shared/components/ui/Button'
+import AdminSearchForm from '../../components/AdminSearchForm'
+import AccountStatusBadge from '@/shared/components/ui/AccountStatusBadge'
+import { ConfirmModal } from '@/shared/components/ui/modal'
+import { useUserStore } from '@/store/useUserStore'
+import ErrorToast from '@/shared/components/ui/toast/ErrorToast'
+import SuccessToast from '@/shared/components/ui/toast/SuccessToast'
+import Modal from '@/shared/components/ui/modal/Modal'
+import { AdminAccountForm } from '@/features/admin/components/AdminAccountForm'
 
 export const AdminAccounts = () => {
   // 검색 조건을 하나의 키워드와 타입으로 관리
   const [searchType, setSearchType] = useState("name");
-  const [searchKeyword, setSearchKeyword] = useState("");
-  const [statusKeyword, setStatusKeyword] = useState<string[]>(["활성"]);
+  const [searchKeyword, setSearchKeyword] = useState('') // 상태 옵션을 영문 value, 한글 label로 관리
+  const STATUS_OPTIONS = [
+    { value: 'ACTIVE', label: '활성' },
+    { value: 'DELETED', label: '비활성' }
+  ]
+  // 초기 상태도 영문 value로
+  const [statusKeyword, setStatusKeyword] = useState<string[]>([
+    'ACTIVE',
+    'DELETED'
+  ])
   const [page, setPage] = useState(0);
-  const [adminData, setAdminData] = useState<any[]>([]);
+  const [adminData, setAdminData] = useState<Record<string, unknown>[]>([])
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [errorToastMsg, setErrorToastMsg] = useState<string | null>(null);
   const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
-  const statusDropdownRef = useRef<HTMLDivElement>(null);
-  const navigate = useNavigate();
-  const [confirmOpen, setConfirmOpen] = useState(false);
+  const statusDropdownRef = useRef<HTMLDivElement>(null)
+  const navigate = useNavigate()
+  const [confirmOpen, setConfirmOpen] = useState(false)
   const [targetAdminId, setTargetAdminId] = useState<string | number | null>(
-    null,
-  );
-  const [targetAdminName, setTargetAdminName] = useState<string>("");
-  const myPhone = useUserStore((state) => state.email);
-  const [successToastMsg, setSuccessToastMsg] = useState<string | null>(null);
-
-  const STATUS_OPTIONS = [
-    { value: "활성", label: "활성" },
-    { value: "비활성", label: "비활성" },
-  ];
+    null
+  )
+  const [targetAdminName, setTargetAdminName] = useState<string>('')
+  const myPhone = useUserStore(state => state.email)
+  const myUserName = useUserStore(state => state.userName)
+  const [successToastMsg, setSuccessToastMsg] = useState<string | null>(null)
+  const [editModalOpen, setEditModalOpen] = useState(false)
+  const [editTarget, setEditTarget] = useState<Record<string, unknown> | null>(
+    null
+  )
+  const [createModalOpen, setCreateModalOpen] = useState(false)
 
   // 검색 조건을 fetch에 맞게 변환
   const getSearchParams = () => {
     return {
-      name: searchType === "name" ? searchKeyword : "",
-      phone: searchType === "phone" ? searchKeyword : "",
-      email: searchType === "email" ? searchKeyword : "",
+      name: searchType === 'name' ? searchKeyword : '',
+      phone: searchType === 'phone' ? searchKeyword : '',
+      email: searchType === 'email' ? searchKeyword : '',
       status: statusKeyword,
-      page,
-    };
-  };
+      page
+    }
+  }
 
   const fetchData = async (
-    paramsOverride?: Partial<ReturnType<typeof getSearchParams>>,
+    paramsOverride?: Partial<ReturnType<typeof getSearchParams>>
   ) => {
-    setLoading(true);
+    setLoading(true)
     try {
-      const params = { ...getSearchParams(), ...paramsOverride };
+      const params = { ...getSearchParams(), ...paramsOverride }
       const res = await fetchAdminAccounts({
         ...params,
-        size: 10,
-      });
-      setAdminData(res.content || []);
-      setTotalPages(res.totalPages || 1);
-    } catch (err: any) {
-      const backendMsg = err?.response?.data?.message;
-      setErrorToastMsg(backendMsg || "관리자 계정 목록 조회 실패");
+        size: 10
+      })
+      setAdminData(res.content || [])
+      setTotalPages(res.totalPages || 1)
+    } catch (err: unknown) {
+      const backendMsg = (
+        err as unknown as { response?: { data?: { message?: string } } }
+      )?.response?.data?.message
+      setErrorToastMsg(backendMsg || '관리자 계정 목록 조회 실패')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
   };
 
   useEffect(() => {
-    fetchData();
+    fetchData()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, statusKeyword]);
+  }, [page, statusKeyword])
 
   // AdminSearchForm에서 검색
   const handleSearch = (values: Record<string, string>) => {
-    const { type = "", keyword = "" } = values;
-    setSearchType(type);
-    setSearchKeyword(keyword);
-    setPage(0);
+    const { type = '', keyword = '' } = values
+    setSearchType(type)
+    setSearchKeyword(keyword)
+    setPage(0)
     fetchData({
-      name: type === "name" ? keyword : "",
-      phone: type === "phone" ? keyword : "",
-      email: type === "email" ? keyword : "",
-      page: 0,
-    });
+      name: type === 'name' ? keyword : '',
+      phone: type === 'phone' ? keyword : '',
+      email: type === 'email' ? keyword : '',
+      page: 0
+    })
   };
 
   // 상태 체크박스 핸들러 (다중 선택)
   const handleStatusCheckbox = (value: string) => {
-    setStatusKeyword((prev) =>
-      prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value],
-    );
-    setPage(0);
-  };
+    setStatusKeyword(prev =>
+      prev.includes(value) ? prev.filter(v => v !== value) : [...prev, value]
+    )
+    setPage(0)
+  }
 
   // 삭제 핸들러 (ConfirmModal 연동)
   const handleDeleteClick = (adminId: string | number) => {
-    const admin = adminData.find((a) => a.adminId === adminId);
-    setTargetAdminId(adminId);
-    setTargetAdminName(admin?.userName || "");
-    setConfirmOpen(true);
-  };
+    const admin = adminData.find(a => a.adminId === adminId)
+    setTargetAdminId(adminId)
+    setTargetAdminName(
+      admin && typeof admin.userName === 'string' ? admin.userName : ''
+    )
+    setConfirmOpen(true)
+  }
   const handleConfirmDelete = async () => {
     if (!targetAdminId) return;
     try {
-      await deleteAdminAccount(targetAdminId);
-      setSuccessToastMsg("삭제되었습니다.");
-      setConfirmOpen(false);
-      setTargetAdminId(null);
-      setTargetAdminName("");
-      fetchData();
-    } catch (err: any) {
-      const backendMsg = err?.response?.data?.message;
+      await deleteAdminAccount(targetAdminId)
+      setSuccessToastMsg('삭제되었습니다.')
+      setConfirmOpen(false)
+      setTargetAdminId(null)
+      setTargetAdminName('')
+      fetchData()
+    } catch (err: unknown) {
+      const backendMsg = (err as any)?.response?.data?.message;
       setErrorToastMsg(backendMsg || "삭제 실패");
       setConfirmOpen(false);
       setTargetAdminId(null);
@@ -136,26 +151,26 @@ export const AdminAccounts = () => {
   // columns 정의 (handleDelete 접근 가능)
   const columns = [
     {
-      key: "name",
-      header: "이름",
-      render: (row: any) => <span>{row.userName}</span>,
+      key: 'name',
+      header: '이름',
+      render: (row: Record<string, unknown>) => <span>{typeof row.userName === 'string' ? row.userName : ''}</span>,
     },
     {
-      key: "email",
-      header: "이메일",
-      render: (row: any) => <span>{row.email}</span>,
+      key: 'email',
+      header: '이메일',
+      render: (row: Record<string, unknown>) => <span>{typeof row.email === 'string' ? row.email : ''}</span>,
     },
     {
-      key: "phone",
-      header: "연락처",
-      render: (row: any) => <span>{row.phone}</span>,
+      key: 'phone',
+      header: '연락처',
+      render: (row: Record<string, unknown>) => <span>{typeof row.phone === 'string' ? row.phone : ''}</span>,
     },
     {
-      key: "status",
+      key: 'status',
       header: (
         <div className="relative select-none">
           <div
-            className={`flex items-center justify-center gap-1 cursor-pointer text-sm font-semibold ${statusKeyword.length > 0 ? "text-indigo-600" : "text-gray-700"}`}
+            className={`flex items-center justify-center gap-1 cursor-pointer text-sm font-semibold ${statusKeyword.length > 0 ? 'text-indigo-600' : 'text-gray-700'}`}
             onClick={() => setStatusDropdownOpen((open) => !open)}
           >
             상태
@@ -183,39 +198,63 @@ export const AdminAccounts = () => {
           )}
         </div>
       ),
-      render: (row: any) => (
-        <AccountStatusBadge
-          status={
-            row.status === "활성"
-              ? "ACTIVE"
-              : row.status === "비활성"
-                ? "SUSPENDED"
-                : row.status
-          }
-        />
+      render: (row: Record<string, unknown>) => (
+        <AccountStatusBadge status={row.status as string} />
       ),
     },
     {
-      key: "action",
-      header: "삭제",
-      render: (row: any) => (
-        <Button
-          className="h-8 px-5 bg-red-500 text-white rounded-xl hover:bg-red-600 text-sm font-semibold disabled:bg-gray-300 disabled:text-gray-400 disabled:cursor-not-allowed shadow"
-          disabled={row.phone === myPhone}
-          onClick={(e) => {
-            e.stopPropagation();
-            if (row.phone === myPhone) {
-              setErrorToastMsg("본인 계정은 삭제할 수 없습니다.");
-              return;
-            }
-            handleDeleteClick(row.adminId);
-          }}
-        >
-          삭제
-        </Button>
-      ),
+      key: 'action',
+      header: '관리',
+      style: { width: '120px', minWidth: '100px', textAlign: 'center' },
+      render: (row: Record<string, unknown>) => {
+        const phone = typeof row.phone === 'string' ? row.phone : ''
+        const userName = typeof row.userName === 'string' ? row.userName : ''
+        const adminId = row.adminId as string | number
+        const isRoot = myUserName && myUserName.includes('root')
+        const isSelf = phone === myPhone
+        return (
+          <div className="flex justify-center items-center gap-2">
+            <Button
+              className="h-8 px-5 bg-indigo-500 text-white rounded-xl hover:bg-indigo-600 text-sm font-semibold disabled:bg-gray-300 disabled:text-gray-400 disabled:cursor-not-allowed shadow"
+              disabled={
+                isRoot ? false : !isSelf
+              }
+              onClick={e => {
+                if (!isRoot && !isSelf) {
+                  e.stopPropagation();
+                  setErrorToastMsg('본인 계정만 수정할 수 있습니다.');
+                  return;
+                }
+                e.stopPropagation();
+                setEditTarget(row)
+                setEditModalOpen(true)
+              }}
+            >
+              수정
+            </Button>
+            <Button
+              className="h-8 px-5 bg-red-500 text-white rounded-xl hover:bg-red-600 text-sm font-semibold disabled:bg-gray-300 disabled:text-gray-400 disabled:cursor-not-allowed shadow"
+              disabled={!!(phone === myPhone || (userName && typeof userName === 'string' && userName.includes('테스트')))}
+              onClick={e => {
+                e.stopPropagation();
+                if (phone === myPhone) {
+                  setErrorToastMsg('본인 계정은 삭제할 수 없습니다.');
+                  return;
+                }
+                if (userName && typeof userName === 'string' && userName.includes('테스트')) {
+                  setErrorToastMsg('테스트 계정은 삭제할 수 없습니다.');
+                  return;
+                }
+                handleDeleteClick(adminId);
+              }}
+            >
+              삭제
+            </Button>
+          </div>
+        )
+      },
     },
-  ];
+  ]
 
   return (
     <Fragment>
@@ -247,14 +286,15 @@ export const AdminAccounts = () => {
           <div className="text-gray-900 text-xl font-bold">
             관리자 계정 관리
           </div>
-          <Link to="/admin/accounts/new">
-            <Button className="h-10 px-4 bg-indigo-600 rounded-md flex justify-center items-center gap-2 hover:bg-indigo-700 transition">
-              <span className="material-symbols-outlined text-white">add</span>
-              <span className="text-white text-sm font-semibold font-['Inter'] leading-none">
-                관리자 계정 추가
-              </span>
-            </Button>
-          </Link>
+          <Button
+            className="flex h-10 items-center justify-center gap-2 rounded-md bg-indigo-600 px-4 transition hover:bg-indigo-700"
+            onClick={() => setCreateModalOpen(true)}
+          >
+            <span className="material-symbols-outlined text-white">add</span>
+            <span className="font-['Inter'] text-sm leading-none font-semibold text-white">
+              관리자 계정 추가
+            </span>
+          </Button>
         </div>
         <div className="p-6 flex flex-col gap-6">
           {/* 검색 폼 */}
@@ -292,10 +332,10 @@ export const AdminAccounts = () => {
                 loading={loading}
                 columns={columns}
                 data={adminData}
-                rowKey={(row) => row.adminId}
+                rowKey={(row) => (typeof row.adminId === 'string' || typeof row.adminId === 'number' ? row.adminId : '')}
                 emptyMessage={"등록된 관리자가 없습니다."}
                 onRowClick={(row) =>
-                  navigate(`/admin/accounts/${row.adminId}/edit`)
+                  navigate(`/admin/accounts/${row.adminId}/edit`, { state: row })
                 }
               />
               <div className="w-full flex justify-center py-4">
@@ -314,54 +354,64 @@ export const AdminAccounts = () => {
                 </div>
               ) : (
                 <div className="flex flex-col gap-3">
-                  {adminData.map((row) => (
-                    <div
-                      key={row.adminId}
-                      className="border rounded-lg p-4 bg-white shadow-sm flex flex-col gap-2 cursor-pointer"
-                      onClick={() =>
-                        navigate(`/admin/accounts/${row.adminId}/edit`)
-                      }
-                    >
-                      <div className="flex justify-between items-center">
-                        <div className="font-semibold text-base text-gray-900">
-                          {row.userName}
+                  {adminData.map((row) => {
+                    const phone = typeof row.phone === 'string' ? row.phone : ''
+                    const userName = typeof row.userName === 'string' ? row.userName : ''
+                    const adminId = row.adminId as string | number
+      
+                    return (
+                      <div
+                        key={typeof row.adminId === 'string' || typeof row.adminId === 'number' ? row.adminId : ''}
+                        className="border rounded-lg p-4 bg-white shadow-sm flex flex-col gap-2 cursor-pointer"
+                        onClick={() =>
+                          navigate(`/admin/accounts/${adminId}/edit`, { state: row })
+                        }
+                      >
+                        <div className="flex justify-between items-center">
+                          <div className="font-semibold text-base text-gray-900">
+                            {userName}
+                          </div>
+                          <AccountStatusBadge status={row.status as string} />
                         </div>
-                        <AccountStatusBadge
-                          status={
-                            row.status === "활성"
-                              ? "ACTIVE"
-                              : row.status === "비활성"
-                                ? "SUSPENDED"
-                                : row.status
-                          }
-                        />
+                        <div className="text-sm text-gray-700 break-all">
+                          이메일: {typeof row.email === 'string' ? row.email : ''}
+                        </div>
+                        <div className="text-sm text-gray-700 break-all">
+                          연락처: {phone}
+                        </div>
+                        <div className="mt-2 flex justify-center items-center gap-2">
+                          <Button
+                            className="h-8 px-4 bg-indigo-500 text-white rounded-xl hover:bg-indigo-600 text-xs font-semibold disabled:bg-gray-300 disabled:text-gray-400 disabled:cursor-not-allowed shadow"
+                            onClick={e => {
+                              e.stopPropagation();
+                              setEditTarget(row)
+                              setEditModalOpen(true)
+                            }}
+                          >
+                            수정
+                          </Button>
+                          <Button
+                            className="h-8 px-4 bg-red-500 text-white rounded-xl hover:bg-red-600 text-xs font-semibold disabled:bg-gray-300 disabled:text-gray-400 disabled:cursor-not-allowed shadow"
+                            disabled={!!(phone === myPhone || (userName && typeof userName === 'string' && userName.includes('테스트')))}
+                            onClick={e => {
+                              e.stopPropagation();
+                              if (phone === myPhone) {
+                                setErrorToastMsg('본인 계정은 삭제할 수 없습니다.');
+                                return;
+                              }
+                              if (userName && typeof userName === 'string' && userName.includes('테스트')) {
+                                setErrorToastMsg('테스트 계정은 삭제할 수 없습니다.');
+                                return;
+                              }
+                              handleDeleteClick(adminId);
+                            }}
+                          >
+                            삭제
+                          </Button>
+                        </div>
                       </div>
-                      <div className="text-sm text-gray-700 break-all">
-                        이메일: {row.email}
-                      </div>
-                      <div className="text-sm text-gray-700 break-all">
-                        연락처: {row.phone}
-                      </div>
-                      <div className="flex justify-end mt-2">
-                        <Button
-                          className="h-8 px-4 bg-red-500 text-white rounded-xl hover:bg-red-600 text-xs font-semibold disabled:bg-gray-300 disabled:text-gray-400 disabled:cursor-not-allowed shadow"
-                          disabled={row.phone === myPhone}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (row.phone === myPhone) {
-                              setErrorToastMsg(
-                                "본인 계정은 삭제할 수 없습니다.",
-                              );
-                              return;
-                            }
-                            handleDeleteClick(row.adminId);
-                          }}
-                        >
-                          삭제
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               )}
               <div className="w-full flex justify-center py-4">
@@ -375,6 +425,30 @@ export const AdminAccounts = () => {
           </TableSection>
         </div>
       </div>
+      <Modal open={editModalOpen} onClose={() => setEditModalOpen(false)}>
+        {editTarget && (
+          <AdminAccountForm
+            mode="edit"
+            adminData={editTarget}
+            onClose={() => {
+              setEditModalOpen(false)
+              setEditTarget(null)
+              fetchData()
+            }}
+            isModal={true}
+          />
+        )}
+      </Modal>
+      {/* 관리자 계정 추가 모달 */}
+      <Modal open={createModalOpen} onClose={() => setCreateModalOpen(false)}>
+        <AdminAccountForm
+          mode="create"
+          onClose={() => {
+            setCreateModalOpen(false)
+            fetchData()
+          }}
+        />
+      </Modal>
     </Fragment>
   );
 };

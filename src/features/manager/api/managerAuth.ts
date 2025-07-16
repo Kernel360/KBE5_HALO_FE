@@ -1,11 +1,11 @@
 import api from '@/services/axios';
-import type { createManagerSignup } from '../types/ManagerAuthType';
+import type { ManagerSignupReqDTO } from '../types/ManagerAuthType';
 
 
 // 매니저 로그인
 export const loginManager = async (phone: string, password: string) => {
   const res = await api.post('/managers/auth/login', { phone, password });
-
+  // 권한별 header 설정 필요
   if (!res.data.success) {
     // 성공 여부 수동 체크 후 에러 던지기
     if (res.data.message?.trim()) alert(res.data.message);
@@ -33,7 +33,7 @@ export const logoutManager = async () => {
 
 
 // 매니저 회원가입
-export const signupManager = async (requestBody: createManagerSignup) => {
+export const signupManager = async (requestBody: ManagerSignupReqDTO) => {
   const res = await api.post("/managers/auth/signup", requestBody );
 
   if (!res.data.success) {

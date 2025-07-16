@@ -37,7 +37,6 @@ import { AdminLogin } from '@/features/admin/pages/AdminLogin'
 import { AdminLayout } from '@/features/admin/layouts/AdminLayout'
 import { AdminMain } from '@/features/admin/pages/AdminMain'
 import { AdminAccounts } from '@/features/admin/pages/AdminAccount/AdminAccounts'
-import { AdminAccountForm } from '@/features/admin/pages/AdminAccount/AdminAccountForm'
 import { AdminManagers } from '@/features/admin/pages/AdminManager/AdminManagers'
 import { AdminManagerDetail } from '@/features/admin/pages/AdminManager/AdminManagerDetail'
 import { AdminCustomers } from '@/features/admin/pages/AdminCustomer/AdminCustomers'
@@ -50,17 +49,29 @@ import { AdminBannerDetail } from '@/features/admin/pages/AdminBanner/AdminBanne
 import { AdminBannerForm } from '@/features/admin/pages/AdminBanner/AdminBanneerForm'
 import { AdminInquiries } from '@/features/admin/pages/AdminInquiry/AdminInquiries'
 import { AdminInquiryDetail } from '@/features/admin/pages/AdminInquiry/AdminInquiryDetail'
+import { AdminSettlements } from '@/features/admin/pages/AdminSettlement/AdminSettlements'
 
 // 공통
 import { GuardLayout } from '@/shared/components/GuardLayout'
 import CustomerNotFound from '@/features/customer/pages/CustomerNotFound'
 import ManagerNotFound from '@/features/manager/pages/ManagerNotFound'
 import AdminNotFound from '@/features/admin/pages/AdminNotFound'
+import OAuthFailPage from '@/shared/components/OAuthFailPage'
+import OAuthSuccessPage from '@/shared/components/OAuthSuccessPage'
+import OAuthProgressPage from '@/shared/components/OAuthProgressPage'
 
 export const router = createBrowserRouter([
   /** 수요자 로그인 (가드 제외) */
 
   { path: '/auth/login', element: <CustomerLogin /> },
+
+  /** OAuth 실패 안내 */
+  { path: '/oauth-fail', element: <OAuthFailPage /> },
+
+  /** OAuth 성공 안내 */
+  { path: '/oauth-success', element: <OAuthSuccessPage /> },
+  { path: '/customers/oauth/success', element: <OAuthProgressPage /> },
+  { path: '/managers/oauth/success', element: <OAuthProgressPage /> },
 
   /** 매니저 로그인/회원가입 */
   {
@@ -188,13 +199,8 @@ export const router = createBrowserRouter([
           {
             path: 'accounts',
             children: [
-              // 목록
-              { index: true, element: <AdminAccounts /> },
-
-              // 등록
-              { path: 'new', element: <AdminAccountForm /> },
-              // 수정
-              { path: ':adminId/edit', element: <AdminAccountForm /> }
+              // 목록 (추가/수정은 AdminAccounts 내 모달에서 처리)
+              { index: true, element: <AdminAccounts /> }
             ]
           },
           // 고객 정보 목록
@@ -241,6 +247,14 @@ export const router = createBrowserRouter([
                 path: ':inquiryId',
                 element: <AdminInquiryDetail />
               }
+            ]
+          },
+          // // 정산 관리 목록
+          {
+            path: 'settlements',
+            children: [
+              // 목록
+              { index: true, element: <AdminSettlements /> }
             ]
           },
           // // 공지/이벤트 목록
