@@ -24,10 +24,12 @@ export const AdminCustomers = () => {
   const [phoneKeyword, setPhoneKeyword] = useState("");
   const [emailKeyword, setEmailKeyword] = useState("");
   const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState(10); // Optional: for future page size selection
   const [sortOrder, setSortOrder] = useState<"desc" | "asc" | null>(null);
   const [searchTrigger, setSearchTrigger] = useState(0);
   const [customers, setCustomers] = useState<AdminCustomer[]>([]);
   const [totalPages, setTotalPages] = useState(1);
+  const [totalElements, setTotalElements] = useState(0);
   const [statusFilter, setStatusFilter] = useState<string[]>(["활성"]);
   const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
   const statusDropdownRef = useRef<HTMLDivElement>(null);
@@ -53,7 +55,7 @@ export const AdminCustomers = () => {
           email: emailKeyword || undefined,
           status: currentStatusFilter.length > 0 ? currentStatusFilter : undefined,
           page,
-          size: 10,
+          size: pageSize,
           sort: sortOrder ? `point,${sortOrder}` : undefined,
         };
 
@@ -86,7 +88,13 @@ export const AdminCustomers = () => {
           }),
         );
         setCustomers(mappedCustomers);
-        setTotalPages(data.totalPages || 1);
+        // Use backend page object for pagination
+        setTotalPages(data.page?.totalPages || 1);
+        setTotalElements(data.page?.totalElements || 0);
+        // If backend page number is different (e.g., after filtering), sync local state
+        if (typeof data.page?.number === 'number' && data.page.number !== page) {
+          setPage(data.page.number);
+        }
       } catch (error: unknown) {
         const backendMsg =
           error && typeof error === "object" && "response" in error
@@ -115,6 +123,7 @@ export const AdminCustomers = () => {
     sortOrder,
     statusFilter,
     searchTrigger,
+    pageSize,
   ]);
 
   // 상세 페이지로 이동
@@ -347,7 +356,7 @@ export const AdminCustomers = () => {
           </div>
 
           {/* 목록 테이블 + 페이지네이션을 하나의 영역(Card)으로 묶음 */}
-          <TableSection title="고객 정보" total={filteredCustomers.length}>
+          <TableSection title="고객 정보" total={totalElements}>
             {/* 데스크탑: 테이블 */}
             <div className="hidden md:block">
               <AdminTable

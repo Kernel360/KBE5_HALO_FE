@@ -23,6 +23,7 @@ export const AdminManagers = () => {
   const [page, setPage] = useState(0);
   const [managers, setManagers] = useState<AdminManager[]>([]);
   const [totalPages, setTotalPages] = useState(1);
+  const [totalElements, setTotalElements] = useState(0);
   const [loading, setLoading] = useState(false);
   const [searchParams, setSearchParams] = useState({
     nameKeyword: "",
@@ -85,7 +86,12 @@ export const AdminManagers = () => {
         };
         res = await fetchAdminManagers(mappedParams);
         setManagers(res.content || res || []);
-        setTotalPages(res.totalPages || 1);
+        setTotalPages(res.page?.totalPages || 1);
+        setTotalElements(res.page?.totalElements || 0);
+        // API에서 page number가 다를 경우 동기화
+        if (typeof res.page?.number === 'number' && res.page.number !== page) {
+          setPage(res.page.number);
+        }
       } else if (activeTab === "termination") {
         // 매니저 해지 신청 내역
         const mappedParams: any = {
@@ -106,7 +112,12 @@ export const AdminManagers = () => {
         };
         res = await fetchAdminManagers(mappedParams);
         setManagers(res.content || res || []);
-        setTotalPages(res.totalPages || 1);
+        setTotalPages(res.page?.totalPages || 1);
+        setTotalElements(res.page?.totalElements || 0);
+        // API에서 page number가 다를 경우 동기화
+        if (typeof res.page?.number === 'number' && res.page.number !== page) {
+          setPage(res.page.number);
+        }
       } else {
         // 전체 매니저
         const mappedParams: any = {
@@ -127,7 +138,12 @@ export const AdminManagers = () => {
         };
         res = await fetchAdminManagers(mappedParams);
         setManagers(res.content || res || []);
-        setTotalPages(res.totalPages || 1);
+        setTotalPages(res.page?.totalPages || 1);
+        setTotalElements(res.page?.totalElements || 0);
+        // API에서 page number가 다를 경우 동기화
+        if (typeof res.page?.number === 'number' && res.page.number !== page) {
+          setPage(res.page.number);
+        }
       }
     } catch (err: any) {
       console.error("매니저 목록 조회 실패", err);
@@ -252,7 +268,7 @@ export const AdminManagers = () => {
             </div>
           </div>
           {/* 테이블 + 페이지네이션 + 타이틀/카운트 공통 영역 */}
-          <TableSection title="매니저 정보" total={managers.length}>
+          <TableSection title="매니저 정보" total={totalElements}>
             {/* 데스크탑: 테이블 */}
             <div className="hidden md:block">
               <AdminTable
