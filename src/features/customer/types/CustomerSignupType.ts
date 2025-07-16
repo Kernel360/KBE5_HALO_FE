@@ -22,16 +22,14 @@ export interface CustomerSignupReqDTO {
 
 // 프론트엔드에서 사용하는 플랫 구조 (기존 유지)
 export interface CustomerSignupReq {
-  phone: string
-  userName: string
-  email: string
-  password: string
-  birthDate: string
-  gender: 'MALE' | 'FEMALE'
-  roadAddress: string
-  detailAddress: string
-  latitude: number
-  longitude: number
-  provider?: string
-  providerId?: string
+  phone: string;
+  userName: string;
+  email: string;
+  password: string;
+  birthDate: string;
+  gender: 'MALE' | 'FEMALE';
+  roadAddress: string;
+  detailAddress: string;
+  latitude: number;
+  longitude: number;
 }
