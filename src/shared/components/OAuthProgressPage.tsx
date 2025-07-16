@@ -41,6 +41,15 @@ const OAuthProgressPage: React.FC = () => {
       .then(res => {
         const data = res.data || {}
         const isNew = !!data.new // 신규 가입자인지 여부
+        const responseRole = data.role || '' // 응답 role
+        const roleUpper = role === 'manager' ? 'MANAGER' : 'CUSTOMER'
+        if (responseRole && responseRole !== roleUpper) {
+          setStatus('error')
+          navigate(
+            `/oauth-fail?role=${role}&message=${encodeURIComponent('해당 페이지에 권한이 없습니다.')}`
+          )
+          return
+        }
         if (!isNew) {
           // accessToken: 헤더에서 추출
           const rawHeader = res.headers['authorization']
@@ -53,7 +62,6 @@ const OAuthProgressPage: React.FC = () => {
           const provider = data.provider || ''
           const providerId = data.providerId || ''
           // zustand 전역 상태에 토큰 및 유저 정보 저장
-          const roleUpper = role === 'manager' ? 'MANAGER' : 'CUSTOMER'
           useAuthStore
             .getState()
             .setTokens(accessToken, roleUpper)
