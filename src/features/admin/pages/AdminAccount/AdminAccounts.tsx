@@ -356,7 +356,7 @@ export const AdminAccounts = () => {
             {/* 모바일: 카드형 리스트 */}
             <div className="block md:hidden">
               {adminData.length === 0 ? (
-                <div className="text-center text-gray-400 py-8">
+                <div className="flex min-h-[300px] items-center justify-center py-8 text-center text-gray-400">
                   등록된 관리자가 없습니다.
                 </div>
               ) : (
