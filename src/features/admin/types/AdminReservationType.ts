@@ -128,3 +128,22 @@ export const PAYMENT_STATUS_OPTIONS = [
   { value: 'CANCELED', label: '결제 취소' },
   { value: 'REFUNDED', label: '환불' }
 ] as const
+
+// 상세 페이지에서 사용할 타입 (API 응답 필드 기준, 모두 optional)
+export type AdminReservationDetailData = {
+  reservationId?: string | number
+  requestDate?: string
+  roadAddress?: string
+  detailAddress?: string
+  managerId?: string | number
+  managerName?: string
+  managerPhone?: string
+  customerId?: string | number
+  customerName?: string
+  customerPhone?: string
+  reservationStatus?: string
+  paymentStatus?: string
+  memo?: string
+  paidAt?: string
+  serviceName?: string
+}

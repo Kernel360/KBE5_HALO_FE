@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { fetchAdminReservations } from '@/features/admin/api/adminReservation'
 import type {
   AdminReservation,
@@ -22,6 +22,7 @@ import { MultiSelectDropdown } from '@/shared/components/ui/MultiSelectDropdown'
 
 export const AdminReservations = () => {
   const navigate = useNavigate()
+  const location = useLocation()
   // 검색/필터/페이지네이션 상태
   const [searchParams, setSearchParams] = useState<AdminReservationSearchParams>({
     customerNameKeyword: '',
@@ -68,6 +69,31 @@ export const AdminReservations = () => {
     startDate: '',
     endDate: ''
   })
+
+  const [initialized, setInitialized] = useState(false)
+
+  // --- Add effect to apply initial filter from navigation state ---
+  useEffect(() => {
+    if (location.state && (location.state.statusFilter || location.state.dateRange)) {
+      if (location.state.statusFilter) {
+        setReservationStatusFilter(location.state.statusFilter)
+      }
+      if (location.state.dateRange) {
+        setDateRange(location.state.dateRange)
+      }
+      setSearchParams(prev => ({
+        ...prev,
+        status: location.state.statusFilter || prev.status,
+        fromRequestDate: location.state.dateRange?.startDate || prev.fromRequestDate,
+        toRequestDate: location.state.dateRange?.endDate || prev.toRequestDate,
+        page: 0
+      }))
+      setInitialized(true)
+    } else {
+      setInitialized(true)
+    }
+    // eslint-disable-next-line
+  }, [])
 
   // 데이터 fetch
   const fetchData = useCallback(async () => {
@@ -133,8 +159,10 @@ export const AdminReservations = () => {
   }, [searchParams, reservationStatusFilter, paymentStatusFilter])
 
   useEffect(() => {
-    fetchData()
-  }, [fetchData])
+    if (initialized) {
+      fetchData()
+    }
+  }, [fetchData, initialized])
 
   // 테이블 컬럼 정의
   const columns: AdminTableColumn<AdminReservation>[] = [

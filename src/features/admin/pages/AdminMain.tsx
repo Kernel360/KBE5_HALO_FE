@@ -152,7 +152,7 @@ export const AdminMain = () => {
   const [pendingInquiries, setPendingInquiries] = useState<PendingInquiry[]>([])
   const [pendingInquiriesLoading, setPendingInquiriesLoading] = useState(false)
   const [totalPendingInquiries, setTotalPendingInquiries] = useState(0)
-  const navigate = useNavigate();
+  const navigate = useNavigate()
   const [weeklyReservationData, setWeeklyReservationData] = useState<
     { day: string; count: number }[]
   >([])
@@ -235,11 +235,13 @@ export const AdminMain = () => {
             size: 3
           })
         ])
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const combined = [
           ...(customer.content || []).map((item: any) => ({
             ...item,
             type: 'customer'
           })),
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           ...(manager.content || []).map((item: any) => ({
             ...item,
             type: 'manager'
@@ -377,7 +379,9 @@ export const AdminMain = () => {
           status: ['COMPLETED', 'IN_PROGRESS', 'CONFIRMED'],
           size: 1000
         })
-        setTodayReservationCount(todayData.page?.totalElements || todayData.totalElements || 0)
+        setTodayReservationCount(
+          todayData.page?.totalElements || todayData.totalElements || 0
+        )
         // 어제 예약 건수
         const yesterday = new Date(todayDate)
         yesterday.setDate(todayDate.getDate() - 1)
@@ -388,8 +392,10 @@ export const AdminMain = () => {
           status: ['COMPLETED', 'IN_PROGRESS', 'CONFIRMED'],
           size: 1000
         })
-        setYesterdayReservationCount(yesterdayData.page?.totalElements || yesterdayData.totalElements || 0)
-      } catch (e) {
+        setYesterdayReservationCount(
+          yesterdayData.page?.totalElements || yesterdayData.totalElements || 0
+        )
+      } catch {
         setWeeklyReservationData(fallbackWeek)
         setWeeklyReservationCount(0)
         setWeeklyCompletedCount(0)
@@ -400,25 +406,6 @@ export const AdminMain = () => {
     }
     fetchWeeklyReservations()
   }, [])
-
-  // 오늘 날짜와 요일을 포맷하는 함수
-  function getTodayString() {
-    const today = new Date()
-    const year = today.getFullYear()
-    const month = today.getMonth() + 1
-    const date = today.getDate()
-    const days = [
-      '일요일',
-      '월요일',
-      '화요일',
-      '수요일',
-      '목요일',
-      '금요일',
-      '토요일'
-    ]
-    const day = days[today.getDay()]
-    return `${year}년 ${month}월 ${date}일 ${day}`
-  }
 
   // trend 텍스트에 증가/감소 문구를 자동으로 붙여주는 함수
   function getTrendText(trend: string) {
@@ -471,7 +458,19 @@ export const AdminMain = () => {
         <div className="flex flex-1 flex-col items-start justify-start gap-6 self-stretch p-6">
           <div className="flex flex-col items-start justify-start gap-4 self-stretch">
             <div className="inline-flex items-start justify-start gap-4 self-stretch">
-              <div className="inline-flex h-24 flex-1 flex-col items-start justify-start gap-2 rounded-lg bg-white p-4 shadow-[0px_2px_8px_0px_rgba(0,0,0,0.04)]">
+              <div
+                className="inline-flex h-24 flex-1 flex-col items-start justify-start gap-2 rounded-lg bg-white p-4 shadow-[0px_2px_8px_0px_rgba(0,0,0,0.04)] hover:bg-indigo-50 transition-colors"
+                style={{ cursor: 'pointer' }}
+                onClick={() => {
+                  const weekRange = getThisWeekRange();
+                  navigate('/admin/reservations', {
+                    state: {
+                      statusFilter: ['CONFIRMED', 'IN_PROGRESS', 'COMPLETED'],
+                      dateRange: weekRange
+                    }
+                  });
+                }}
+              >
                 <div className="justify-start font-['Inter'] text-sm leading-none font-medium text-gray-500">
                   이번주 총 예약 건수
                 </div>
@@ -492,7 +491,19 @@ export const AdminMain = () => {
                   })()}
                 </div>
               </div>
-              <div className="flex-1 h-24 p-4 bg-white rounded-lg shadow-[0px_2px_8px_0px_rgba(0,0,0,0.04)] inline-flex flex-col justify-start items-start gap-2">
+              <div
+                className="inline-flex h-24 flex-1 flex-col items-start justify-start gap-2 rounded-lg bg-white p-4 shadow-[0px_2px_8px_0px_rgba(0,0,0,0.04)] hover:bg-indigo-50 transition-colors"
+                style={{ cursor: 'pointer' }}
+                onClick={() => {
+                  const weekRange = getThisWeekRange();
+                  navigate('/admin/reservations', {
+                    state: {
+                      statusFilter: ['COMPLETED'],
+                      dateRange: weekRange
+                    }
+                  });
+                }}
+              >
                 <div className="justify-start text-gray-500 text-sm font-medium font-['Inter'] leading-none">
                   이번주 완료된 예약 건수
                 </div>
@@ -511,7 +522,19 @@ export const AdminMain = () => {
                   })()}
                 </div>
               </div>
-              <div className="inline-flex h-24 flex-1 flex-col items-start justify-start gap-2 rounded-lg bg-white p-4 shadow-[0px_2px_8px_0px_rgba(0,0,0,0.04)]">
+              <div
+                className="inline-flex h-24 flex-1 flex-col items-start justify-start gap-2 rounded-lg bg-white p-4 shadow-[0px_2px_8px_0px_rgba(0,0,0,0.04)] hover:bg-indigo-50 transition-colors"
+                style={{ cursor: 'pointer' }}
+                onClick={() => {
+                  const today = formatDate(new Date());
+                  navigate('/admin/reservations', {
+                    state: {
+                      statusFilter: ['CONFIRMED', 'IN_PROGRESS', 'COMPLETED'],
+                      dateRange: { startDate: today, endDate: today }
+                    }
+                  });
+                }}
+              >
                 <div className="justify-start font-['Inter'] text-sm leading-none font-medium text-gray-500">
                   오늘의 예약 건수
                 </div>
@@ -531,7 +554,11 @@ export const AdminMain = () => {
               </div>
             </div>
             <div className="inline-flex items-start justify-start gap-4 self-stretch">
-              <div className="inline-flex h-24 flex-1 flex-col items-start justify-start gap-1 rounded-lg bg-white p-4 shadow-[0px_2px_8px_0px_rgba(0,0,0,0.04)]">
+              <div
+                className="inline-flex h-24 flex-1 flex-col items-start justify-start gap-1 rounded-lg bg-white p-4 shadow-[0px_2px_8px_0px_rgba(0,0,0,0.04)] hover:bg-indigo-50 transition-colors"
+                style={{ cursor: 'pointer' }}
+                onClick={() => navigate('/admin/settlements')}
+              >
                 <div className="flex items-center gap-1">
                   <BanknotesIcon className="h-4 w-4 text-emerald-500" />
                   <span className="font-['Inter'] text-sm leading-none font-medium text-gray-500">
@@ -557,15 +584,17 @@ export const AdminMain = () => {
                   </span>
                 </div>
               </div>
-              <div className="inline-flex h-24 flex-1 flex-col items-start justify-start gap-2 rounded-lg bg-white p-4 shadow-[0px_2px_8px_0px_rgba(0,0,0,0.04)]">
+              <div
+                className="inline-flex h-24 flex-1 flex-col items-start justify-start gap-2 rounded-lg bg-white p-4 shadow-[0px_2px_8px_0px_rgba(0,0,0,0.04)] hover:bg-indigo-50 transition-colors"
+                style={{ cursor: 'pointer' }}
+                onClick={() => navigate('/admin/managers', { state: { tab: 'applied' } })}
+              >
                 <div className="justify-start font-['Inter'] text-sm leading-none font-medium text-gray-500">
                   신규 매니저 신청 수
                 </div>
                 <div
-                  className="cursor-pointer justify-start font-['Inter'] text-2xl leading-7 font-bold text-amber-500 hover:underline"
-                  onClick={() =>
-                    navigate('/admin/managers', { state: { tab: 'applied' } })
-                  }>
+                  className="justify-start font-['Inter'] text-2xl leading-7 font-bold text-amber-500"
+                >
                   {newManagersTotal}
                 </div>
                 {newManagersTotal > 0 && (
@@ -576,13 +605,17 @@ export const AdminMain = () => {
                   </div>
                 )}
               </div>
-              <div className="inline-flex h-24 flex-1 flex-col items-start justify-start gap-2 rounded-lg bg-white p-4 shadow-[0px_2px_8px_0px_rgba(0,0,0,0.04)]">
+              <div
+                className="inline-flex h-24 flex-1 flex-col items-start justify-start gap-2 rounded-lg bg-white p-4 shadow-[0px_2px_8px_0px_rgba(0,0,0,0.04)] hover:bg-indigo-50 transition-colors"
+                style={{ cursor: 'pointer' }}
+                onClick={() => navigate('/admin/inquiries')}
+              >
                 <div className="justify-start font-['Inter'] text-sm leading-none font-medium text-gray-500">
                   새로 등록된 문의글 수
                 </div>
                 <div
-                  className="cursor-pointer justify-start font-['Inter'] text-2xl leading-7 font-bold text-amber-500 hover:underline"
-                  onClick={() => navigate('/admin/inquiries')}>
+                  className="justify-start font-['Inter'] text-2xl leading-7 font-bold text-amber-500"
+                >
                   {totalPendingInquiries}
                 </div>
                 {totalPendingInquiries > 0 && (
@@ -614,8 +647,25 @@ export const AdminMain = () => {
             <div className="flex items-end min-h-[100px] w-full justify-center gap-0 px-0 py-4 md:min-h-[160px] md:px-0 md:py-6 lg:min-h-[200px]">
               {(weeklyReservationData.length === 7 ? weeklyReservationData : fallbackWeek).map((stat, i, arr) => {
                 const maxCount = Math.max(...arr.map(d => d.count), 1)
+                // Calculate the date for this bar (월~일 순서)
+                const today = new Date()
+                const weekStart = startOfWeek(today)
+                const barDate = new Date(weekStart)
+                barDate.setDate(weekStart.getDate() + i)
+                const barDateStr = formatDate(barDate)
                 return (
-                  <div key={stat.day} className="group flex min-w-[40px] flex-1 flex-col items-center md:min-w-[56px] lg:min-w-[64px]">
+                  <div
+                    key={stat.day}
+                    className="group flex min-w-[40px] flex-1 flex-col items-center md:min-w-[56px] lg:min-w-[64px] cursor-pointer"
+                    onClick={() => {
+                      navigate('/admin/reservations', {
+                        state: {
+                          statusFilter: ['CONFIRMED', 'IN_PROGRESS', 'COMPLETED'],
+                          dateRange: { startDate: barDateStr, endDate: barDateStr }
+                        }
+                      })
+                    }}
+                  >
                     {/* 예약 건수 */}
                     <span
                       className={`text-xs font-semibold md:text-sm ${stat.count > 0 ? 'text-indigo-600' : 'text-slate-300'}`}
@@ -627,7 +677,7 @@ export const AdminMain = () => {
                       className={
                         `mx-auto w-full max-w-[32px] rounded-t-lg transition-all duration-200 group-hover:scale-110 md:max-w-[40px] lg:max-w-[48px] ` +
                         (stat.count > 0
-                          ? 'bg-gradient-to-t from-indigo-400 to-indigo-200 shadow-md'
+                          ? 'bg-gradient-to-t from-indigo-400 to-indigo-200 shadow-md group-hover:bg-indigo-300'
                           : 'bg-slate-100')
                       }
                       style={{ height: `${(stat.count / maxCount) * 80 + 12}px` }}
