@@ -27,6 +27,7 @@ api.interceptors.response.use(
     const originalRequest = error.config;
 
     // 로그인 요청이면 재발급 로직 건너뜀
+    // 이 부분 권한별 분기 필요
     if (originalRequest.url.includes('/auth/login')) {
       return Promise.reject(error);
     }
