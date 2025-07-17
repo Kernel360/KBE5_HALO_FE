@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import HalfStar from '@/shared/components/HalfStar'
 import { Star, Pencil } from 'lucide-react'
-import { useParams, useNavigate, useOutletContext } from 'react-router-dom'
+import { useParams, useOutletContext } from 'react-router-dom'
 import {
   getCustomerReservationDetail,
   cancelReservationByCustomer
