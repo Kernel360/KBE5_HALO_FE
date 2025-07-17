@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react'
-import { useParams, useNavigate, Link } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import {
   fetchAdminManagerById,
   approveManager,
@@ -16,11 +16,11 @@ import Loading from '@/shared/components/ui/Loading'
 import type { SubmissionFileMeta } from '@/features/admin/components/ManagerDetailInfo'
 import { fetchAdminManagerReviews } from '@/features/admin/api/adminManager'
 import type { AdminManagerReview } from '@/features/admin/types/AdminManagerType'
-import Modal from '@/shared/components/ui/modal/Modal'
-import ReviewCard from '@/shared/components/ui/ReviewCard'
 import { fetchRecentManagerInquiries } from '@/features/admin/api/adminInquiry'
 import type { InquirySummary } from '@/features/admin/types/AdminInquiryType'
 import SuccessToast from '@/shared/components/ui/toast/SuccessToast'
+import RecentInquiriesCard from '@/features/admin/components/RecentInquiriesCard'
+import RecentReviewsCard from '@/features/admin/components/RecentReviewsCard'
 
 export const AdminManagerDetail = () => {
   const { managerId } = useParams<{ managerId: string }>()
@@ -331,71 +331,19 @@ export const AdminManagerDetail = () => {
         </div>
         {/* 중단 2단 그리드: 최근 문의, 최근 리뷰 분리 */}
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-          <Card className="flex w-full flex-col gap-4 rounded-xl bg-white p-8 shadow">
-            <div className="mb-4 text-lg font-bold">최근 문의</div>
-            {inquiriesLoading ? (
-              <div className="flex min-h-[4rem] items-center justify-center">
-                <Loading
-                  size="sm"
-                  message="문의 내역을 불러오는 중..."
-                />
-              </div>
-            ) : inquiriesError ? (
-              <div className="text-red-500">{inquiriesError}</div>
-            ) : recentInquiries.length === 0 ? (
-              <div className="text-gray-400">최근 문의가 없습니다.</div>
-            ) : (
-              <ul className="flex flex-col gap-2">
-                {recentInquiries.map(item => (
-                  <li key={item.inquiryId}>
-                    <Link
-                      to={`/admin/inquiries/${item.inquiryId}`}
-                      className="cursor-pointer justify-between rounded px-2 py-1 text-sm hover:bg-slate-100"
-                    >
-                      <span>{item.content}</span>
-                      <span className="text-gray-400">{item.date}</span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </Card>
-          <Card className="flex w-full flex-col gap-4 rounded-xl bg-white p-8 shadow">
-            <div className="mb-4 text-lg font-bold">최근 리뷰</div>
-            {reviewsLoading ? (
-              <div className="flex min-h-[4rem] items-center justify-center">
-                <Loading size="sm" message="리뷰를 불러오는 중..." />
-              </div>
-            ) : reviewsError ? (
-              <div className="text-red-500">{reviewsError}</div>
-            ) : recentReviews.length === 0 ? (
-              <div className="text-gray-400">최근 리뷰가 없습니다.</div>
-            ) : (
-              <ul className="flex flex-col gap-2">
-                {recentReviews.map((item, idx) => (
-                  <li
-                    key={idx}
-                    className="flex justify-between text-sm cursor-pointer hover:bg-slate-100 rounded px-2 py-1"
-                    onClick={() => setSelectedReview(reviews[idx])}
-                  >
-                    <span>{item.content}</span>
-                    <span className="text-gray-400">{item.date}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-            {/* 리뷰 상세 모달 */}
-            <Modal open={!!selectedReview} onClose={() => setSelectedReview(null)}>
-              {selectedReview && (
-                <ReviewCard
-                  rating={selectedReview.rating}
-                  content={selectedReview.content}
-                  createdAt={selectedReview.createdAt.slice(0, 10)}
-                  author={selectedReview.authorName}
-                />
-              )}
-            </Modal>
-          </Card>
+          <RecentInquiriesCard
+            inquiriesLoading={inquiriesLoading}
+            inquiriesError={inquiriesError}
+            recentInquiries={recentInquiries}
+          />
+          <RecentReviewsCard
+            reviewsLoading={reviewsLoading}
+            reviewsError={reviewsError}
+            recentReviews={recentReviews}
+            reviews={reviews}
+            selectedReview={selectedReview}
+            setSelectedReview={setSelectedReview}
+          />
         </div>
         {/* 하단 단일(세로) */}
         <Card className="w-full">

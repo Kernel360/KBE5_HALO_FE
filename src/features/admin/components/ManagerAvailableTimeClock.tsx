@@ -21,11 +21,11 @@ const COLORS = {
 
 const getPieData = (availableTimes: string[]) => {
   return TIME_SLOTS.map((time, idx) => {
-    // 23:00~07:00은 막힘
-    if (idx >= 23 || idx < WORK_START) {
+    // 00:00(24:00)~07:00은 막힘
+    if (idx === 0 || idx < WORK_START) {
       return { name: time, value: 1, status: 'blocked' }
     }
-    // 08:00~22:00
+    // 08:00~23:00
     return {
       name: time,
       value: 1,
@@ -284,7 +284,7 @@ const ManagerAvailableTimeClock: React.FC<ManagerAvailableTimeClockProps> = ({
                       <span> - </span>
                     )}
                   </div>
-                  <div>• 서비스 불가 시간: 23:00 ~ 07:00</div>
+                  <div>• 서비스 불가 시간: 00:00~08:00</div>
                 </div>
               </div>
             </div>
@@ -295,11 +295,11 @@ const ManagerAvailableTimeClock: React.FC<ManagerAvailableTimeClockProps> = ({
             <div className="text-sm font-medium text-gray-700 mb-3 text-center">
               시간별 상세 정보
             </div>
-            <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-12 gap-2">
+            <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-8 gap-2">
               {TIME_SLOTS.filter((time) => {
                 const hour = parseInt(time.split(":")[0], 10);
-                // 08:00~22:00만 표시
-                return hour >= 8 && hour <= 22;
+                // 08:00~23:00만 표시
+                return hour >= 8 && hour <= 23;
               }).map((time) => {
                 const isAvailable = selectedTimes.includes(time);
                 return (
