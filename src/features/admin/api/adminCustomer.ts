@@ -1,20 +1,20 @@
-import api from "@/services/axios";
-import qs from "qs";
+import api from '@/services/axios'
+import qs from 'qs'
 import type {
   AdminCustomerSearchParams,
   AdminCustomerListResponse,
   AdminCustomerResponse,
-  AdminCustomerUpdateRequest,
-} from "../types/AdminCustomerType";
+  AdminCustomerUpdateRequest
+} from '../types/AdminCustomerType'
 
 // 고객 목록 조회
 export const fetchAdminCustomers = async (
-  params?: AdminCustomerSearchParams,
+  params?: AdminCustomerSearchParams
 ): Promise<AdminCustomerListResponse> => {
   // 상태 필터 변환 (활성 -> ACTIVE, 비활성 -> DELETED)
-  const convertedStatusFilter = params?.status?.map((status) =>
-    status === "활성" ? "ACTIVE" : status === "비활성" ? "DELETED" : status,
-  );
+  const convertedStatusFilter = params?.status?.map(status =>
+    status === '활성' ? 'ACTIVE' : status === '비활성' ? 'DELETED' : status
+  )
 
   // 빈 값인 파라미터 제거
   const cleanedParams = Object.fromEntries(
@@ -28,59 +28,71 @@ export const fetchAdminCustomers = async (
           : undefined,
       page: params?.page,
       size: params?.size,
-      sort: params?.sort,
-    }).filter(([, value]) => value !== undefined && value !== ""),
-  );
+      sort: params?.sort
+    }).filter(([, value]) => value !== undefined && value !== '')
+  )
 
-  const res = await api.get("/admin/customers", {
+  const res = await api.get('/admin/customers', {
     params: cleanedParams,
-    paramsSerializer: (params) =>
-      qs.stringify(params, { arrayFormat: "repeat" }),
-  });
+    paramsSerializer: params =>
+      qs.stringify(params, { arrayFormat: 'repeat' })
+  })
 
   if (!res.data.success) {
-    throw new Error(res.data.message || "고객 목록 조회에 실패했습니다.");
+    throw new Error(res.data.message || '고객 목록 조회에 실패했습니다.')
   }
 
-  return res.data.body || res.data;
-};
+  return res.data.body || res.data
+}
 
 // 고객 상세 조회
 export const fetchAdminCustomerById = async (
-  customerId: string,
+  customerId: string
 ): Promise<AdminCustomerResponse> => {
-  const res = await api.get(`/admin/customers/${customerId}`);
+  const res = await api.get(`/admin/customers/${customerId}`)
 
   if (!res.data.success) {
-    throw new Error(res.data.message || "고객 상세 조회에 실패했습니다.");
+    throw new Error(res.data.message || '고객 상세 조회에 실패했습니다.')
   }
 
-  return res.data.body || res.data;
-};
+  return res.data.body || res.data
+}
 
 // 고객 정보 수정
 export const updateAdminCustomer = async (
   customerId: string,
-  data: AdminCustomerUpdateRequest,
+  data: AdminCustomerUpdateRequest
 ): Promise<AdminCustomerResponse> => {
-  const res = await api.put(`/admin/customers/${customerId}`, data);
+  const res = await api.put(`/admin/customers/${customerId}`, data)
 
   if (!res.data.success) {
-    throw new Error(res.data.message || "고객 정보 수정에 실패했습니다.");
+    throw new Error(res.data.message || '고객 정보 수정에 실패했습니다.')
   }
 
-  return res.data.body || res.data;
-};
+  return res.data.body || res.data
+}
 
 // 고객 삭제
 export const deleteAdminCustomer = async (
-  customerId: string,
+  customerId: string
 ): Promise<void> => {
-  const res = await api.delete(`/admin/customers/${customerId}`);
+  const res = await api.delete(`/admin/customers/${customerId}`)
 
   if (!res.data.success) {
-    throw new Error(res.data.message || "고객 삭제에 실패했습니다.");
+    throw new Error(res.data.message || '고객 삭제에 실패했습니다.')
   }
 
-  return res.data.body || res.data;
-};
+  return res.data.body || res.data
+}
+
+// Fetch recent reviews for a customer (for admin)
+export const fetchAdminCustomerReviews = async (
+  customerId: string | number,
+  size = 3,
+  page = 0
+) => {
+  const res = await api.get(`/admin/reviews/customer/${customerId}`, {
+    params: { size, page }
+  })
+  return Array.isArray(res.data.content) ? res.data.content : []
+}

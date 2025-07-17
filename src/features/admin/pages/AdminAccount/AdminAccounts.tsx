@@ -1,17 +1,16 @@
 import { Fragment, useState, useEffect, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
 import {
   fetchAdminAccounts,
   deleteAdminAccount
 } from '@/features/admin/api/adminAuth'
-import { TableSection } from '../../components/TableSection'
-import { AdminTable } from '../../components/AdminTable'
-import { AdminPagination } from '../../components/AdminPagination'
+import { TableSection } from '@/features/admin/components/TableSection'
+import { AdminTable } from '@/features/admin/components/AdminTable'
+import { AdminPagination } from '@/features/admin/components/AdminPagination'
 import Toast from '@/shared/components/ui/toast/Toast'
 import Card from '@/shared/components/ui/Card'
 import CardContent from '@/shared/components/ui/CardContent'
 import Button from '@/shared/components/ui/Button'
-import AdminSearchForm from '../../components/AdminSearchForm'
+import AdminSearchForm from '@/features/admin/components/AdminSearchForm'
 import AccountStatusBadge from '@/shared/components/ui/AccountStatusBadge'
 import { ConfirmModal } from '@/shared/components/ui/modal'
 import { useUserStore } from '@/store/useUserStore'
@@ -19,6 +18,8 @@ import ErrorToast from '@/shared/components/ui/toast/ErrorToast'
 import SuccessToast from '@/shared/components/ui/toast/SuccessToast'
 import Modal from '@/shared/components/ui/modal/Modal'
 import { AdminAccountForm } from '@/features/admin/components/AdminAccountForm'
+import AdminAccountMobileCard from '@/features/admin/components/AdminAccountMobileCard'
+import type { AxiosError } from 'axios'
 
 export const AdminAccounts = () => {
   // 검색 조건을 하나의 키워드와 타입으로 관리
@@ -35,13 +36,13 @@ export const AdminAccounts = () => {
   ])
   const [page, setPage] = useState(0);
   const [adminData, setAdminData] = useState<Record<string, unknown>[]>([])
-  const [totalPages, setTotalPages] = useState(1);
+  const [totalPages, setTotalPages] = useState(1)
+  const [totalElements, setTotalElements] = useState(0)
   const [loading, setLoading] = useState(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [errorToastMsg, setErrorToastMsg] = useState<string | null>(null);
   const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
   const statusDropdownRef = useRef<HTMLDivElement>(null)
-  const navigate = useNavigate()
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [targetAdminId, setTargetAdminId] = useState<string | number | null>(
     null
@@ -78,7 +79,10 @@ export const AdminAccounts = () => {
         size: 10
       })
       setAdminData(res.content || [])
-      setTotalPages(res.totalPages || 1)
+      // page 정보에서 totalPages와 number, totalElements를 동기화
+      setTotalPages(res.page?.totalPages || 1)
+      setPage(res.page?.number || 0)
+      setTotalElements(res.page?.totalElements || 0)
     } catch (err: unknown) {
       const backendMsg = (
         err as unknown as { response?: { data?: { message?: string } } }
@@ -135,7 +139,7 @@ export const AdminAccounts = () => {
       setTargetAdminName('')
       fetchData()
     } catch (err: unknown) {
-      const backendMsg = (err as any)?.response?.data?.message;
+      const backendMsg = (err as AxiosError<{ message?: string }>)?.response?.data?.message
       setErrorToastMsg(backendMsg || "삭제 실패");
       setConfirmOpen(false);
       setTargetAdminId(null);
@@ -325,18 +329,21 @@ export const AdminAccounts = () => {
             </CardContent>
           </Card>
           {/* 테이블 */}
-          <TableSection title="계정 정보" total={adminData.length}>
+          <TableSection title="계정 정보" total={totalElements}>
             {/* 데스크탑: 테이블 */}
             <div className="hidden md:block">
               <AdminTable
                 loading={loading}
                 columns={columns}
                 data={adminData}
-                rowKey={(row) => (typeof row.adminId === 'string' || typeof row.adminId === 'number' ? row.adminId : '')}
-                emptyMessage={"등록된 관리자가 없습니다."}
-                onRowClick={(row) =>
-                  navigate(`/admin/accounts/${row.adminId}/edit`, { state: row })
+                rowKey={row =>
+                  typeof row.adminId === 'string' ||
+                  typeof row.adminId === 'number'
+                    ? row.adminId
+                    : ''
                 }
+                emptyMessage={'등록된 관리자가 없습니다.'}
+                // onRowClick 제거: 행 클릭 비활성화
               />
               <div className="w-full flex justify-center py-4">
                 <AdminPagination
@@ -349,7 +356,7 @@ export const AdminAccounts = () => {
             {/* 모바일: 카드형 리스트 */}
             <div className="block md:hidden">
               {adminData.length === 0 ? (
-                <div className="text-center text-gray-400 py-8">
+                <div className="flex min-h-[300px] items-center justify-center py-8 text-center text-gray-400">
                   등록된 관리자가 없습니다.
                 </div>
               ) : (
@@ -360,56 +367,15 @@ export const AdminAccounts = () => {
                     const adminId = row.adminId as string | number
       
                     return (
-                      <div
+                      <AdminAccountMobileCard
                         key={typeof row.adminId === 'string' || typeof row.adminId === 'number' ? row.adminId : ''}
-                        className="border rounded-lg p-4 bg-white shadow-sm flex flex-col gap-2 cursor-pointer"
-                        onClick={() =>
-                          navigate(`/admin/accounts/${adminId}/edit`, { state: row })
-                        }
-                      >
-                        <div className="flex justify-between items-center">
-                          <div className="font-semibold text-base text-gray-900">
-                            {userName}
-                          </div>
-                          <AccountStatusBadge status={row.status as string} />
-                        </div>
-                        <div className="text-sm text-gray-700 break-all">
-                          이메일: {typeof row.email === 'string' ? row.email : ''}
-                        </div>
-                        <div className="text-sm text-gray-700 break-all">
-                          연락처: {phone}
-                        </div>
-                        <div className="mt-2 flex justify-center items-center gap-2">
-                          <Button
-                            className="h-8 px-4 bg-indigo-500 text-white rounded-xl hover:bg-indigo-600 text-xs font-semibold disabled:bg-gray-300 disabled:text-gray-400 disabled:cursor-not-allowed shadow"
-                            onClick={e => {
-                              e.stopPropagation();
-                              setEditTarget(row)
-                              setEditModalOpen(true)
-                            }}
-                          >
-                            수정
-                          </Button>
-                          <Button
-                            className="h-8 px-4 bg-red-500 text-white rounded-xl hover:bg-red-600 text-xs font-semibold disabled:bg-gray-300 disabled:text-gray-400 disabled:cursor-not-allowed shadow"
-                            disabled={!!(phone === myPhone || (userName && typeof userName === 'string' && userName.includes('테스트')))}
-                            onClick={e => {
-                              e.stopPropagation();
-                              if (phone === myPhone) {
-                                setErrorToastMsg('본인 계정은 삭제할 수 없습니다.');
-                                return;
-                              }
-                              if (userName && typeof userName === 'string' && userName.includes('테스트')) {
-                                setErrorToastMsg('테스트 계정은 삭제할 수 없습니다.');
-                                return;
-                              }
-                              handleDeleteClick(adminId);
-                            }}
-                          >
-                            삭제
-                          </Button>
-                        </div>
-                      </div>
+                        row={row}
+                        myPhone={myPhone ?? ''}
+                        setEditTarget={setEditTarget}
+                        setEditModalOpen={setEditModalOpen}
+                        setErrorToastMsg={setErrorToastMsg}
+                        handleDeleteClick={handleDeleteClick}
+                      />
                     )
                   })}
                 </div>

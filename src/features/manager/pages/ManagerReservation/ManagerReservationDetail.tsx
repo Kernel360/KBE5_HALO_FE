@@ -20,7 +20,7 @@ import SuccessToast from '@/shared/components/ui/toast/SuccessToast'
 import ErrorToast from '@/shared/components/ui/toast/ErrorToast'
 import { ReservationInfoCard } from '@/features/manager/components/ReservationInfoCard'
 import { ServiceDetailCard } from '@/features/manager/components/ServiceDetailCard'
-import { AddressMapCard } from '@/features/manager/components/AddressMapCard'
+import { AddressMapCardForCustomer } from '@/features/manager/components/AddressMapCard'
 import { CancelInfoCard } from '@/features/manager/components/CancelInfoCard'
 import { CheckInOutCard } from '@/features/manager/components/CheckInOutCard'
 import { ReviewSection } from '@/features/manager/components/ReviewSection'
@@ -374,7 +374,7 @@ export const ManagerReservationDetail = () => {
               <div className="flex flex-col gap-8">
                 <ReservationInfoCard reservation={reservation} customerProfile={customerProfile} />
                 <ServiceDetailCard reservation={reservation} />
-                <AddressMapCard reservation={reservation} />
+                <AddressMapCardForCustomer reservation={reservation} />
               </div>
               {/* 오른쪽: 리뷰 → 체크인/체크아웃 카드 순서로 변경 */}
               <div className="flex flex-col gap-8">

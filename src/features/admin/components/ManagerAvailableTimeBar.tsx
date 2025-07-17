@@ -1,29 +1,30 @@
-import React from "react";
+import React from 'react'
 
 interface ManagerAvailableTimeBarProps {
-  weekDays: { label: string; key: string }[];
-  groupedTimes: Record<string, string[]>;
+  weekDays: { label: string; key: string }[]
+  groupedTimes: Record<string, string[]>
 }
 
+// TIME_SLOTS: 08:00~23:00 (23:00은 23:00~24:00 의미)
 const TIME_SLOTS = [
-  "08:00",
-  "09:00",
-  "10:00",
-  "11:00",
-  "12:00",
-  "13:00",
-  "14:00",
-  "15:00",
-  "16:00",
-  "17:00",
-  "18:00",
-  "19:00",
-  "20:00",
-  "21:00",
-  "22:00",
-  "23:00",
-];
-const TIME_SLOT_COUNT = TIME_SLOTS.length;
+  '08:00',
+  '09:00',
+  '10:00',
+  '11:00',
+  '12:00',
+  '13:00',
+  '14:00',
+  '15:00',
+  '16:00',
+  '17:00',
+  '18:00',
+  '19:00',
+  '20:00',
+  '21:00',
+  '22:00',
+  '23:00'
+]
+const TIME_SLOT_COUNT = TIME_SLOTS.length
 
 // 연속 구간 추출 함수
 function getTimeRanges(times: string[]): [string, string][] {

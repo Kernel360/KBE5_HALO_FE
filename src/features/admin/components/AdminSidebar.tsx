@@ -11,6 +11,7 @@ export const AdminSidebar = () => {
   const menuItems = [
     { name: '대시보드', path: '/admin' },
     { name: '문의 내역', path: '/admin/inquiries' },
+    { name: "예약 관리", path: "/admin/reservations" },
     { name: '정산 내역', path: '/admin/settlements' },
     { name: '매니저 정보', path: '/admin/managers' },
     { name: '고객 정보', path: '/admin/customers' },
@@ -18,7 +19,6 @@ export const AdminSidebar = () => {
 
     //{ name: "공지/이벤트", path: "/admin/boards" },
     // ( name: "배너 관리"), path: "/admin/banners"},
-    //{ name: "예약 관리", path: "/admin/reservations" },
   ]
 
   const handleLogout = async () => {
