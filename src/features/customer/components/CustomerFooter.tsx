@@ -23,6 +23,24 @@ export const CustomerFooter = () => {
               className="cursor-pointer font-['Inter'] text-sm leading-none font-bold text-white transition-colors hover:text-gray-300">
               개인정보처리방침
             </button>
+            <span className="mx-2 text-neutral-500">|</span>
+            <a
+              href="/privacy"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-['Inter'] text-sm leading-none font-bold text-white transition-colors hover:text-gray-300"
+            >
+              개인정보처리방침(페이지)
+            </a>
+            <span className="mx-2 text-neutral-500">|</span>
+            <a
+              href="/terms"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-['Inter'] text-sm leading-none font-bold text-white transition-colors hover:text-gray-300"
+            >
+              서비스 약관
+            </a>
           </div>
         </div>
         <div className="flex w-full flex-col items-start justify-start gap-2">
