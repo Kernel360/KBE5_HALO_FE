@@ -273,19 +273,6 @@ export const AdminReservations = () => {
     type: 'customerName',
     keyword: ''
   }
-  // 검색폼 리셋 시 날짜 범위도 초기화
-  const handleReset = () => {
-    setDateRange({ startDate: '', endDate: '' })
-    setSearchParams(prev => ({
-      ...prev,
-      customerName: '',
-      managerName: '',
-      status: [],
-      fromRequestDate: undefined,
-      toRequestDate: undefined,
-      page: 0
-    }))
-  }
 
   // 페이지네이션 변경
   const handlePageChange = (page: number) => {

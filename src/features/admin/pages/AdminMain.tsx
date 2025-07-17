@@ -162,9 +162,6 @@ export const AdminMain = () => {
     number | null
   >(null)
   const [todayReservationCount, setTodayReservationCount] = useState(0)
-  const [yesterdayReservationCount, setYesterdayReservationCount] = useState<
-    number | null
-  >(null)
 
   // fallback week data for empty or error case
   const fallbackWeek = ['월', '화', '수', '목', '금', '토', '일'].map(day => ({
@@ -379,37 +376,16 @@ export const AdminMain = () => {
         setTodayReservationCount(
           todayData.page?.totalElements || todayData.totalElements || 0
         )
-        // 어제 예약 건수
-        const yesterday = new Date(todayDate)
-        yesterday.setDate(todayDate.getDate() - 1)
-        const yesterdayStr = formatDate(yesterday)
-        const yesterdayData = await fetchAdminReservations({
-          fromRequestDate: yesterdayStr,
-          toRequestDate: yesterdayStr,
-          status: ['COMPLETED', 'IN_PROGRESS', 'CONFIRMED'],
-          size: 1000
-        })
-        setYesterdayReservationCount(
-          yesterdayData.page?.totalElements || yesterdayData.totalElements || 0
-        )
       } catch {
         setWeeklyReservationData(fallbackWeek)
         setWeeklyReservationCount(0)
         setWeeklyCompletedCount(0)
         setLastWeekReservationCount(null)
         setTodayReservationCount(0)
-        setYesterdayReservationCount(null)
       }
     }
     fetchWeeklyReservations()
   }, [])
-
-  // trend 텍스트에 증가/감소 문구를 자동으로 붙여주는 함수
-  function getTrendText(trend: string) {
-    if (trend.includes('증가') || trend.includes('감소')) return trend
-    if (trend.startsWith('-') || trend.includes('▼')) return trend + ' 감소'
-    return trend + ' 증가'
-  }
 
   // 이번주 총 예약 건수 변동률 계산
   function getWeeklyReservationTrend() {
@@ -430,18 +406,6 @@ export const AdminMain = () => {
     if (rate < 33) return { rate: rate.toFixed(1), color: 'text-red-600' }
     if (rate < 66) return { rate: rate.toFixed(1), color: 'text-yellow-500' }
     return { rate: rate.toFixed(1), color: 'text-green-600' }
-  }
-
-  // 오늘 예약 변동률 계산
-  function getTodayReservationTrend() {
-    if (yesterdayReservationCount === null) return { text: '변동 없음', color: 'text-gray-500' }
-    if (yesterdayReservationCount === 0 && todayReservationCount === 0) return { text: '변동 없음', color: 'text-gray-500' }
-    if (yesterdayReservationCount === 0) return { text: '+100% 증가', color: 'text-green-600' }
-    const diff = todayReservationCount - yesterdayReservationCount
-    const percent = ((diff / yesterdayReservationCount) * 100).toFixed(1)
-    if (diff === 0) return { text: '변동 없음', color: 'text-gray-500' }
-    if (diff > 0) return { text: `+${percent}% 증가`, color: 'text-green-600' }
-    return { text: `${percent}% 감소`, color: 'text-red-600' }
   }
 
   return (

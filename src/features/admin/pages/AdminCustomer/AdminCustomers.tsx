@@ -24,7 +24,7 @@ export const AdminCustomers = () => {
   const [phoneKeyword, setPhoneKeyword] = useState("");
   const [emailKeyword, setEmailKeyword] = useState("");
   const [page, setPage] = useState(0);
-  const [pageSize, setPageSize] = useState(10); // Optional: for future page size selection
+  const pageSize = 10; // Hardcoded page size
   const [sortOrder, setSortOrder] = useState<"desc" | "asc" | null>(null);
   const [searchTrigger, setSearchTrigger] = useState(0);
   const [customers, setCustomers] = useState<AdminCustomer[]>([]);
@@ -55,7 +55,7 @@ export const AdminCustomers = () => {
           email: emailKeyword || undefined,
           status: currentStatusFilter.length > 0 ? currentStatusFilter : undefined,
           page,
-          size: pageSize,
+          size: pageSize, // Use the hardcoded value
           sort: sortOrder ? `point,${sortOrder}` : undefined,
         };
 
@@ -123,7 +123,7 @@ export const AdminCustomers = () => {
     sortOrder,
     statusFilter,
     searchTrigger,
-    pageSize,
+    // pageSize, // Remove from dependency array
   ]);
 
   // 상세 페이지로 이동

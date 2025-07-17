@@ -361,23 +361,17 @@ export const AdminAccounts = () => {
                 </div>
               ) : (
                 <div className="flex flex-col gap-3">
-                  {adminData.map((row) => {
-                    const phone = typeof row.phone === 'string' ? row.phone : ''
-                    const userName = typeof row.userName === 'string' ? row.userName : ''
-                    const adminId = row.adminId as string | number
-      
-                    return (
-                      <AdminAccountMobileCard
-                        key={typeof row.adminId === 'string' || typeof row.adminId === 'number' ? row.adminId : ''}
-                        row={row}
-                        myPhone={myPhone ?? ''}
-                        setEditTarget={setEditTarget}
-                        setEditModalOpen={setEditModalOpen}
-                        setErrorToastMsg={setErrorToastMsg}
-                        handleDeleteClick={handleDeleteClick}
-                      />
-                    )
-                  })}
+                  {adminData.map(row => (
+                    <AdminAccountMobileCard
+                      key={typeof row.adminId === 'string' || typeof row.adminId === 'number' ? row.adminId : ''}
+                      row={row}
+                      myPhone={myPhone ?? ''}
+                      setEditTarget={setEditTarget}
+                      setEditModalOpen={setEditModalOpen}
+                      setErrorToastMsg={setErrorToastMsg}
+                      handleDeleteClick={handleDeleteClick}
+                    />
+                  ))}
                 </div>
               )}
               <div className="w-full flex justify-center py-4">
