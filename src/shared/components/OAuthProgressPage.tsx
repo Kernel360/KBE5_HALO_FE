@@ -22,61 +22,20 @@ const OAuthProgressPage: React.FC = () => {
   const code = searchParams.get('code')
   const error = searchParams.get('error')
 
-  // 로그를 localStorage에 남기는 함수
-  type OAuthRedirectLog = {
-    timestamp: string
-    from: string
-    to: string
-    status: string
-    role: string
-    code: string | null
-    error: string | null
-    requestUrl?: string
-  }
-  const logRedirect = (
-    targetPath: string,
-    status: string,
-    requestUrl?: string
-  ) => {
-    const logsRaw = localStorage.getItem('oauth-redirect-logs')
-    let logs: OAuthRedirectLog[] = []
-    try {
-      logs = logsRaw ? JSON.parse(logsRaw) : []
-    } catch {
-      logs = []
-    }
-    logs.push({
-      timestamp: new Date().toISOString(),
-      from: location.pathname + location.search,
-      to: targetPath,
-      status,
-      role,
-      code,
-      error,
-      requestUrl
-    })
-    localStorage.setItem('oauth-redirect-logs', JSON.stringify(logs))
-  }
-
   useEffect(() => {
     // 에러 쿼리 감지 시 실패 처리 및 실패 페이지 이동
     if (error) {
       setStatus('error')
-      logRedirect(`/oauth-fail?role=${role}`, 'error')
       navigate(`/oauth-fail?role=${role}`)
       return
     }
     // code가 없으면 실패 처리 및 실패 페이지 이동
     if (!code) {
       setStatus('error')
-      logRedirect(`/oauth-fail?role=${role}`, 'error')
       navigate(`/oauth-fail?role=${role}`)
       return
     }
     setStatus('pending')
-    // 구글 OAuth 로그인 API 요청 주소 로그 남기기
-    const backendOAuthUrl = `/api/oauth/google?role=${role}&code=${code}`
-    logRedirect(location.pathname + location.search, 'request', backendOAuthUrl)
     // 구글 OAuth 로그인 API 호출
     googleOAuthLogin(role, code)
       .then(res => {
@@ -86,10 +45,6 @@ const OAuthProgressPage: React.FC = () => {
         const roleUpper = role === 'manager' ? 'MANAGER' : 'CUSTOMER'
         if (responseRole && responseRole !== roleUpper) {
           setStatus('error')
-          logRedirect(
-            `/oauth-fail?role=${role}&message=${encodeURIComponent('해당 페이지에 권한이 없습니다.')}`,
-            'error'
-          )
           navigate(
             `/oauth-fail?role=${role}&message=${encodeURIComponent('해당 페이지에 권한이 없습니다.')}`
           )
@@ -107,12 +62,8 @@ const OAuthProgressPage: React.FC = () => {
           const provider = data.provider || ''
           const providerId = data.providerId || ''
           // zustand 전역 상태에 토큰 및 유저 정보 저장
-          useAuthStore
-            .getState()
-            .setTokens(accessToken, roleUpper)
-          useUserStore
-            .getState()
-            .setUser(email, userName, statusValue, provider, providerId)
+          useAuthStore.getState().setTokens(accessToken, roleUpper)
+          useUserStore.getState().setUser(email, userName, statusValue, provider, providerId)
         }
         setStatus('success')
         // SuccessPage로 이동 시 isNew도 쿼리로 넘김
@@ -133,14 +84,12 @@ const OAuthProgressPage: React.FC = () => {
             `&password=${encodeURIComponent(password)}` +
             `&provider=${encodeURIComponent(provider)}` +
             `&providerId=${encodeURIComponent(providerId)}`
-          logRedirect(successPath, 'success')
           navigate(successPath)
         }, 100)
       })
       .catch(() => {
         // 로그인 실패 시 실패 페이지로 이동
         setStatus('error')
-        logRedirect(`/oauth-fail?role=${role}`, 'error')
         navigate(`/oauth-fail?role=${role}`)
       })
   }, [code, error, navigate, role])
@@ -161,4 +110,4 @@ const OAuthProgressPage: React.FC = () => {
   )
 }
 
-export default OAuthProgressPage 
+export default OAuthProgressPage
