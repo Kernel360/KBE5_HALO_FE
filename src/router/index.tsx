@@ -59,6 +59,8 @@ import AdminNotFound from '@/features/admin/pages/AdminNotFound'
 import OAuthFailPage from '@/shared/components/OAuthFailPage'
 import OAuthSuccessPage from '@/shared/components/OAuthSuccessPage'
 import OAuthProgressPage from '@/shared/components/OAuthProgressPage'
+import PrivacyPolicyPage from '@/shared/components/PrivacyPolicyPage'
+import TermsOfServicePage from '@/shared/components/TermsOfServicePage'
 
 export const router = createBrowserRouter([
   /** 수요자 로그인 (가드 제외) */
@@ -72,6 +74,11 @@ export const router = createBrowserRouter([
   { path: '/oauth-success', element: <OAuthSuccessPage /> },
   { path: '/customers/oauth/success', element: <OAuthProgressPage /> },
   { path: '/managers/oauth/success', element: <OAuthProgressPage /> },
+
+  /** 개인정보처리방침 */
+  { path: '/privacy', element: <PrivacyPolicyPage /> },
+  /** 서비스 이용약관 */
+  { path: '/terms', element: <TermsOfServicePage /> },
 
   /** 매니저 로그인/회원가입 */
   {
