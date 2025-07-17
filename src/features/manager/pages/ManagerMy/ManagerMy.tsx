@@ -9,6 +9,7 @@ import { Card } from '@/shared/components/ui/Card'
 import { AddressMapCard } from '@/features/manager/components/AddressMapCard'
 import { ProfileImagePreview } from '@/shared/components/ui/ProfileImagePreview'
 
+
 export const ManagerMy = () => {
   const [manager, setManager] = useState<ManagerInfo | null>(null)
   const [errorToastMsg, setErrorToastMsg] = useState<string | null>(null)
@@ -215,7 +216,7 @@ export const ManagerMy = () => {
 
         {/* 3. 서비스 지역(주소+지도) */}
         <Card className="flex flex-col gap-4 rounded-xl border border-gray-200 bg-white p-6 shadow-md">
-          <AddressMapCard
+          <AddressMapCardForCustomer
             reservation={{
               roadAddress: manager.roadAddress,
               detailAddress: manager.detailAddress

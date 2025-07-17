@@ -1,127 +1,151 @@
 // 예약 목록 조회 요청 파라미터 타입
 export interface AdminReservationSearchParams {
-  customerName?: string;
-  managerName?: string;
-  address?: string;
-  startDate?: string;
-  endDate?: string;
-  status?: string[];
-  page?: number;
-  size?: number;
-  sort?: string;
+  customerNameKeyword?: string
+  managerNameKeyword?: string
+  address?: string
+  startDate?: string
+  endDate?: string
+  fromRequestDate?: string
+  toRequestDate?: string
+  status?: string[]
+  page?: number
+  size?: number
+  sort?: string
+  type?: string
+  managerId?: string | number
 }
 
 // 백엔드 API 응답의 예약 데이터 타입
 export interface AdminReservationResponse {
-  reservationId: string;
-  customerId: string;
-  customerName: string;
-  customerPhone: string;
-  customerEmail: string;
-  managerId: string;
-  managerName: string;
-  managerPhone: string;
-  serviceDate: string;
-  serviceTime: string;
-  serviceDuration: number;
-  serviceCategory: string;
-  serviceSubCategory: string;
-  roadAddress: string;
-  detailAddress: string;
-  latitude: number;
-  longitude: number;
-  totalAmount: number;
-  discountAmount: number;
-  finalAmount: number;
+  reservationId: string
+  customerId: string
+  customerName: string
+  customerPhone: string
+  customerEmail: string
+  managerId: string
+  managerName: string
+  managerPhone: string
+  serviceDate: string
+  serviceTime: string
+  serviceDuration: number
+  serviceCategory: string
+  serviceSubCategory: string
+  roadAddress: string
+  detailAddress: string
+  latitude: number
+  longitude: number
+  totalAmount: number
+  discountAmount: number
+  finalAmount: number
   reservationStatus:
-    | "CONFIRMED"
-    | "CANCELLED"
-    | "COMPLETED"
-    | "IN_PROGRESS"
-    | "PENDING";
-  paymentStatus: "PENDING" | "COMPLETED" | "FAILED" | "REFUNDED";
-  specialRequests?: string;
-  notes?: string;
-  createdAt: string;
-  updatedAt: string;
+    | 'CONFIRMED'
+    | 'CANCELLED'
+    | 'COMPLETED'
+    | 'IN_PROGRESS'
+    | 'PENDING'
+  paymentStatus: 'PENDING' | 'COMPLETED' | 'FAILED' | 'REFUNDED'
+  specialRequests?: string
+  notes?: string
+  createdAt: string
+  updatedAt: string
+  requestDate?: string
 }
 
 // 예약 목록 조회 응답 타입
 export interface AdminReservationListResponse {
-  content: AdminReservationResponse[];
-  totalPages: number;
-  totalElements: number;
+  content: AdminReservationResponse[]
+  totalPages: number
+  totalElements: number
   page: {
-    size: number;
-    number: number;
-    totalElements: number;
-    totalPages: number;
-  };
+    size: number
+    number: number
+    totalElements: number
+    totalPages: number
+  }
 }
 
 // 예약 정보 수정 요청 타입
 export interface AdminReservationUpdateRequest {
-  serviceDate: string;
-  serviceTime: string;
-  serviceDuration: number;
-  serviceCategory: string;
-  serviceSubCategory: string;
-  roadAddress: string;
-  detailAddress: string;
-  latitude: number;
-  longitude: number;
-  totalAmount: number;
-  discountAmount: number;
-  finalAmount: number;
-  reservationStatus: string;
-  paymentStatus: string;
-  specialRequests?: string;
-  notes?: string;
+  serviceDate: string
+  serviceTime: string
+  serviceDuration: number
+  serviceCategory: string
+  serviceSubCategory: string
+  roadAddress: string
+  detailAddress: string
+  latitude: number
+  longitude: number
+  totalAmount: number
+  discountAmount: number
+  finalAmount: number
+  reservationStatus: string
+  paymentStatus: string
+  specialRequests?: string
+  notes?: string
 }
 
 // 프론트엔드에서 사용하는 예약 타입 (UI용)
 export interface AdminReservation {
-  id: string;
-  customerId: string;
-  customerName: string;
-  customerPhone: string;
-  customerEmail: string;
-  managerId: string;
-  managerName: string;
-  managerPhone: string;
-  serviceDate: string;
-  serviceTime: string;
-  serviceDuration: number;
-  serviceCategory: string;
-  serviceSubCategory: string;
-  roadAddress: string;
-  detailAddress: string;
-  latitude: number;
-  longitude: number;
-  totalAmount: number;
-  discountAmount: number;
-  finalAmount: number;
-  reservationStatus: string;
-  paymentStatus: string;
-  specialRequests?: string;
-  notes?: string;
-  createdAt: string;
-  updatedAt: string;
+  id: string
+  customerId: string
+  customerName: string
+  customerPhone: string
+  customerEmail: string
+  managerId: string
+  managerName: string
+  managerPhone: string
+  serviceDate: string
+  serviceTime: string
+  serviceDuration: number
+  serviceCategory: string
+  serviceSubCategory: string
+  roadAddress: string
+  detailAddress: string
+  latitude: number
+  longitude: number
+  totalAmount: number
+  discountAmount: number
+  finalAmount: number
+  reservationStatus: string
+  paymentStatus: string
+  specialRequests?: string
+  notes?: string
+  createdAt: string
+  updatedAt: string
 }
 
 // 예약 상태 옵션
 export const RESERVATION_STATUS_OPTIONS = [
-  { value: "PENDING", label: "대기중" },
-  { value: "CONFIRMED", label: "확정" },
-  { value: "IN_PROGRESS", label: "진행중" },
-  { value: "COMPLETED", label: "완료" },
-  { value: "CANCELLED", label: "취소" },
-] as const;
+  { value: 'PENDING', label: '대기중' },
+  { value: 'CONFIRMED', label: '확정' },
+  { value: 'IN_PROGRESS', label: '진행중' },
+  { value: 'COMPLETED', label: '완료' },
+  { value: 'CANCELLED', label: '취소' }
+] as const
 
 // 결제 상태 옵션
 export const PAYMENT_STATUS_OPTIONS = [
-  { value: "PENDING", label: "결제대기" },
-  { value: "COMPLETED", label: "결제완료" },
-  { value: "FAILED", label: "결제실패" },
-  { value: "REFUNDED", label: "환불완료" },
-] as const;
+  { value: 'SUCCESS', label: '결제 성공' },
+  { value: 'FAILED', label: '결제 실패' },
+  { value: 'CANCELED', label: '결제 취소' },
+  { value: 'REFUNDED', label: '환불' }
+] as const
+
+// 상세 페이지에서 사용할 타입 (API 응답 필드 기준, 모두 optional)
+export type AdminReservationDetailData = {
+  reservationId?: string | number
+  requestDate?: string
+  roadAddress?: string
+  detailAddress?: string
+  managerId?: string | number
+  managerName?: string
+  managerPhone?: string
+  customerId?: string | number
+  customerName?: string
+  customerPhone?: string
+  reservationStatus?: string
+  paymentStatus?: string
+  memo?: string
+  paidAt?: string
+  serviceName?: string
+}

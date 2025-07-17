@@ -259,6 +259,12 @@ export const isSameYear = (date1: Date, date2: Date): boolean => {
 }
 
 export const parseDate = (dateString: string): Date => {
+  // YYYY-MM-DD → local date
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+    const [year, month, day] = dateString.split('-').map(Number)
+    return new Date(year, month - 1, day)
+  }
+  // fallback for other formats (e.g., with time)
   return new Date(dateString)
 }
 

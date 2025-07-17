@@ -20,7 +20,7 @@ import SuccessToast from '@/shared/components/ui/toast/SuccessToast'
 import ErrorToast from '@/shared/components/ui/toast/ErrorToast'
 import { ReservationInfoCard } from '@/features/manager/components/ReservationInfoCard'
 import { ServiceDetailCard } from '@/features/manager/components/ServiceDetailCard'
-import { AddressMapCard } from '@/features/manager/components/AddressMapCard'
+import { AddressMapCardForCustomer } from '@/features/manager/components/AddressMapCard'
 import { CancelInfoCard } from '@/features/manager/components/CancelInfoCard'
 import { ReviewSection } from '@/features/manager/components/ReviewSection'
 import { CRMSection } from '@/features/manager/components/CRMSection'
@@ -417,6 +417,7 @@ export const ManagerReservationDetail = () => {
                   setCheckType={setCheckType}
                   setOpenModal={setOpenModal}
                 />
+
               </div>
               {/* 모바일: ReservationCheckInOutBanner */}
               <div className="block xl:hidden">
