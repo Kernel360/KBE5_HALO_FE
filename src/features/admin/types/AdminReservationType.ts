@@ -11,6 +11,8 @@ export interface AdminReservationSearchParams {
   page?: number
   size?: number
   sort?: string
+  type?: string
+  managerId?: string | number
 }
 
 // 백엔드 API 응답의 예약 데이터 타입

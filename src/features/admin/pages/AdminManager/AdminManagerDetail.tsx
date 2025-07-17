@@ -21,6 +21,16 @@ import type { InquirySummary } from '@/features/admin/types/AdminInquiryType'
 import SuccessToast from '@/shared/components/ui/toast/SuccessToast'
 import RecentInquiriesCard from '@/features/admin/components/RecentInquiriesCard'
 import RecentReviewsCard from '@/features/admin/components/RecentReviewsCard'
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer
+} from 'recharts'
+import { fetchAdminReservations } from '@/features/admin/api/adminReservation'
+import { startOfMonth, endOfMonth, subMonths, format } from 'date-fns'
 
 export const AdminManagerDetail = () => {
   const { managerId } = useParams<{ managerId: string }>()
@@ -37,6 +47,9 @@ export const AdminManagerDetail = () => {
   const [inquiriesLoading, setInquiriesLoading] = useState(false)
   const [inquiriesError, setInquiriesError] = useState<string | null>(null)
   const [successToastMsg, setSuccessToastMsg] = useState<string | null>(null)
+  const [monthlyReservationData, setMonthlyReservationData] = useState<
+    { month: string; count: number }[]
+  >([])
 
   const weekDays = [
     { label: '월요일', key: 'MONDAY' },
@@ -69,7 +82,7 @@ export const AdminManagerDetail = () => {
     content: i.title?.length > 20 ? i.title.slice(0, 20) + '...' : i.title,
     date: i.createdAt?.slice(0, 10),
     full: i.title,
-    inquiryId: i.inquiryId
+    inquiryId: String(i.inquiryId)
   }))
   // 실제 리뷰 데이터 사용
   const recentReviews = reviews.map(r => ({
@@ -162,6 +175,43 @@ export const AdminManagerDetail = () => {
         setInquiriesError(err.message || '문의 내역을 불러오지 못했습니다.')
       })
       .finally(() => setInquiriesLoading(false))
+  }, [manager])
+
+  useEffect(() => {
+    if (!manager) return
+
+    // 6개월 전 1일 ~ 이번달 말
+    const now = new Date()
+    const from = startOfMonth(subMonths(now, 5))
+    const to = endOfMonth(now)
+
+    fetchAdminReservations({
+      type: 'manager',
+      managerId: manager.managerId,
+      fromRequestDate: format(from, 'yyyy-MM-dd'),
+      toRequestDate: format(to, 'yyyy-MM-dd'),
+      size: 1000
+    }).then(res => {
+      const reservations = res.content || []
+      // 월별 집계
+      const monthMap: { [month: string]: number } = {}
+      for (let i = 0; i < 6; i++) {
+        const d = subMonths(now, 5 - i)
+        const key = format(d, 'yyyy-MM')
+        monthMap[key] = 0
+      }
+      reservations.forEach(r => {
+        if (!r.requestDate) return
+        const month = r.requestDate.slice(0, 7) // 'yyyy-MM'
+        if (monthMap[month] !== undefined) monthMap[month]++
+      })
+      setMonthlyReservationData(
+        Object.entries(monthMap).map(([month, count]) => ({
+          month: month.replace('-', '년 ') + '월',
+          count
+        }))
+      )
+    })
   }, [manager])
 
   useEffect(() => {
@@ -321,6 +371,24 @@ export const AdminManagerDetail = () => {
                 : undefined
             }
           />
+          {/* 월별 예약수 추이 꺾은선 그래프 */}
+          <Card className="w-full border border-gray-200 bg-white p-6 shadow-lg">
+            <div className="mb-2 text-xl font-bold">최근 6개월 예약수 추이</div>
+            <div className="mb-4 border-b border-gray-100"></div>
+            <ResponsiveContainer
+              width="100%"
+              height={180}>
+              <LineChart
+                data={monthlyReservationData}
+                margin={{ top: 10, right: 20, left: 0, bottom: 0 }}
+              >
+                <XAxis dataKey="month" />
+                <YAxis allowDecimals={false} />
+                <Tooltip />
+                <Line type="monotone" dataKey="count" stroke="#6366f1" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+              </LineChart>
+            </ResponsiveContainer>
+          </Card>
           <ManagerContractInfo
             manager={manager}
             onApprove={handleApprove}

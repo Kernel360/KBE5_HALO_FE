@@ -43,7 +43,9 @@ export const fetchAdminReservations = async (
           : undefined,
       page: params?.page,
       size: params?.size,
-      sort: params?.sort
+      sort: params?.sort,
+      type: params?.type,
+      managerId: params?.managerId
     }).filter(([, value]) => value !== undefined && value !== '')
   )
 
