@@ -1,5 +1,5 @@
-import api from "@/services/axios";
-import type { SearchInquiriesRequest } from "@/features/admin/types/AdminInquiryType";
+import api from '@/services/axios'
+import type { SearchInquiriesRequest } from '@/features/admin/types/AdminInquiryType'
 
 // EnumValueDTO 타입 정의
 export interface EnumValue {
@@ -8,22 +8,18 @@ export interface EnumValue {
 }
 
 // 문의사항 카테고리 전체 조회
-export const getAllInquiryCategories = async (): Promise<{[key: string]: EnumValue[]}> => {
-  const res = await api.get("/admin/inquiries/categories");
-  if (!res.data.success) {
-    throw new Error(res.data.message || "카테고리 조회에 실패했습니다.");
-  }
-  return res.data.body;
-};
+export const fetchAdminInquiryCategories = async (): Promise<{ [key: string]: EnumValue[] }> => {
+  const res = await api.get('/admin/inquiries/categories')
+  if (!res.data.success) throw new Error('카테고리 조회에 실패했습니다.')
+  return res.data.body
+}
 
 // 문의사항 작성자 타입 조회
-export const getAllInquiryAuthorTypes = async (): Promise<EnumValue[]> => {
-  const res = await api.get("/admin/inquiries/authorTypes");
-  if (!res.data.success) {
-    throw new Error(res.data.message || "작성자 타입 조회에 실패했습니다.");
-  }
-  return res.data.body;
-};
+export const fetchAdminInquiryAuthorTypes = async (): Promise<EnumValue[]> => {
+  const res = await api.get('/admin/inquiries/authorTypes')
+  if (!res.data.success) throw new Error('작성자 유형 조회에 실패했습니다.')
+  return res.data.body
+}
 
 // 문의사항 목록 조회
 export const searchAdminInquiries = async (
@@ -42,6 +38,7 @@ export const searchAdminInquiries = async (
   if (params.categories && params.categories.length > 0) {
     params.categories.forEach((category: string) => queryParams.append("categories", category));
   }
+  if (params.authorId) queryParams.append('authorId', String(params.authorId));
   
   queryParams.append("page", (params.page ?? 0).toString());
   queryParams.append("size", (params.size ?? 10).toString());
@@ -77,3 +74,15 @@ export const answerAdminInquiry = async (
     throw new Error(res.data.message || "문의사항 답변 등록에 실패했습니다.");
   return res.data.body;
 };
+
+// 최근 매니저 문의 3개 조회
+export const fetchRecentManagerInquiries = async (managerId: number | string) => {
+  const res = await searchAdminInquiries({
+    authorType: 'MANAGER',
+    authorId: managerId, // 반드시 포함
+    size: 3,
+    page: 0
+  })
+  // content 배열만 반환
+  return res.content || []
+}

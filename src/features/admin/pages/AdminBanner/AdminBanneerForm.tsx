@@ -1,16 +1,16 @@
-import { Fragment, useEffect, useRef, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { FileUploadSection } from "@/shared/components/FileUploadSection";
-import { isValidDateRange, isValidLength } from "@/shared/utils/validation";
+import React, { useState, useRef, useEffect, Fragment } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
+import { FileUploadSection } from '@/shared/components/FileUploadSection'
+import { isValidLength, isValidDateRange } from '@/shared/utils/validation'
 import {
   creatAdminBanner,
-  updateAdminBanner,
-} from "@/features/admin/api/adminBanners";
-import type { AdminBannerDetail as AdminBannerType } from "@/features/admin/types/AdminBannerType";
+  updateAdminBanner
+} from '@/features/admin/api/adminBanners'
+import type { AdminBannerDetail } from '@/features/admin/types/AdminBannerType'
 
 export const AdminBannerForm = () => {
   const location = useLocation();
-  const existingData = location.state?.banner as AdminBannerType | undefined;
+  const existingData = location.state?.banner as AdminBannerDetail | undefined;
   const isEditMode = !!existingData;
 
   const [title, setTitle] = useState("");
@@ -53,13 +53,6 @@ export const AdminBannerForm = () => {
       return;
     }
 
-    // TODO: S3 업로드 후 받은 실제 fileId와 fileUrls로 대체 필요
-    // const fileUrls = files.map(file => URL.createObjectURL(file));
-    // if (fileUrls.length === 0) {
-    //   alert("배너 이미지는 필수입니다.");
-    //   return;
-    // }
-
     try {
       if (isEditMode && existingData) {
         await updateAdminBanner(existingData.bannerId, {
@@ -72,10 +65,6 @@ export const AdminBannerForm = () => {
         alert("배너가 수정되었습니다.");
         navigate(`/admin/banners/${existingData.bannerId}`);
       } else {
-        // const result = await creatAdminBanner({ title, path, startAt, endAt, fileId });
-        // alert("배너가 등록되었습니다.");
-        // navigate(`/admin/banners/${result.bannerId}`);
-
         await creatAdminBanner({ title, path, startAt, endAt, fileId });
         alert("배너가 등록되었습니다.");
         navigate(`/admin/banners`);

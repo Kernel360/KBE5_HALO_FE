@@ -76,8 +76,8 @@ export const getCustomerReservations = async (
       queryParams.append('reservationStatus', status)
     })
   }
-  if (searchCond.managerName) {
-    queryParams.append('managerName', searchCond.managerName)
+  if (searchCond.managerNameKeyword) {
+    queryParams.append('managerNameKeyword', searchCond.managerNameKeyword)
   }
 
   // Pageable 파라미터들
