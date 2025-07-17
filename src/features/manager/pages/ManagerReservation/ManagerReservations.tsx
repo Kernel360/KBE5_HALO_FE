@@ -43,22 +43,28 @@ export const ManagerReservations = () => {
     'false'
   ])
   const [customerNameKeyword, setCustomerNameKeyword] = useState('')
+  const [customerAddressKeyword, setCustomerAddressKeyword] = useState('')
   const fromDateRef = useRef<HTMLInputElement>(null)
-  const [searchParams] = useSearchParams();
-  const dateParam = searchParams.get("date");
-  const fromRequestDateParam = searchParams.get("fromRequestDate");
-  const toRequestDateParam = searchParams.get("toRequestDate");
-  const statusParam = searchParams.get("status");
+  const [searchParams] = useSearchParams()
+  const dateParam = searchParams.get('date')
+  const fromRequestDateParam = searchParams.get('fromRequestDate')
+  const toRequestDateParam = searchParams.get('toRequestDate')
+  const statusParam = searchParams.get('status')
 
   const formData = {
-    customerNameKeyword
+    customerNameKeyword,
+    customerAddressKeyword
   }
 
   const handleFormDataChange = (
-    _key: 'customerNameKeyword',
+    key: 'customerNameKeyword' | 'customerAddressKeyword',
     value: string | string[]
   ) => {
-    setCustomerNameKeyword(value as string)
+    if (key === 'customerNameKeyword') {
+      setCustomerNameKeyword(value as string)
+    } else if (key === 'customerAddressKeyword') {
+      setCustomerAddressKeyword(value as string)
+    }
   }
 
   const handleDateRangeChange = (preset: string) => {
@@ -78,10 +84,18 @@ export const ManagerReservations = () => {
     const finalParams = { ...params, ...paramsOverride }
 
     // 파라미터에서 실제 필터 값들 추출
-    const statusValues = finalParams.reservationStatus ? finalParams.reservationStatus.split(',') : statuses.map(s => s.value)
-    const checkedInValues = finalParams.isCheckedIn ? finalParams.isCheckedIn.split(',') : ['true', 'false']
-    const checkedOutValues = finalParams.isCheckedOut ? finalParams.isCheckedOut.split(',') : ['true', 'false']
-    const reviewedValues = finalParams.isReviewed ? finalParams.isReviewed.split(',') : ['true', 'false']
+    const statusValues = finalParams.reservationStatus
+      ? finalParams.reservationStatus.split(',')
+      : statuses.map(s => s.value)
+    const checkedInValues = finalParams.isCheckedIn
+      ? finalParams.isCheckedIn.split(',')
+      : ['true', 'false']
+    const checkedOutValues = finalParams.isCheckedOut
+      ? finalParams.isCheckedOut.split(',')
+      : ['true', 'false']
+    const reviewedValues = finalParams.isReviewed
+      ? finalParams.isReviewed.split(',')
+      : ['true', 'false']
 
     // 아무것도 선택되지 않은 경우 빈 결과 표시
     if (
@@ -119,7 +133,7 @@ export const ManagerReservations = () => {
       return {
         ...{
           fromRequestDate: dateParam,
-          toRequestDate: dateParam,
+          toRequestDate: dateParam
         },
         reservationStatus:
           selectedStatuses.length === statuses.length
@@ -129,11 +143,13 @@ export const ManagerReservations = () => {
           selectedCheckedIn.length === 2 ? '' : selectedCheckedIn.join(','),
         isCheckedOut:
           selectedCheckedOut.length === 2 ? '' : selectedCheckedOut.join(','),
-        isReviewed: selectedReviewed.length === 2 ? '' : selectedReviewed.join(','),
+        isReviewed:
+          selectedReviewed.length === 2 ? '' : selectedReviewed.join(','),
         customerNameKeyword,
+        customerAddressKeyword,
         page,
-        size: DEFAULT_PAGE_SIZE,
-      };
+        size: DEFAULT_PAGE_SIZE
+      }
     }
     return {
       fromRequestDate,
@@ -146,85 +162,98 @@ export const ManagerReservations = () => {
         selectedCheckedIn.length === 2 ? '' : selectedCheckedIn.join(','),
       isCheckedOut:
         selectedCheckedOut.length === 2 ? '' : selectedCheckedOut.join(','),
-      isReviewed: selectedReviewed.length === 2 ? '' : selectedReviewed.join(','),
+      isReviewed:
+        selectedReviewed.length === 2 ? '' : selectedReviewed.join(','),
       customerNameKeyword,
       page,
-      size: DEFAULT_PAGE_SIZE,
-    };
-  };
+      size: DEFAULT_PAGE_SIZE
+    }
+  }
 
   useEffect(() => {
     // date 쿼리 우선 적용
     if (dateParam) {
-      setFromRequestDate(dateParam);
-      setToRequestDate(dateParam);
-      setSelectedDateRange(""); // 프리셋 해제
-      setPage(0);
+      setFromRequestDate(dateParam)
+      setToRequestDate(dateParam)
+      setSelectedDateRange('') // 프리셋 해제
+      setPage(0)
       fetchReservations({
         page: 0,
         fromRequestDate: dateParam,
-        toRequestDate: dateParam,
-      });
-      return;
+        toRequestDate: dateParam
+      })
+      return
     }
     // fromRequestDate/toRequestDate/status 쿼리 적용
     if (fromRequestDateParam && toRequestDateParam) {
-      setFromRequestDate(fromRequestDateParam);
-      setToRequestDate(toRequestDateParam);
-      setSelectedDateRange("");
-      setPage(0);
+      setFromRequestDate(fromRequestDateParam)
+      setToRequestDate(toRequestDateParam)
+      setSelectedDateRange('')
+      setPage(0)
       // 상태 필터도 적용
       if (statusParam) {
-        const statusArr = statusParam.split(",");
-        setSelectedStatuses(statusArr);
+        const statusArr = statusParam.split(',')
+        setSelectedStatuses(statusArr)
         fetchReservations({
           page: 0,
           fromRequestDate: fromRequestDateParam,
           toRequestDate: toRequestDateParam,
-          reservationStatus: statusParam,
-        });
+          reservationStatus: statusParam
+        })
       } else {
         fetchReservations({
           page: 0,
           fromRequestDate: fromRequestDateParam,
-          toRequestDate: toRequestDateParam,
-        });
+          toRequestDate: toRequestDateParam
+        })
       }
-      return;
+      return
     }
     // status 쿼리만 있을 때 (예약 요청 등)
     if (statusParam) {
-      const statusArr = statusParam.split(",");
-      setSelectedStatuses(statusArr);
-      setPage(0);
+      const statusArr = statusParam.split(',')
+      setSelectedStatuses(statusArr)
+      setPage(0)
       fetchReservations({
         page: 0,
-        reservationStatus: statusParam,
-      });
-      return;
+        reservationStatus: statusParam
+      })
+      return
     }
     // 기본 동작
-    fetchReservations();
+    fetchReservations()
     // eslint-disable-next-line
   }, [dateParam, fromRequestDateParam, toRequestDateParam, statusParam]);
 
-  const handleSearch = (keyword?: string) => {
+  const handleSearch = (keyword?: string, searchType?: string) => {
     // keyword가 전달되면 해당 값으로 상태 업데이트
     if (keyword !== undefined) {
-      setCustomerNameKeyword(keyword)
+      if (searchType === 'customerAddress') {
+        setCustomerAddressKeyword(keyword)
+        setCustomerNameKeyword('')
+      } else {
+        setCustomerNameKeyword(keyword)
+        setCustomerAddressKeyword('')
+      }
     }
 
     setPage(0)
     // 검색 시 최신 keyword 값 사용
     const searchKeyword = keyword !== undefined ? keyword : customerNameKeyword
-    fetchReservations({
-      page: 0,
-      customerNameKeyword: searchKeyword
-    })
+    const searchParams: Partial<ReturnType<typeof getCurrentParams>> = { page: 0 }
+    
+    if (searchType === 'customerAddress') {
+      searchParams.customerAddressKeyword = searchKeyword
+    } else {
+      searchParams.customerNameKeyword = searchKeyword
+    }
+    
+    fetchReservations(searchParams)
   }
 
   const handlePageChange = (newPage: number) => {
     setPage(newPage)
+    fetchReservations({ page: newPage })
   }
 
   const totalPages = Math.max(Math.ceil(total / DEFAULT_PAGE_SIZE), 1)
@@ -236,7 +265,7 @@ export const ManagerReservations = () => {
 
         <div className="flex flex-col items-start justify-start gap-6 self-stretch p-6">
           {/* 고객명/주소 검색 */}
-          <div className="flex w-full flex-row items-center justify-end">
+          <div className="flex w-full flex-row items-center justify-start">
             <ManagerReservationSearchForm
               formData={formData}
               onFormDataChange={handleFormDataChange}
@@ -258,7 +287,10 @@ export const ManagerReservations = () => {
               setPage(0)
               // 새로운 상태 값으로 즉시 검색
               const newParams = getCurrentParams()
-              newParams.reservationStatus = newStatuses.length === statuses.length ? '' : newStatuses.join(',')
+              newParams.reservationStatus =
+                newStatuses.length === statuses.length
+                  ? ''
+                  : newStatuses.join(',')
               newParams.page = 0
               fetchReservations(newParams)
             }}
@@ -268,7 +300,8 @@ export const ManagerReservations = () => {
               setPage(0)
               // 새로운 상태 값으로 즉시 검색
               const newParams = getCurrentParams()
-              newParams.isCheckedIn = newValues.length === 2 ? '' : newValues.join(',')
+              newParams.isCheckedIn =
+                newValues.length === 2 ? '' : newValues.join(',')
               newParams.page = 0
               fetchReservations(newParams)
             }}
@@ -278,7 +311,8 @@ export const ManagerReservations = () => {
               setPage(0)
               // 새로운 상태 값으로 즉시 검색
               const newParams = getCurrentParams()
-              newParams.isCheckedOut = newValues.length === 2 ? '' : newValues.join(',')
+              newParams.isCheckedOut =
+                newValues.length === 2 ? '' : newValues.join(',')
               newParams.page = 0
               fetchReservations(newParams)
             }}
@@ -288,7 +322,8 @@ export const ManagerReservations = () => {
               setPage(0)
               // 새로운 상태 값으로 즉시 검색
               const newParams = getCurrentParams()
-              newParams.isReviewed = newValues.length === 2 ? '' : newValues.join(',')
+              newParams.isReviewed =
+                newValues.length === 2 ? '' : newValues.join(',')
               newParams.page = 0
               fetchReservations(newParams)
             }}
