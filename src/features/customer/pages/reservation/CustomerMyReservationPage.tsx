@@ -7,7 +7,7 @@ import React, {
   useCallback,
   useRef
 } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
 import { getCustomerReservations } from '@/features/customer/api/CustomerReservation'
 import type {
   CustomerReservationListRspType,
@@ -19,7 +19,6 @@ import { CustomerReviewFormModal } from '@/features/customer/modal/CustomerRevie
 import SuccessToast from '@/shared/components/ui/toast/SuccessToast'
 
 export const CustomerMyReservationPage: React.FC = () => {
-  const navigate = useNavigate()
   const [urlParams] = useSearchParams()
   const [fadeKey, setFadeKey] = useState(0)
   // 문의 대신 예약 데이터 상태

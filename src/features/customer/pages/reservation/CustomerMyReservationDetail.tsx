@@ -58,7 +58,6 @@ const getStatusBadgeClasses = (status: ReservationStatus) => {
 
 export const CustomerMyReservationDetail = () => {
   const { reservationId } = useParams()
-  const navigate = useNavigate()
   const { headerRef } = useOutletContext<{
     headerRef: React.RefObject<{ refreshPoint: () => void }>
   }>()
@@ -67,7 +66,7 @@ export const CustomerMyReservationDetail = () => {
   const [error, setError] = useState<string | null>(null)
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false)
   const [isCanceling, setIsCanceling] = useState(false)
-  
+
   // 리뷰 모달 상태
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false)
   const [showSuccessToast, setShowSuccessToast] = useState(false)
@@ -144,18 +143,18 @@ export const CustomerMyReservationDetail = () => {
   const handleOpenReviewModal = () => {
     setIsReviewModalOpen(true)
   }
-  
+
   const handleCloseReviewModal = () => {
     setIsReviewModalOpen(false)
   }
-  
+
   const handleReviewSuccess = async (message: string) => {
     setToastMessage(message)
     setShowSuccessToast(true)
     // 리뷰 작성/수정 후 페이지 새로고침
     window.location.reload()
   }
-  
+
   const handleWriteReview = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
@@ -563,7 +562,7 @@ export const CustomerMyReservationDetail = () => {
         }}
         loading={isCanceling}
       />
-      
+
       {/* 리뷰 모달 */}
       <CustomerReviewFormModal
         isOpen={isReviewModalOpen}
@@ -571,7 +570,7 @@ export const CustomerMyReservationDetail = () => {
         reservationId={reservationId ? Number(reservationId) : 0}
         onSuccess={handleReviewSuccess}
       />
-      
+
       {/* 성공 토스트 */}
       <SuccessToast
         open={showSuccessToast}
