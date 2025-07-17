@@ -165,6 +165,7 @@ export const ManagerReservations = () => {
       isReviewed:
         selectedReviewed.length === 2 ? '' : selectedReviewed.join(','),
       customerNameKeyword,
+      customerAddressKeyword,
       page,
       size: DEFAULT_PAGE_SIZE
     }
@@ -226,28 +227,25 @@ export const ManagerReservations = () => {
   }, [dateParam, fromRequestDateParam, toRequestDateParam, statusParam]);
 
   const handleSearch = (keyword?: string, searchType?: string) => {
-    // keyword가 전달되면 해당 값으로 상태 업데이트
-    if (keyword !== undefined) {
-      if (searchType === 'customerAddress') {
-        setCustomerAddressKeyword(keyword)
-        setCustomerNameKeyword('')
-      } else {
-        setCustomerNameKeyword(keyword)
-        setCustomerAddressKeyword('')
-      }
+    if (searchType === 'customerAddress') {
+      setCustomerAddressKeyword(keyword ?? '')
+      setCustomerNameKeyword('')
+    } else {
+      setCustomerNameKeyword(keyword ?? '')
+      setCustomerAddressKeyword('')
     }
 
     setPage(0)
-    // 검색 시 최신 keyword 값 사용
-    const searchKeyword = keyword !== undefined ? keyword : customerNameKeyword
-    const searchParams: Partial<ReturnType<typeof getCurrentParams>> = { page: 0 }
-    
-    if (searchType === 'customerAddress') {
-      searchParams.customerAddressKeyword = searchKeyword
-    } else {
-      searchParams.customerNameKeyword = searchKeyword
+    const searchParams: Partial<ReturnType<typeof getCurrentParams>> = {
+      page: 0
     }
-    
+    if (searchType === 'customerAddress') {
+      searchParams.customerAddressKeyword = keyword ?? ''
+      searchParams.customerNameKeyword = ''
+    } else {
+      searchParams.customerNameKeyword = keyword ?? ''
+      searchParams.customerAddressKeyword = ''
+    }
     fetchReservations(searchParams)
   }
 
