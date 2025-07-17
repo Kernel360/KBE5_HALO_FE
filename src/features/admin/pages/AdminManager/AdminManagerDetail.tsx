@@ -4,7 +4,7 @@ import {
   fetchAdminManagerById,
   approveManager,
   rejectManager,
-  approveTerminateManager,
+  approveTerminateManager
 } from '@/features/admin/api/adminManager'
 import type { AdminManagerDetail as AdminManagerDetailType } from '@/features/admin/types/AdminManagerType'
 import { AlertModal } from '@/shared/components/ui/modal'
@@ -20,6 +20,7 @@ import Modal from '@/shared/components/ui/modal/Modal'
 import ReviewCard from '@/shared/components/ui/ReviewCard'
 import { fetchRecentManagerInquiries } from '@/features/admin/api/adminInquiry'
 import type { InquirySummary } from '@/features/admin/types/AdminInquiryType'
+import SuccessToast from '@/shared/components/ui/toast/SuccessToast'
 
 export const AdminManagerDetail = () => {
   const { managerId } = useParams<{ managerId: string }>()
@@ -35,6 +36,7 @@ export const AdminManagerDetail = () => {
   const [inquiries, setInquiries] = useState<InquirySummary[]>([])
   const [inquiriesLoading, setInquiriesLoading] = useState(false)
   const [inquiriesError, setInquiriesError] = useState<string | null>(null)
+  const [successToastMsg, setSuccessToastMsg] = useState<string | null>(null)
 
   const weekDays = [
     { label: '월요일', key: 'MONDAY' },
@@ -226,8 +228,8 @@ export const AdminManagerDetail = () => {
     if (!manager) return
     try {
       await approveManager(manager.managerId)
-      alert('승인되었습니다.')
-      window.location.reload()
+      setSuccessToastMsg('승인되었습니다.')
+      setTimeout(() => window.location.reload(), 1200)
     } catch (err: unknown) {
       const msg =
         err && typeof err === 'object' && 'message' in err
@@ -240,8 +242,8 @@ export const AdminManagerDetail = () => {
     if (!manager) return
     try {
       await rejectManager(manager.managerId)
-      alert('거절되었습니다.')
-      window.location.reload()
+      setSuccessToastMsg('거절되었습니다.')
+      setTimeout(() => window.location.reload(), 1200)
     } catch (err: unknown) {
       const msg =
         err && typeof err === 'object' && 'message' in err
@@ -255,8 +257,8 @@ export const AdminManagerDetail = () => {
     if (!manager) return
     try {
       await approveTerminateManager(manager.managerId)
-      alert('계약해지 승인되었습니다.')
-      window.location.reload()
+      setSuccessToastMsg('계약해지 승인되었습니다.')
+      setTimeout(() => window.location.reload(), 1200)
     } catch (err: unknown) {
       const msg =
         err && typeof err === 'object' && 'message' in err
@@ -292,25 +294,32 @@ export const AdminManagerDetail = () => {
       value:
         manager.averageRating != null
           ? Number(manager.averageRating).toFixed(1)
-          : '-',
+          : '-'
     },
     { label: '리뷰 수', value: manager.reviewCount ?? '-' },
-    { label: '계약 상태', value: getContractStatusLabel(manager.contractStatus) },
-  ];
+    {
+      label: '계약 상태',
+      value: getContractStatusLabel(manager.contractStatus)
+    }
+  ]
 
   return (
-    <div className="w-full flex flex-col">
-      <div className="w-full h-16 px-6 bg-white border-b border-gray-200 flex justify-between items-center">
-        <div className="text-gray-900 text-xl font-bold">매니저 상세 정보</div>
+    <div className="flex w-full flex-col">
+      <div className="flex h-16 w-full items-center justify-between border-b border-gray-200 bg-white px-6">
+        <div className="text-xl font-bold text-gray-900">매니저 상세 정보</div>
       </div>
-      <div className="w-full flex-1 p-8 flex flex-col gap-8 max-w-7xl mx-auto">
-        {/* 상단 2단 그리드 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-8 p-8">
+        {/* 상단 2단 그리드 → 1단 세로 배치로 변경 */}
+        <div className="flex flex-col gap-8">
           <ManagerProfileSummaryCard
             userName={manager.userName}
             bio={manager.bio}
             kpiList={kpiList}
-            profileImageUrl={manager.profileImageId ? `/api/files/${manager.profileImageId}` : undefined}
+            profileImageUrl={
+              manager.profileImageId
+                ? `/api/files/${manager.profileImageId}`
+                : undefined
+            }
           />
           <ManagerContractInfo
             manager={manager}
@@ -321,12 +330,15 @@ export const AdminManagerDetail = () => {
           />
         </div>
         {/* 중단 2단 그리드: 최근 문의, 최근 리뷰 분리 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
           <Card className="flex w-full flex-col gap-4 rounded-xl bg-white p-8 shadow">
             <div className="mb-4 text-lg font-bold">최근 문의</div>
             {inquiriesLoading ? (
               <div className="flex min-h-[4rem] items-center justify-center">
-                <Loading size="sm" message="문의 내역을 불러오는 중..." />
+                <Loading
+                  size="sm"
+                  message="문의 내역을 불러오는 중..."
+                />
               </div>
             ) : inquiriesError ? (
               <div className="text-red-500">{inquiriesError}</div>
@@ -334,11 +346,11 @@ export const AdminManagerDetail = () => {
               <div className="text-gray-400">최근 문의가 없습니다.</div>
             ) : (
               <ul className="flex flex-col gap-2">
-                {recentInquiries.map((item, idx) => (
+                {recentInquiries.map(item => (
                   <li key={item.inquiryId}>
                     <Link
                       to={`/admin/inquiries/${item.inquiryId}`}
-                      className="flex justify-between text-sm cursor-pointer hover:bg-slate-100 rounded px-2 py-1"
+                      className="cursor-pointer justify-between rounded px-2 py-1 text-sm hover:bg-slate-100"
                     >
                       <span>{item.content}</span>
                       <span className="text-gray-400">{item.date}</span>
@@ -394,6 +406,11 @@ export const AdminManagerDetail = () => {
           />
         </Card>
       </div>
+      <SuccessToast
+        open={!!successToastMsg}
+        message={successToastMsg || ''}
+        onClose={() => setSuccessToastMsg(null)}
+      />
     </div>
   );
 };

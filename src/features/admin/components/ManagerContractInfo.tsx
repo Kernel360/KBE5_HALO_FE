@@ -2,33 +2,15 @@ import React from 'react'
 import { ContractStatusBadge } from '@/shared/components/ui/ContractStatusBadge'
 import type { AdminManagerDetail } from '@/features/admin/types/AdminManagerType'
 import Button from '@/shared/components/ui/Button'
-import { ManagerSubmissionFilesSection } from './ManagerDetailInfo'
 import type { SubmissionFileMeta } from './ManagerDetailInfo'
-
-// 계약 상태 한글 매핑 함수 (AdminManagerDetail.tsx와 동일하게 복사)
-const getContractStatusLabel = (status: string) => {
-  switch (status) {
-    case 'PENDING':
-      return '승인대기'
-    case 'APPROVED':
-      return '승인'
-    case 'REJECTED':
-      return '승인거절'
-    case 'TERMINATION_PENDING':
-      return '해지대기'
-    case 'TERMINATED':
-      return '계약해지'
-    default:
-      return status
-  }
-}
+import { ManagerSubmissionFilesSection } from './ManagerDetailInfo'
 
 interface ManagerContractInfoProps {
-  manager: AdminManagerDetail;
-  onApprove: () => void;
-  onReject: () => void;
-  onTerminateApprove: () => void;
-  fileMetas?: SubmissionFileMeta[];
+  manager: AdminManagerDetail
+  onApprove: () => void
+  onReject: () => void
+  onTerminateApprove: () => void
+  fileMetas?: SubmissionFileMeta[]
 }
 
 const ManagerContractInfo: React.FC<ManagerContractInfoProps> = ({
@@ -39,66 +21,104 @@ const ManagerContractInfo: React.FC<ManagerContractInfoProps> = ({
   fileMetas = [],
 }) => {
   return (
-    <div className="w-full p-8 bg-white rounded-xl shadow flex flex-col gap-4">
-      <div className="text-slate-800 text-lg font-semibold">계약 정보</div>
-      <div className="inline-flex justify-start items-center gap-2">
-        <div className="w-40 text-slate-500 text-sm font-medium">
-          계약 시작일
-        </div>
-        <div className="flex-1 text-slate-700 text-sm font-medium">
-          {manager.contractAt || "-"}
-        </div>
-      </div>
-      {/* 제출 서류(첨부파일) 영역 */}
-      <ManagerSubmissionFilesSection fileMetas={fileMetas} />
+    <div className="flex w-full flex-col gap-4 rounded-xl bg-white p-8 shadow">
+      <div className="text-lg font-semibold text-slate-800">계약 정보</div>
       <div className="inline-flex items-center justify-start gap-2">
-        <div className="w-40 text-slate-500 text-sm font-medium">계약 상태</div>
+        <div className="w-40 text-sm font-medium text-slate-500">계약 상태</div>
         <div className="flex-1">
           <ContractStatusBadge status={manager.contractStatus} />
         </div>
       </div>
-      {manager.status === "TERMINATED" &&
+      <div className="mt-2 mb-1 text-base font-semibold text-slate-500">
+        이력
+      </div>
+      <div className="mb-2 h-px w-full bg-gray-200" />
+      {/* 계약 해지 요청일 (TERMINATION_PENDING, TERMINATED) */}
+      {(manager.contractStatus === 'TERMINATION_PENDING' || manager.contractStatus === 'TERMINATED') && (
+        <div className="inline-flex items-center justify-start gap-2">
+          <div className="w-40 text-sm font-medium text-slate-500">계약 해지 요청일</div>
+          <div className="flex-1 text-sm font-medium text-slate-700">{manager.requestAt ? manager.requestAt : '-'}</div>
+        </div>
+      )}
+      {/* 계약 해지 일시 (TERMINATED) */}
+      {manager.contractStatus === 'TERMINATED' && (
+        <div className="inline-flex items-center justify-start gap-2">
+          <div className="w-40 text-sm font-medium text-slate-500">계약 해지 일시</div>
+          <div className="flex-1 text-sm font-medium text-slate-700">{manager.terminatedAt ? manager.terminatedAt : '-'}</div>
+        </div>
+      )}
+      {/* 계약 시작일 */}
+      <div className="inline-flex items-center justify-start gap-2">
+        <div className="w-40 text-sm font-medium text-slate-500">
+          계약 시작일
+        </div>
+        <div className="flex-1 text-sm font-medium text-slate-700">
+          {manager.contractAt ? manager.contractAt : '-'}
+        </div>
+      </div>
+      {/* 가입일자 */}
+      <div className="inline-flex items-center justify-start gap-2">
+        <div className="w-40 text-sm font-medium text-slate-500">
+          가입일자
+        </div>
+        <div className="flex-1 text-sm font-medium text-slate-700">
+          {manager.createdAt ? manager.createdAt : '-'}
+        </div>
+      </div>
+      {manager.status === 'TERMINATED' &&
         manager.terminatedAt &&
         manager.terminationReason && (
           <>
-            <div className="inline-flex justify-start items-center gap-2">
-              <div className="w-40 text-slate-500 text-sm font-medium">
+            <div className="inline-flex items-center justify-start gap-2">
+              <div className="w-40 text-sm font-medium text-slate-500">
                 계약 해지일
               </div>
-              <div className="flex-1 text-slate-700 text-sm font-medium">
+              <div className="flex-1 text-sm font-medium text-slate-700">
                 {manager.terminatedAt}
               </div>
             </div>
-            <div className="inline-flex justify-start items-center gap-2">
-              <div className="w-40 text-slate-500 text-sm font-medium">
+            <div className="inline-flex items-center justify-start gap-2">
+              <div className="w-40 text-sm font-medium text-slate-500">
                 계약 해지 사유
               </div>
-              <div className="flex-1 text-slate-700 text-sm font-medium">
+              <div className="flex-1 text-sm font-medium text-slate-700">
                 {manager.terminationReason}
               </div>
             </div>
           </>
         )}
-      {manager.status === "PENDING" && (
-        <div className="flex gap-2 mt-4 justify-end">
+      {/* 계약 해지 사유 (TERMINATION_PENDING, TERMINATED) */}
+      {(manager.contractStatus === 'TERMINATION_PENDING' || manager.contractStatus === 'TERMINATED') && (
+        <>
+          <div className="mt-4 mb-2 h-px w-full bg-gray-200" />
+          <div className="inline-flex items-center justify-start gap-2">
+            <div className="w-40 text-sm font-medium text-slate-500">계약 해지 사유</div>
+            <div className="flex-1 text-sm font-medium text-slate-700">{manager.terminationReason ? manager.terminationReason : '-'}</div>
+          </div>
+        </>
+      )}
+      {/* 제출 서류(첨부파일) 영역 */}
+      <ManagerSubmissionFilesSection fileMetas={fileMetas} />
+      {manager.contractStatus === 'PENDING' && (
+        <div className="mt-4 flex justify-end gap-2">
           <Button
-            className="px-4 py-2 border border-indigo-600 text-indigo-600 rounded bg-white hover:bg-indigo-600 hover:text-white transition-colors"
+            className="rounded border border-indigo-600 bg-white px-4 py-2 text-indigo-600 transition-colors hover:bg-indigo-600 hover:text-white"
             onClick={onApprove}
           >
             승인
           </Button>
           <Button
-            className="px-4 py-2 border border-red-500 text-red-500 rounded bg-white hover:bg-red-500 hover:text-white transition-colors"
+            className="rounded border border-red-500 bg-white px-4 py-2 text-red-500 transition-colors hover:bg-red-500 hover:text-white"
             onClick={onReject}
           >
             거절
           </Button>
         </div>
       )}
-      {manager.status === "TERMINATION_PENDING" && (
-        <div className="flex gap-2 mt-4 justify-end">
+      {manager.contractStatus === 'TERMINATION_PENDING' && (
+        <div className="mt-4 flex justify-end gap-2">
           <Button
-            className="px-4 py-2 border border-indigo-600 text-indigo-600 rounded bg-white hover:bg-indigo-600 hover:text-white transition-colors"
+            className="rounded border border-red-500 bg-white px-4 py-2 text-red-500 transition-colors hover:bg-red-500 hover:text-white"
             onClick={onTerminateApprove}
           >
             계약해지 승인
@@ -110,3 +130,4 @@ const ManagerContractInfo: React.FC<ManagerContractInfoProps> = ({
 };
 
 export default ManagerContractInfo;
+

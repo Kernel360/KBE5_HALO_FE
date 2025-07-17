@@ -38,6 +38,7 @@ export interface AdminManagerDetail {
   contractAt: string | null
   terminatedAt: string | null
   terminationReason: string | null
+  requestAt?: string | null
 }
 
 export interface AvailableTime {
