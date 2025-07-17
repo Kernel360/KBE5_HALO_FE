@@ -40,7 +40,7 @@ const CustomerAddressMap: React.FC<{
         return
       }
       try {
-        const maps = (window.kakao as typeof window.kakao).maps
+        const maps = (window.kakao as unknown as { maps: any }).maps
         const mapOption = {
           center: new maps.LatLng(latitude, longitude),
           level: 4
@@ -68,13 +68,13 @@ const CustomerAddressMap: React.FC<{
       }
     }
     if (window.kakao && window.kakao.maps) {
-      (window.kakao as typeof window.kakao).maps.load(() => {
+      (window.kakao as unknown as { maps: any }).maps.load(() => {
         initializeMap()
       })
     } else {
       const timer = setTimeout(() => {
         if (window.kakao && window.kakao.maps) {
-          (window.kakao as typeof window.kakao).maps.load(() => {
+          (window.kakao as unknown as { maps: any }).maps.load(() => {
             initializeMap()
           })
         } else {
@@ -218,9 +218,6 @@ export const AdminCustomerDetail = () => {
   const [reviewsLoading, setReviewsLoading] = useState<boolean>(false)
   const [reviewsError, setReviewsError] = useState<string | null>(null)
   const [selectedReview, setSelectedReview] = useState<any>(null)
-
-  // Notes (dummy for now)
-  const [notes] = useState<unknown[]>([])
 
   useEffect(() => {
     if (!customerId) {

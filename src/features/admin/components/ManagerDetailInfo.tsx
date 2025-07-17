@@ -138,6 +138,8 @@ const ManagerDetailInfo: React.FC<ManagerDetailInfoProps> = ({
         <div className="text-sm text-slate-700">전화번호: {managerExt.phone}</div>
         <div className="text-sm text-slate-700">이메일: {managerExt.email}</div>
       </div>
+      {/* 제출 서류 섹션 추가 */}
+      <ManagerSubmissionFilesSection fileMetas={fileMetas} />
       <div className="mb-2 flex items-center gap-2">
         <span className="h-4 w-4" />
       </div>
