@@ -30,6 +30,7 @@ export interface CustomerReviewRspType {
   rating: number
   content: string
   createdAt: string
+  path: string
 }
 
 // 수요자 리뷰 조회 조건

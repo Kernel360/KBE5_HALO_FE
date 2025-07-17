@@ -8,6 +8,7 @@ import {
 import type { CustomerReviewRspType } from '@/features/customer/types/CustomerReviewType'
 import { formatDateWithDay, formatTimeRange } from '@/shared/utils/dateUtils'
 import ErrorToast from '@/shared/components/ui/toast/ErrorToast'
+import ProfileImagePreview from '@/shared/components/ui/ProfileImagePreview'
 
 interface CustomerReviewFormModalProps {
   isOpen: boolean
@@ -135,11 +136,25 @@ export const CustomerReviewFormModal: React.FC<
           <div className="p-6">
             {/* 서비스 정보 */}
             <div className="mb-8 flex items-center gap-4 rounded-xl bg-gray-50 p-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gray-200">
-                <span className="material-symbols-outlined text-2xl text-gray-600">
-                  person
-                </span>
-              </div>
+              <ProfileImagePreview
+                src={
+                  reviewFromReservation?.path
+                    ? (() => {
+                        try {
+                          const arr = JSON.parse(reviewFromReservation.path)
+                          return Array.isArray(arr) && arr.length > 0
+                            ? arr[0]
+                            : undefined
+                        } catch {
+                          return undefined
+                        }
+                      })()
+                    : undefined
+                }
+                alt={`${reviewFromReservation?.managerName} 매니저 프로필`}
+                size="sm"
+                className="shadow-sm ring-2 ring-white"
+              />
               <div className="flex-1">
                 {fetchingReview ? (
                   <div className="space-y-2">

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import HalfStar from '@/shared/components/HalfStar'
 import { Star, Pencil } from 'lucide-react'
-import { useParams, useNavigate, useOutletContext } from 'react-router-dom'
+import { useParams, useOutletContext } from 'react-router-dom'
 import {
   getCustomerReservationDetail,
   cancelReservationByCustomer
@@ -15,6 +15,8 @@ import { serviceCategoryIcons } from '@/shared/constants/ServiceIcons'
 import { DefaultServiceIcon } from '@/shared/constants/ServiceIcons'
 import ProfileImagePreview from '@/shared/components/ui/ProfileImagePreview'
 import { ReservationCancelModal } from '@/features/customer/modal/ReservationCancelModal'
+import { CustomerReviewFormModal } from '@/features/customer/modal/CustomerReviewModal'
+import SuccessToast from '@/shared/components/ui/toast/SuccessToast'
 
 const getKoreanStatus = (status: ReservationStatus) => {
   switch (status) {
@@ -56,7 +58,6 @@ const getStatusBadgeClasses = (status: ReservationStatus) => {
 
 export const CustomerMyReservationDetail = () => {
   const { reservationId } = useParams()
-  const navigate = useNavigate()
   const { headerRef } = useOutletContext<{
     headerRef: React.RefObject<{ refreshPoint: () => void }>
   }>()
@@ -65,6 +66,11 @@ export const CustomerMyReservationDetail = () => {
   const [error, setError] = useState<string | null>(null)
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false)
   const [isCanceling, setIsCanceling] = useState(false)
+
+  // 리뷰 모달 상태
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false)
+  const [showSuccessToast, setShowSuccessToast] = useState(false)
+  const [toastMessage, setToastMessage] = useState('')
 
   // profileImageUrl 배열 문자열을 파싱하여 첫 번째 URL 반환
   const getProfileImageUrl = (
@@ -133,17 +139,27 @@ export const CustomerMyReservationDetail = () => {
     }
   }
 
+  // 리뷰 모달 핸들러
+  const handleOpenReviewModal = () => {
+    setIsReviewModalOpen(true)
+  }
+
+  const handleCloseReviewModal = () => {
+    setIsReviewModalOpen(false)
+  }
+
+  const handleReviewSuccess = async (message: string) => {
+    setToastMessage(message)
+    setShowSuccessToast(true)
+    // 리뷰 작성/수정 후 페이지 새로고침
+    window.location.reload()
+  }
+
   const handleWriteReview = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
     if (!reservationId || !reservation) return
-    navigate(`/my/reviews/${reservationId}`, {
-      state: {
-        fromReservation: true,
-        serviceName: reservation.serviceName,
-        managerName: reservation.managerName
-      }
-    })
+    handleOpenReviewModal()
   }
 
   if (error) {
@@ -545,6 +561,21 @@ export const CustomerMyReservationDetail = () => {
           setIsCancelModalOpen(false)
         }}
         loading={isCanceling}
+      />
+
+      {/* 리뷰 모달 */}
+      <CustomerReviewFormModal
+        isOpen={isReviewModalOpen}
+        onClose={handleCloseReviewModal}
+        reservationId={reservationId ? Number(reservationId) : 0}
+        onSuccess={handleReviewSuccess}
+      />
+
+      {/* 성공 토스트 */}
+      <SuccessToast
+        open={showSuccessToast}
+        message={toastMessage}
+        onClose={() => setShowSuccessToast(false)}
       />
     </div>
   )
