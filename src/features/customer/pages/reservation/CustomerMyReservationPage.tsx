@@ -43,7 +43,7 @@ export const CustomerMyReservationPage: React.FC = () => {
     reservationStatus: [] as ReservationStatus[],
     fromRequestDate: '',
     toRequestDate: '',
-    managerName: '',
+    managerNameKeyword: '',
     page: 0,
     size: 5
   })
@@ -53,14 +53,14 @@ export const CustomerMyReservationPage: React.FC = () => {
     const statuses = urlParams.getAll('status') as ReservationStatus[]
     const fromRequestDate = urlParams.get('fromRequestDate') || ''
     const toRequestDate = urlParams.get('toRequestDate') || ''
-    const managerName = urlParams.get('managerName') || ''
+    const managerNameKeyword = urlParams.get('managerNameKeyword') || ''
 
     setSearchParams(prev => ({
       ...prev,
       reservationStatus: statuses,
       fromRequestDate,
       toRequestDate,
-      managerName,
+      managerNameKeyword,
       page: 0
     }))
   }, [urlParams])
@@ -79,7 +79,7 @@ export const CustomerMyReservationPage: React.FC = () => {
                 : undefined,
             fromRequestDate: searchParams.fromRequestDate || undefined,
             toRequestDate: searchParams.toRequestDate || undefined,
-            managerName: searchParams.managerName || undefined
+            managerNameKeyword: searchParams.managerNameKeyword || undefined
           },
           {
             page: searchParams.page,
@@ -129,7 +129,7 @@ export const CustomerMyReservationPage: React.FC = () => {
                 : undefined,
             fromRequestDate: paramsToSearch.fromRequestDate || undefined,
             toRequestDate: paramsToSearch.toRequestDate || undefined,
-            managerName: paramsToSearch.managerName || undefined
+            managerNameKeyword: paramsToSearch.managerNameKeyword || undefined
           },
           {
             page: paramsToSearch.page,

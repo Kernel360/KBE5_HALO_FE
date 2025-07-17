@@ -8,7 +8,7 @@ interface ReservationSearchFilterProps {
   onSearch: (filters: {
     dateRange: { start: string; end: string }
     reservationStatus: ReservationStatus[]
-    managerName: string
+    managerNameKeyword: string
   }) => void
   onReset: () => void
 }
@@ -42,6 +42,13 @@ const ReservationSearchFilter: React.FC<ReservationSearchFilterProps> = ({
     }
 
     setSelectedStatuses(newStatuses)
+    
+    // 상태 변경 시 즉시 검색 실행
+    onSearch({
+      dateRange: { start: startDate, end: endDate },
+      reservationStatus: newStatuses,
+      managerNameKeyword: managerName
+    })
   }
 
   const handleDateRangeChange = (newStartDate: string, newEndDate: string) => {
@@ -53,7 +60,7 @@ const ReservationSearchFilter: React.FC<ReservationSearchFilterProps> = ({
     onSearch({
       dateRange: { start: startDate, end: endDate },
       reservationStatus: selectedStatuses,
-      managerName
+      managerNameKeyword: managerName
     })
   }
 
@@ -124,6 +131,11 @@ const ReservationSearchFilter: React.FC<ReservationSearchFilterProps> = ({
           type="text"
           value={managerName}
           onChange={e => setManagerName(e.target.value)}
+          onKeyDown={e => {
+            if (e.key === 'Enter') {
+              handleSearch()
+            }
+          }}
           placeholder="매니저명을 입력하세요"
           className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
         />

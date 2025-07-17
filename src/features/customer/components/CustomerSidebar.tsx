@@ -71,8 +71,8 @@ const CustomerSidebar: React.FC = () => {
               })
 
               // 매니저명
-              if (filters.managerName) {
-                params.set('managerName', filters.managerName)
+              if (filters.managerNameKeyword) {
+                params.set('managerNameKeyword', filters.managerNameKeyword)
               }
 
               setSearchParams(params)

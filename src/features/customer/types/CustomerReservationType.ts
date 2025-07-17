@@ -14,7 +14,7 @@ export interface ReservationSearchConditionType {
   fromRequestDate?: string // YYYY-MM-DD 형식
   toRequestDate?: string // YYYY-MM-DD 형식
   reservationStatus?: ReservationStatus[]
-  managerName?: string // 매니저 이름 검색
+  managerNameKeyword?: string // 매니저 이름 검색
   page: number
   size: number
 }
