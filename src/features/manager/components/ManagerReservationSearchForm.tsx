@@ -5,14 +5,18 @@ import {
 
 interface SearchFormData extends Record<string, string> {
   customerNameKeyword: string
+  customerAddressKeyword: string
 }
 
 type SearchFormValue = string | string[]
 
 interface ManagerReservationSearchFormProps {
   formData: SearchFormData
-  onFormDataChange: (key: 'customerNameKeyword', value: SearchFormValue) => void
-  onSearch: (keyword?: string) => void
+  onFormDataChange: (
+    key: 'customerNameKeyword' | 'customerAddressKeyword',
+    value: SearchFormValue
+  ) => void
+  onSearch: (keyword?: string, searchType?: string) => void
   className?: string
 }
 
@@ -33,17 +37,21 @@ export const ManagerReservationSearchForm = ({
     },
     {
       type: 'text',
-      name: 'customerNameKeyword',
+      name: 'searchKeyword',
       placeholder: '검색어'
     }
   ]
 
   const handleSearch = (values: Record<string, string>) => {
-    // 검색 타입에 따라 키워드 업데이트
-    const keyword = values.customerNameKeyword || ''
-    onFormDataChange('customerNameKeyword', keyword)
-    // 최신 keyword 값을 직접 전달
-    onSearch(keyword)
+    const searchType = values.searchType || 'customerName'
+    const keyword = values.searchKeyword || ''
+    if (searchType === 'customerName') {
+      onFormDataChange('customerNameKeyword', keyword)
+      onSearch(keyword, 'customerName')
+    } else if (searchType === 'customerAddress') {
+      onFormDataChange('customerAddressKeyword', keyword)
+      onSearch(keyword, 'customerAddress')
+    }
   }
 
   return (
@@ -52,7 +60,8 @@ export const ManagerReservationSearchForm = ({
       onSearch={handleSearch}
       initialValues={{
         searchType: 'customerName',
-        customerNameKeyword: formData.customerNameKeyword
+        customerNameKeyword:
+          formData.customerNameKeyword || formData.customerAddressKeyword
       }}
       showTitle={false}
       className={className}

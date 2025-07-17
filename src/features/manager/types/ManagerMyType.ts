@@ -12,6 +12,7 @@ export interface ManagerInfo {
   longitude: number;
   bio: string;
   profileImageId: number | null;
+  profileImagePath?: string;
   fileId?: number;
   fileName?: string;
   fileUrl?: string;

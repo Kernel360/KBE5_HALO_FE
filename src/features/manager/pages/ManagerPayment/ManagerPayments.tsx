@@ -131,9 +131,39 @@ export const ManagerPayments = () => {
   }
 
   // 날짜 범위 변경 핸들러
-  const handleDateRangeChange = (newStartDate: string, newEndDate: string) => {
+  const handleDateRangeChange = async (newStartDate: string, newEndDate: string) => {
     setStartDate(newStartDate)
     setEndDate(newEndDate)
+    
+    // 날짜 변경 시 즉시 API 조회
+    if (newStartDate && newEndDate) {
+      try {
+        const data = await getSettlementWithPaging(
+          {
+            startDate: newStartDate,
+            endDate: newEndDate
+          },
+          0,
+          pageSize
+        )
+
+        setPayments(data.content)
+        setCurrentPage(data.page.number)
+        setTotalPages(data.page.totalPages)
+        setTotalElements(data.page.totalElements)
+
+        // 총합 계산
+        const total = data.content.reduce(
+          (sum: number, item: Payments) => sum + item.totalAmount,
+          0
+        )
+
+        setTotalAmount(total)
+        setFadeKey(prev => prev + 1)
+      } catch {
+        setErrorMessage('정산 내역 조회 중 오류가 발생했습니다.')
+      }
+    }
   }
 
   // 페이지 변경

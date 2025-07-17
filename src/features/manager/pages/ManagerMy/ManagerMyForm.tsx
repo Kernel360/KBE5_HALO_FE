@@ -12,6 +12,8 @@ import {
 import { isValidEmail, isValidPassword } from '@/shared/utils/validation'
 import type { ServiceCategoryTreeType } from '@/features/customer/types/CustomerReservationType'
 import { Eye, EyeOff } from 'lucide-react'
+import ErrorToast from '@/shared/components/ui/toast/ErrorToast'
+import { Loading } from '@/shared/components/ui/Loading'
 
 // form 상태에 사용할 타입 확장 (기본 필드 + 비밀번호 확인 + 약관 동의 + 특기)
 interface ManagerUpdateForm extends ManagerInfo {
@@ -31,6 +33,10 @@ export const ManagerMyForm = () => {
   const navigate = useNavigate()
   // 파일 업로드 상태
   const [files, setFiles] = useState<File[]>([])
+  // 에러 토스트 상태
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  // 로딩 상태
+  const [isLoading, setIsLoading] = useState(false)
   // 서비스 카테고리 상태
   const [serviceCategories, setServiceCategories] = useState<
     ServiceCategoryTreeType[]
@@ -99,8 +105,7 @@ export const ManagerMyForm = () => {
         const categories = await getServiceCategories()
         setServiceCategories(categories)
       } catch {
-        // TODO: toast로 변경
-        alert('서비스 카테고리 조회에 실패했습니다.')
+        setErrorMessage('서비스 카테고리 조회에 실패했습니다.')
       }
     }
     fetchCategories()
@@ -192,7 +197,8 @@ export const ManagerMyForm = () => {
     { name: 'email', label: '이메일' },
     { name: 'password', label: '비밀번호' },
     { name: 'confirmPassword', label: '비밀번호 확인' },
-    { name: 'bio', label: '한줄소개' }
+    { name: 'bio', label: '한줄소개' },
+    { name: 'specialty', label: '특기' }
   ]
 
   // 필수 입력 validate
@@ -204,12 +210,12 @@ export const ManagerMyForm = () => {
       const value = form[key]
       // 문자열인 경우: 공백 제거하고 비어있으면 invalid
       if (typeof value === 'string' && value.trim() === '') {
-        alert(`${field.label}을(를) 입력해주세요.`)
+        setErrorMessage(`${field.label}을(를) 입력해주세요.`)
         return false
       }
       // null 또는 undefined 체크
       if (value === null || value === undefined) {
-        alert(`${field.label}을(를) 입력해주세요.`)
+        setErrorMessage(`${field.label}을(를) 입력해주세요.`)
         return false
       }
     }
@@ -220,11 +226,11 @@ export const ManagerMyForm = () => {
   const validateExtraFields = () => {
     if (!form) return
     if (!form.roadAddress.trim()) {
-      alert('도로명 주소를 입력해주세요.')
+      setErrorMessage('도로명 주소를 입력해주세요.')
       return
     }
     if (!form.detailAddress.trim()) {
-      alert('상세 주소를 입력해주세요.')
+      setErrorMessage('상세 주소를 입력해주세요.')
       return
     }
     if (
@@ -233,7 +239,7 @@ export const ManagerMyForm = () => {
       form.longitude == null ||
       isNaN(form.longitude)
     ) {
-      alert('잘못된 주소입니다. 다시 입력해주세요.')
+      setErrorMessage('잘못된 주소입니다. 다시 입력해주세요.')
       return
     }
     // if (form.profileImageId === null) {
@@ -245,7 +251,7 @@ export const ManagerMyForm = () => {
     //   return false;
     // }
     if (form.availableTimes.length === 0) {
-      alert('업무 가능 시간을 1개 이상 선택해주세요.')
+      setErrorMessage('업무 가능 시간을 1개 이상 선택해주세요.')
       return false
     }
     return true
@@ -262,19 +268,19 @@ export const ManagerMyForm = () => {
 
     // 이메일 유효성 검사
     if (!isValidEmail(form.email)) {
-      alert('이메일 형식이 올바르지 않습니다.')
+      setErrorMessage('이메일 형식이 올바르지 않습니다.')
       return
     }
     // 비밀번호 유효성 검사
     if (!isValidPassword(form.password)) {
-      alert(
+      setErrorMessage(
         '비밀번호는 8~20자, 대소문자/숫자/특수문자 중 3가지 이상 포함해야 합니다.'
       )
       return
     }
     // 비밀번호 확인
     if (form.password !== form.confirmPassword) {
-      alert('비밀번호가 일치하지 않습니다.')
+      setErrorMessage('비밀번호가 일치하지 않습니다.')
       return
     }
 
@@ -300,20 +306,22 @@ export const ManagerMyForm = () => {
       }))
     }
 
+    setIsLoading(true)
     try {
       await updateManager(requestBody)
-      alert('정보 수정이 완료되었습니다.')
       navigate('/managers/my')
     } catch (err: any) {
-      alert(err.message || '매니저 수정 실패')
+      setErrorMessage(err.message || '매니저 수정 실패')
+    } finally {
+      setIsLoading(false)
     }
   }
 
   // 로딩 화면은 여기서 처리
   if (!form) {
     return (
-      <div className="flex h-screen w-full items-center justify-center">
-        <div className="h-12 w-12 animate-spin rounded-full border-t-4 border-b-4 border-indigo-500"></div>
+      <div className="flex h-screen w-full items-center justify-center bg-slate-50">
+        <Loading />
       </div>
     )
   }
@@ -662,15 +670,46 @@ export const ManagerMyForm = () => {
 
             <button
               onClick={handleSubmit}
-              className="mt-6 inline-flex h-12 cursor-pointer items-center justify-center gap-2 self-stretch rounded-lg bg-indigo-600">
-              <span className="material-symbols-outlined text-white">edit</span>
-              <span className="font-['Inter'] text-base leading-tight font-semibold text-white">
-                수정하기
-              </span>
+              disabled={isLoading}
+              className={`mt-6 inline-flex h-12 cursor-pointer items-center justify-center gap-2 self-stretch rounded-lg ${
+                isLoading ? 'bg-indigo-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'
+              }`}>
+              {isLoading ? (
+                <>
+                  <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                  <span className="font-['Inter'] text-base leading-tight font-semibold text-white">
+                    수정 중...
+                  </span>
+                </>
+              ) : (
+                <>
+                  <span className="material-symbols-outlined text-white">edit</span>
+                  <span className="font-['Inter'] text-base leading-tight font-semibold text-white">
+                    수정하기
+                  </span>
+                </>
+              )}
             </button>
           </div>
         </div>
       </div>
+      
+      {/* 로딩 오버레이 */}
+      {isLoading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="rounded-lg bg-white p-6">
+            <Loading />
+            <p className="mt-4 text-center text-sm text-gray-600">정보를 수정하고 있습니다...</p>
+          </div>
+        </div>
+      )}
+      
+      {/* 에러 토스트 */}
+      <ErrorToast
+        open={!!errorMessage}
+        message={errorMessage || ''}
+        onClose={() => setErrorMessage(null)}
+      />
     </Fragment>
   )
 }
