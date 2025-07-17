@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import {
   CalendarDaysIcon,
   BellAlertIcon,
-  StarIcon,
   BanknotesIcon
 } from '@heroicons/react/24/solid'
 import { searchManagerReservations } from '@/features/manager/api/managerReservation'
@@ -132,10 +131,13 @@ export const KPISection = () => {
   const handleRequestedCardClick = () => {
     navigate(`/managers/reservations?status=REQUESTED`)
   }
+  {
+    /*
   const handleRatingCardClick = () => {
     navigate(`/managers/reviews`)
   }
-
+*/
+  }
   const handleSettleCardClick = () => {
     navigate(`/managers/payments`)
   }
@@ -178,7 +180,7 @@ export const KPISection = () => {
         </div>
         <span className="mt-1 text-xs text-slate-400">확정 대기</span>
       </button>
-      {/* 평균 평점 */}
+      {/* 평균 평점 
       <button
         type="button"
         className="flex flex-col items-start gap-2 rounded-2xl border border-slate-100 bg-white p-6 shadow transition hover:shadow-md focus:outline-none"
@@ -193,7 +195,7 @@ export const KPISection = () => {
           <span className="text-3xl font-bold text-yellow-500">4.8</span>
         </div>
         <span className="mt-1 text-xs text-slate-400">최근 30일</span>
-      </button>
+      </button>*/}
       {/* 매출 */}
       <button
         type="button"
