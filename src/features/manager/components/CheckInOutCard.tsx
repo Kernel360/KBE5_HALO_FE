@@ -16,31 +16,40 @@ export function CheckInOutCard({
   setOpenModal
 }: CheckInOutCardProps) {
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-col items-center gap-6 rounded-2xl border border-indigo-100 bg-white p-4 shadow-lg md:p-8">
+    <div className="mx-auto flex w-full max-w-2xl flex-col items-center gap-3 rounded-2xl border border-indigo-100 bg-white p-2 shadow-md md:p-4">
       {/* Header */}
-      <div className="mb-2 flex items-center gap-3">
-        <ClockIcon className="w-7 h-7 md:w-8 md:h-8 text-indigo-500" />
-        <span className="text-lg md:text-2xl font-bold text-indigo-700">
+      <div className="mb-1 flex items-center gap-2">
+        <ClockIcon className="h-6 w-6 text-indigo-500 md:h-7 md:w-7" />
+        <span className="text-base font-bold text-indigo-700 md:text-lg">
           체크인 / 체크아웃
         </span>
-        <span className="ml-2 px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 text-xs md:text-sm font-semibold">
+        <span className="ml-1 rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-semibold text-indigo-700">
           진행 관리
         </span>
       </div>
       {/* Responsive Stepper */}
-      <div className="flex flex-col min-[42.5rem]:flex-row w-full items-center justify-center gap-4 min-[42.5rem]:gap-12 mb-4 min-w-0">
+      <div className="mb-2 flex w-full min-w-0 flex-col items-center justify-center gap-2 min-[42.5rem]:flex-row min-[42.5rem]:gap-6">
         {/* Check-in */}
-        <div className="flex flex-col items-center gap-2 bg-white min-[42.5rem]:shadow min-[42.5rem]:rounded-xl min-[42.5rem]:p-6 transition-all w-[15rem] min-w-[15rem] flex-shrink-0">
+        <div className="flex w-[12rem] min-w-[12rem] flex-shrink-0 flex-col items-center gap-1 bg-white transition-all min-[42.5rem]:rounded-xl min-[42.5rem]:p-3 min-[42.5rem]:shadow">
           <CheckCircleIcon
-            className={`w-8 h-8 md:w-10 md:h-10 ${reservation.inTime ? 'text-green-500' : 'text-gray-300'}`}
+            className={`h-7 w-7 ${reservation.inTime ? 'text-green-500' : 'text-gray-300'}`}
           />
-          <div className="text-base md:text-lg font-semibold text-slate-700">체크인</div>
+          <div className="text-sm font-semibold text-slate-700">체크인</div>
           <div
-            className={`text-xs md:text-sm font-medium ${reservation.inTime ? 'text-green-600' : 'text-gray-400'}`}
-          >
+            className={`text-xs font-medium ${reservation.inTime ? 'text-green-600' : 'text-gray-400'}`}>
             {reservation.inTime ? (
-              <span className="w-full text-center block" dangerouslySetInnerHTML={{ __html: formatDateTimeKoreanFull(reservation.inTime).replace(/\n/g, '<br/>') }} />
-            ) : '미완료'}
+              <span
+                className="block w-full text-center"
+                dangerouslySetInnerHTML={{
+                  __html: formatDateTimeKoreanFull(reservation.inTime).replace(
+                    /\n/g,
+                    '<br/>'
+                  )
+                }}
+              />
+            ) : (
+              '미완료'
+            )}
           </div>
           <Button
             onClick={() => {
@@ -48,34 +57,42 @@ export function CheckInOutCard({
               setOpenModal(true)
             }}
             disabled={!!reservation.inTime}
-            className={`w-full max-w-[12.5rem] h-10 mt-2 rounded-lg text-white font-semibold transition-all duration-200 ${
+            className={`mt-1 h-8 w-full max-w-[10rem] rounded-lg font-semibold text-white transition-all duration-200 ${
               reservation.inTime
-                ? 'bg-gray-300 cursor-not-allowed'
+                ? 'cursor-not-allowed bg-gray-300'
                 : 'bg-indigo-600 hover:bg-indigo-700'
-            }`}
-          >
+            }`}>
             {reservation.inTime ? '체크인 완료' : '체크인 하기'}
           </Button>
         </div>
         {/* Arrow or Progress Line */}
-        <div className="hidden min-[42.5rem]:flex flex-col items-center justify-center">
-          <ArrowRightIcon className="w-10 h-10 text-indigo-200" />
+        <div className="hidden flex-col items-center justify-center min-[42.5rem]:flex">
+          <ArrowRightIcon className="h-7 w-7 text-indigo-200" />
         </div>
-        <div className="flex min-[42.5rem]:hidden items-center justify-center my-2">
-          <ArrowRightIcon className="w-7 h-7 text-indigo-200" />
+        <div className="my-1 flex items-center justify-center min-[42.5rem]:hidden">
+          <ArrowRightIcon className="h-5 w-5 text-indigo-200" />
         </div>
         {/* Check-out */}
-        <div className="flex flex-col items-center gap-2 bg-white min-[42.5rem]:shadow min-[42.5rem]:rounded-xl min-[42.5rem]:p-6 transition-all w-[15rem] min-w-[15rem] flex-shrink-0">
+        <div className="flex w-[12rem] min-w-[12rem] flex-shrink-0 flex-col items-center gap-1 bg-white transition-all min-[42.5rem]:rounded-xl min-[42.5rem]:p-3 min-[42.5rem]:shadow">
           <CheckCircleIcon
-            className={`w-8 h-8 md:w-10 md:h-10 ${reservation.outTime ? 'text-green-500' : 'text-gray-300'}`}
+            className={`h-7 w-7 ${reservation.outTime ? 'text-green-500' : 'text-gray-300'}`}
           />
-          <div className="text-base md:text-lg font-semibold text-slate-700">체크아웃</div>
+          <div className="text-sm font-semibold text-slate-700">체크아웃</div>
           <div
-            className={`text-xs md:text-sm font-medium ${reservation.outTime ? 'text-green-600' : 'text-gray-400'}`}
-          >
+            className={`text-xs font-medium ${reservation.outTime ? 'text-green-600' : 'text-gray-400'}`}>
             {reservation.outTime ? (
-              <span className="w-full text-center block" dangerouslySetInnerHTML={{ __html: formatDateTimeKoreanFull(reservation.outTime).replace(/\n/g, '<br/>') }} />
-            ) : '미완료'}
+              <span
+                className="block w-full text-center"
+                dangerouslySetInnerHTML={{
+                  __html: formatDateTimeKoreanFull(reservation.outTime).replace(
+                    /\n/g,
+                    '<br/>'
+                  )
+                }}
+              />
+            ) : (
+              '미완료'
+            )}
           </div>
           <Button
             onClick={() => {
@@ -83,20 +100,19 @@ export function CheckInOutCard({
               setOpenModal(true)
             }}
             disabled={!reservation.inTime || !!reservation.outTime}
-            className={`w-full max-w-[12.5rem] h-10 mt-2 rounded-lg text-white font-semibold transition-all duration-200 ${
+            className={`mt-1 h-8 w-full max-w-[10rem] rounded-lg font-semibold text-white transition-all duration-200 ${
               !reservation.inTime || reservation.outTime
-                ? 'bg-gray-300 cursor-not-allowed'
+                ? 'cursor-not-allowed bg-gray-300'
                 : 'bg-indigo-600 hover:bg-indigo-700'
-            }`}
-          >
+            }`}>
             {reservation.outTime ? '체크아웃 완료' : '체크아웃 하기'}
           </Button>
         </div>
       </div>
       {/* 안내 메시지 */}
-      <div className="w-full text-center text-sm md:text-base text-slate-500 mt-2">
+      <div className="mt-1 w-full text-center text-xs text-slate-500 md:text-sm">
         체크인 후 체크아웃이 가능합니다. 각 단계별로 파일 업로드가 필요합니다.
       </div>
     </div>
   )
-} 
+}
