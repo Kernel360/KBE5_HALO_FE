@@ -523,34 +523,25 @@ export const AdminMain = () => {
                 </div>
               </div>
               <div
-                className="inline-flex h-24 flex-1 flex-col items-start justify-start gap-2 rounded-lg bg-white p-4 shadow-[0px_2px_8px_0px_rgba(0,0,0,0.04)] hover:bg-indigo-50 transition-colors"
+                className="inline-flex h-24 flex-1 flex-col items-start justify-start gap-2 rounded-lg bg-white p-4 shadow-[0px_2px_8px_0px_rgba(0,0,0,0.04)] transition-colors hover:bg-indigo-50"
                 style={{ cursor: 'pointer' }}
                 onClick={() => {
-                  const today = formatDate(new Date());
+                  const today = formatDate(new Date())
                   navigate('/admin/reservations', {
                     state: {
                       statusFilter: ['CONFIRMED', 'IN_PROGRESS', 'COMPLETED'],
                       dateRange: { startDate: today, endDate: today }
                     }
-                  });
+                  })
                 }}
               >
                 <div className="justify-start font-['Inter'] text-sm leading-none font-medium text-gray-500">
                   오늘의 예약 건수
                 </div>
-                <div className="justify-start text-gray-900 text-2xl font-bold font-['Inter'] leading-7">
+                <div className="font-['Inter'] text-2xl leading-7 font-bold text-gray-900 justify-start">
                   {todayReservationCount}
                 </div>
-                <div className="inline-flex justify-start items-center gap-1">
-                  {(() => {
-                    const trend = getTodayReservationTrend()
-                    return (
-                      <div className={`font-['Inter'] text-xs leading-none font-medium ${trend.color}`}>
-                        {trend.text}
-                      </div>
-                    )
-                  })()}
-                </div>
+                {/* 변동 통계(변동률) 제거: trend 텍스트 삭제 */}
               </div>
             </div>
             <div className="inline-flex items-start justify-start gap-4 self-stretch">
