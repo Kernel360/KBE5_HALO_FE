@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { SearchButton } from './ui/SearchButton'
 
 export type SearchField =
   | { type: 'text'; name: string; placeholder?: string }
@@ -78,7 +79,7 @@ export const SearchForm = ({
     return (
       <form
         onSubmit={handleSubmit}
-        className={`flex w-full items-center justify-end gap-2 py-1 ${className}`}>
+        className={`flex w-full items-center justify-start gap-2 py-1 ${className}`}>
         {/* select box가 있으면 왼쪽에 배치 */}
         {selectFields.map(field => (
           <select
@@ -131,11 +132,10 @@ export const SearchForm = ({
             />
           </div>
         )}
-        <button
+        <SearchButton
           type="submit"
-          className="ml-1 h-8 cursor-pointer rounded bg-indigo-600 px-4 text-xs font-medium text-white hover:bg-indigo-700">
-          검색
-        </button>
+          className="ml-1 h-8 px-4 text-xs"
+        />
       </form>
     )
   }
