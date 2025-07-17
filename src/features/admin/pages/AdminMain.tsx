@@ -331,16 +331,13 @@ export const AdminMain = () => {
           if (!r.requestDate) continue
           const d = parseDate(r.requestDate)
           const day = d.getDay()
-          console.log('예약:', r.requestDate, '-> 파싱:', d, '요일:', day)
           counts[day] = (counts[day] || 0) + 1
         }
-        console.log('요일별 카운트:', counts)
         // 월~일 순서로 정렬
         const chartData = weekDays.map(({ key, label }) => ({
           day: label,
           count: counts[key] || 0
         }))
-        console.log('chartData:', chartData)
         setWeeklyReservationData(chartData)
         const thisWeekCount = data.page?.totalElements || data.totalElements || 0
         setWeeklyReservationCount(thisWeekCount)

@@ -111,8 +111,6 @@ const ManagerDetailInfo: React.FC<ManagerDetailInfoProps> = ({
           filePaths.map(async (url: string) => {
             try {
               const res = await fetch(url, { method: 'HEAD' });
-              console.log('Content-Type:', res.headers.get('Content-Type'));
-              console.log('Content-Length:', res.headers.get('Content-Length'));
               const name = decodeURIComponent(url.split('/').pop()?.split('?')[0] || '파일')
               const type = res.headers.get('Content-Type') || '-'
               const size = Number(res.headers.get('Content-Length') || 0)
