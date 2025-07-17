@@ -59,22 +59,22 @@ export const AdminAccountForm = ({
     newPassword: '',
     confirmNewPassword: ''
   })
-  const [errors, setErrors] = useState<{ [key: string]: string }>({});
-  const [loading, setLoading] = useState(false);
-  const [toastMsg, setToastMsg] = useState<string | null>(null);
-  const [successToastMsg, setSuccessToastMsg] = useState<string | null>(null);
-  const [showNewPassword, setShowNewPassword] = useState(false);
-  const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
-  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
-  const navigate = useNavigate();
+  const [errors, setErrors] = useState<{ [key: string]: string }>({})
+  const [loading, setLoading] = useState(false)
+  const [toastMsg, setToastMsg] = useState<string | null>(null)
+  const [successToastMsg, setSuccessToastMsg] = useState<string | null>(null)
+  const [showNewPassword, setShowNewPassword] = useState(false)
+  const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false)
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false)
+  const navigate = useNavigate()
 
   // 새 비밀번호 입력란에 값이 없을 때 확인/현재 비밀번호 입력란 값, 에러 초기화
   useEffect(() => {
     if (isEditMode && !form.newPassword) {
-      setForm(f => ({ ...f, confirmNewPassword: '', currentPassword: '' }));
-      setErrors(e => ({ ...e, confirmNewPassword: '', currentPassword: '' }));
+      setForm(f => ({ ...f, confirmNewPassword: '', currentPassword: '' }))
+      setErrors(e => ({ ...e, confirmNewPassword: '', currentPassword: '' }))
     }
-  }, [form.newPassword, isEditMode]);
+  }, [form.newPassword, isEditMode])
 
   const validate = () => {
     const newErrors: { [key: string]: string } = {};
@@ -130,8 +130,8 @@ export const AdminAccountForm = ({
         newErrors.confirmNewPassword = '새 비밀번호가 일치하지 않습니다.';
       }
     }
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
   };
 
   // 모든 입력값이 빈칸인지 체크 (수정 모드에서만 사용)
@@ -146,11 +146,11 @@ export const AdminAccountForm = ({
     // 수정 모드에서도 모든 필드 수정 가능하게 변경 (아래 조건 제거)
     // if (isEditMode && name !== 'email') return;
     if (name === 'phone') {
-      setForm(prev => ({ ...prev, [name]: formatPhoneNumber(value) }));
+      setForm(prev => ({ ...prev, [name]: formatPhoneNumber(value) }))
     } else {
-      setForm(prev => ({ ...prev, [name]: value }));
+      setForm(prev => ({ ...prev, [name]: value }))
     }
-    setErrors(prev => ({ ...prev, [name]: '' }));
+    setErrors(prev => ({ ...prev, [name]: '' }))
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -165,33 +165,31 @@ export const AdminAccountForm = ({
           userName: form.userName,
           phone: form.phone,
           email: form.email,
-        };
+        }
         if (form.newPassword) {
           updateData.resetPwd = {
             currentPassword: form.currentPassword ?? '',
             newPassword: form.newPassword ?? '',
             confirmPassword: form.confirmNewPassword ?? '',
-          };
+          }
         }
-        await updateAdminAccount(adminId, updateData);
-        setSuccessToastMsg('관리자 정보가 수정되었습니다.');
+        await updateAdminAccount(adminId, updateData)
+        setSuccessToastMsg('관리자 정보가 수정되었습니다.')
       } else {
-        await signupAdmin(form);
-        setSuccessToastMsg('관리자 등록이 완료되었습니다.');
+        await signupAdmin(form)
+        setSuccessToastMsg('관리자 등록이 완료되었습니다.')
       }
       if (onClose) {
-        setTimeout(() => onClose(), 1200);
+        setTimeout(() => onClose(), 1200)
       } else {
-        setTimeout(() => navigate('/admin/accounts'), 1200);
+        setTimeout(() => navigate('/admin/accounts'), 1200)
       }
     } catch (err: any) {
-      setToastMsg(
-        err?.message ||
-          err?.toString() ||
-          (isEditMode ? '관리자 수정 실패' : '관리자 등록 실패')
-      );
+      // Extract backend error message if available
+      let backendMsg = err?.response?.data?.message || err?.message || err?.toString() || (isEditMode ? '관리자 수정 실패' : '관리자 등록 실패')
+      setToastMsg(backendMsg)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
   };
 
