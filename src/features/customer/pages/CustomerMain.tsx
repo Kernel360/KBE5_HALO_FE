@@ -7,7 +7,7 @@ import type { ServiceCategoryTreeType } from '@/features/customer/types/Customer
 import { ServiceDetailModal } from '@/features/customer/modal/ServiceDetailModal'
 import homeIcon from '@/assets/home.svg'
 import airconIcon from '@/assets/aircon.svg'
-import strollerIcon from '@/assets/stroller.svg'
+import office from '@/assets/office.png'
 
 export const CustomerMain = () => {
   const navigate = useNavigate()
@@ -15,7 +15,8 @@ export const CustomerMain = () => {
   const [serviceCategories, setServiceCategories] = useState<
     ServiceCategoryTreeType[]
   >([])
-  const [selectedService, setSelectedService] = useState<ServiceCategoryTreeType | null>(null)
+  const [selectedService, setSelectedService] =
+    useState<ServiceCategoryTreeType | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
 
   const handleServiceDetailClick = (service: ServiceCategoryTreeType) => {
@@ -164,7 +165,7 @@ export const CustomerMain = () => {
           <div className="grid gap-6 sm:gap-8 md:grid-cols-2 lg:grid-cols-3">
             {serviceCategories.map((category, index) => {
               // 기존 이미지들을 순서대로 사용
-              const icons = [homeIcon, airconIcon, strollerIcon]
+              const icons = [homeIcon, office, airconIcon]
               const icon = icons[index % icons.length]
 
               return (
@@ -182,7 +183,7 @@ export const CustomerMain = () => {
                   <p className="mb-4 text-sm text-gray-600 sm:mb-6 sm:text-base">
                     {category.description}
                   </p>
-                  <button 
+                  <button
                     onClick={() => handleServiceDetailClick(category)}
                     className="rounded-lg border-2 border-indigo-600 px-4 py-2 text-sm font-semibold text-indigo-600 transition-colors hover:bg-indigo-600 hover:text-white sm:px-6 sm:py-3 sm:text-base">
                     자세히 보기
@@ -195,7 +196,7 @@ export const CustomerMain = () => {
       </div>
 
       {/* Service Detail Modal */}
-      <ServiceDetailModal 
+      <ServiceDetailModal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         service={selectedService}

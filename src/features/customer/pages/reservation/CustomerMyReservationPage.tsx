@@ -7,7 +7,7 @@ import React, {
   useCallback,
   useRef
 } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
 import { getCustomerReservations } from '@/features/customer/api/CustomerReservation'
 import type {
   CustomerReservationListRspType,
@@ -15,9 +15,10 @@ import type {
 } from '@/features/customer/types/CustomerReservationType'
 import ReservationCard from '@/features/customer/components/ReservationCard' // ReservationCard 컴포넌트 경로를 맞게 수정해주세요
 import Pagination from '@/shared/components/Pagination'
+import { CustomerReviewFormModal } from '@/features/customer/modal/CustomerReviewModal'
+import SuccessToast from '@/shared/components/ui/toast/SuccessToast'
 
 export const CustomerMyReservationPage: React.FC = () => {
-  const navigate = useNavigate()
   const [urlParams] = useSearchParams()
   const [fadeKey, setFadeKey] = useState(0)
   // 문의 대신 예약 데이터 상태
@@ -28,6 +29,14 @@ export const CustomerMyReservationPage: React.FC = () => {
   const [loading, setLoading] = useState(false)
 
   const isMounted = useRef(false)
+
+  // 리뷰 모달 상태
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false)
+  const [selectedReservationId, setSelectedReservationId] = useState<
+    number | null
+  >(null)
+  const [showSuccessToast, setShowSuccessToast] = useState(false)
+  const [toastMessage, setToastMessage] = useState('')
 
   // 예약 조회에 필요한 파라미터로 변경
   const [searchParams, setSearchParams] = useState({
@@ -164,13 +173,31 @@ export const CustomerMyReservationPage: React.FC = () => {
     updateSearchParam('page', pageNumber)
   }
 
+  // 리뷰 모달 핸들러
+  const handleOpenReviewModal = (reservationId: number) => {
+    setSelectedReservationId(reservationId)
+    setIsReviewModalOpen(true)
+  }
+
+  const handleCloseReviewModal = () => {
+    setIsReviewModalOpen(false)
+    setSelectedReservationId(null)
+  }
+
+  const handleReviewSuccess = async (message: string) => {
+    setToastMessage(message)
+    setShowSuccessToast(true)
+    // 리뷰 작성/수정 후 예약 목록 새로고침 (간단히 페이지 새로고침)
+    window.location.reload()
+  }
+
   return (
     <Fragment>
       <div className="flex w-full self-stretch">
         <div className="inline-flex flex-1 flex-col self-stretch">
           {/* Header Section */}
           <div className="inline-flex h-14 items-center justify-between self-stretch border-b border-gray-200 bg-white px-4 sm:h-16 sm:px-6">
-            <div className="justify-start font-['Inter'] text-lg font-bold leading-normal text-gray-900 sm:text-xl">
+            <div className="justify-start font-['Inter'] text-lg leading-normal font-bold text-gray-900 sm:text-xl">
               나의 예약 내역
             </div>
           </div>
@@ -179,7 +206,9 @@ export const CustomerMyReservationPage: React.FC = () => {
             {/* Reservation List Section */}
             <div className="flex flex-col gap-4 self-stretch rounded-lg bg-white p-4 sm:p-6">
               {/* 예약 카드 반복 렌더링 부분 */}
-              <div key={fadeKey} className="space-y-4">
+              <div
+                key={fadeKey}
+                className="space-y-4">
                 {loading ? (
                   <div className="flex h-16 items-center justify-center border-b border-slate-200 px-4 text-sm text-slate-500">
                     예약 내역 로딩 중...
@@ -196,13 +225,7 @@ export const CustomerMyReservationPage: React.FC = () => {
                       onWriteReview={e => {
                         e.preventDefault()
                         e.stopPropagation()
-                        navigate(`/my/reviews/${reservation.reservationId}`, {
-                          state: {
-                            fromReservation: true,
-                            serviceName: reservation.serviceName,
-                            managerName: reservation.managerName
-                          }
-                        })
+                        handleOpenReviewModal(reservation.reservationId)
                       }}
                     />
                   ))
@@ -224,6 +247,21 @@ export const CustomerMyReservationPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* 리뷰 모달 */}
+      <CustomerReviewFormModal
+        isOpen={isReviewModalOpen}
+        onClose={handleCloseReviewModal}
+        reservationId={selectedReservationId || 0}
+        onSuccess={handleReviewSuccess}
+      />
+
+      {/* 성공 토스트 */}
+      <SuccessToast
+        open={showSuccessToast}
+        message={toastMessage}
+        onClose={() => setShowSuccessToast(false)}
+      />
     </Fragment>
   )
 }
