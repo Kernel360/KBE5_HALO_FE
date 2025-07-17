@@ -497,7 +497,7 @@ export const ManagerReservationDetail = () => {
                 </div>
               </div>
               <ServiceDetailCard reservation={reservation} />
-              <AddressMapCard reservation={reservation} />
+              <AddressMapCardForCustomer reservation={reservation} />
               <ReviewSection
                 reservation={reservation}
                 rating={rating}

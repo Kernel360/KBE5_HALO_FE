@@ -6,9 +6,8 @@ import { Loading } from '@/shared/components/ui/Loading'
 import ErrorToast from '@/shared/components/ui/toast/ErrorToast'
 import { Button } from '@/shared/components/ui/Button'
 import { Card } from '@/shared/components/ui/Card'
-import { AddressMapCard } from '@/features/manager/components/AddressMapCard'
+import { AddressMapCardForCustomer } from '@/features/manager/components/AddressMapCard'
 import { ProfileImagePreview } from '@/shared/components/ui/ProfileImagePreview'
-
 
 export const ManagerMy = () => {
   const [manager, setManager] = useState<ManagerInfo | null>(null)
