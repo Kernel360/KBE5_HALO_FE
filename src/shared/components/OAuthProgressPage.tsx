@@ -43,7 +43,9 @@ const OAuthProgressPage: React.FC = () => {
         const isNew = !!data.new // 신규 가입자인지 여부
         const responseRole = data.role || '' // 응답 role
         const roleUpper = role === 'manager' ? 'MANAGER' : 'CUSTOMER'
-        if (responseRole && responseRole !== roleUpper) {
+
+        // 신규 사용자가 아닌 경우에만 role 검증 수행
+        if (!isNew && responseRole && responseRole !== roleUpper) {
           setStatus('error')
           navigate(
             `/oauth-fail?role=${role}&message=${encodeURIComponent('해당 페이지에 권한이 없습니다.')}`
