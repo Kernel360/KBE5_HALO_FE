@@ -146,44 +146,43 @@ npm run dev
 - **회원가입/로그인/인증**
   - 카카오/구글 소셜 로그인 및 회원가입  
     <div align="center">
-      <img src="https://github.com/user-attachments/assets/46bde130-3be5-4045-ab4a-92faa2a2b5de" width="400" style="margin-bottom: 16px;" />
+      <img src="https://github.com/user-attachments/assets/46bde130-3be5-4045-ab4a-92faa2a2b5de" width="600" style="margin-bottom: 16px;" /><br />
     </div>
   - 내 정보(이름, 연락처, 비밀번호 등) 수정  
     <div align="center">
-      <img src="https://github.com/user-attachments/assets/6d67af3a-55e8-41ca-8fbc-6a47362ef8e8" width="400" style="margin-bottom: 16px;" />
+      <img src="https://github.com/user-attachments/assets/6d67af3a-55e8-41ca-8fbc-6a47362ef8e8" width="600" style="margin-bottom: 16px;" /><br />
     </div>
 
 - **서비스 예약**
   - 서비스 유형/매니저 선택, 예약 신청(날짜, 시간, 요청사항 입력)  
     <div align="center">
-      <img src="https://github.com/user-attachments/assets/8f1692d8-864d-4c4a-b1ea-8836110c1212" width="400" style="margin-bottom: 16px;" />
-      <img src="https://github.com/user-attachments/assets/d19f9dc6-cffe-4215-8af3-157c39739e42" width="400" style="margin-bottom: 16px;" />
-      <img src="https://github.com/user-attachments/assets/c5cd86ad-0d0a-461e-bca7-3c58f7f78b0d" width="400" style="margin-bottom: 16px;" />
+      <img src="https://github.com/user-attachments/assets/8f1692d8-864d-4c4a-b1ea-8836110c1212" width="600" style="margin-bottom: 16px;" /><br />
+      <img src="https://github.com/user-attachments/assets/d19f9dc6-cffe-4215-8af3-157c39739e42" width="600" style="margin-bottom: 16px;" /><br />
+      <img src="https://github.com/user-attachments/assets/c5cd86ad-0d0a-461e-bca7-3c58f7f78b0d" width="600" style="margin-bottom: 16px;" /><br />
     </div>
   - 예약 내역(진행중/완료/취소 등) 조회, 예약 취소  
     <div align="center">
-      <img src="https://github.com/user-attachments/assets/35e16517-07e4-431c-a73b-baf2ad87860f" width="400" style="margin-bottom: 16px;" />
-      <img src="https://github.com/user-attachments/assets/c5d7ede7-6a0f-4a86-9579-fd356465454f" width="400" style="margin-bottom: 16px;" />
+      <img src="https://github.com/user-attachments/assets/35e16517-07e4-431c-a73b-baf2ad87860f" width="600" style="margin-bottom: 16px;" /><br />
+      <img src="https://github.com/user-attachments/assets/c5d7ede7-6a0f-4a86-9579-fd356465454f" width="600" style="margin-bottom: 16px;" /><br />
     </div>
 
 - **포인트/결제 관리**
   - 포인트 충전  
     <div align="center">
-      <img src="https://github.com/user-attachments/assets/5b55b44b-7405-458c-bc82-733e48966830" width="400" style="margin-bottom: 16px;" />
+      <img src="https://github.com/user-attachments/assets/5b55b44b-7405-458c-bc82-733e48966830" width="600" style="margin-bottom: 16px;" /><br />
     </div>
 
 - **문의/리뷰**
   - 매니저/서비스 관련 문의 작성, 답변 확인  
     <div align="center">
-      <img src="https://github.com/user-attachments/assets/c2a34ed1-a976-41ce-bab7-da7baec642da" width="400" style="margin-bottom: 16px;" />
-      <img src="https://github.com/user-attachments/assets/a04ca479-adca-4aed-b431-352819b2e8b0" width="400" style="margin-bottom: 16px;" />
-      <img src="https://github.com/user-attachments/assets/2e3b8019-24d1-457e-a79e-22e4d328ddd3" width="400" style="margin-bottom: 16px;" />
+      <img src="https://github.com/user-attachments/assets/c2a34ed1-a976-41ce-bab7-da7baec642da" width="600" style="margin-bottom: 16px;" /><br />
+      <img src="https://github.com/user-attachments/assets/a04ca479-adca-4aed-b431-352819b2e8b0" width="600" style="margin-bottom: 16px;" /><br />
+      <img src="https://github.com/user-attachments/assets/2e3b8019-24d1-457e-a79e-22e4d328ddd3" width="600" style="margin-bottom: 16px;" /><br />
     </div>
   - 서비스 이용 후 리뷰 작성, 내 리뷰 관리(수정)  
     <div align="center">
-      <img src="https://github.com/user-attachments/assets/a99304b3-d2a2-41a4-8e90-038820541b18" width="400" style="margin-bottom: 16px;" />
+      <img src="https://github.com/user-attachments/assets/a99304b3-d2a2-41a4-8e90-038820541b18" width="600" style="margin-bottom: 16px;" /><br />
     </div>
-
 
 ---
 
