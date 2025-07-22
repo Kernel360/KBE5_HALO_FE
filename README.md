@@ -30,18 +30,19 @@ src/
 ## 기술 스택
 
 - **프레임워크/라이브러리**
-  - React (TypeScript)
-  - Vite (빌드 도구)
-  - Zustand (상태 관리)
-  - React Router (SPA 라우팅)
-  - Axios (API 통신)
-  - Kakao Maps API (지도 서비스)
+![React](https://img.shields.io/badge/React-61DAFB?style=flat&logo=react&logoColor=white)
+![ReactRouter](https://img.shields.io/badge/ReactRouter-Ca4245?style=flat&logo=react-router&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat&logo=typescript&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-646CFF?style=flat&logo=vite&logoColor=white)
+![Axios](https://img.shields.io/badge/Axios-5A29E4?style=flat&logo=axios&logoColor=white)
+![Zustand](https://img.shields.io/badge/Zustand-1F4CC8?style=flat&logo=&logoColor=white)
+![KaKaoMap](https://img.shields.io/badge/KaKaoMap-FFCD00?style=flat&logo=kakao&logoColor=white)
+
 - **스타일링**
-  - CSS Modules
   - rem/em 단위 반응형 스타일
 - **기타**
-  - ESLint, Prettier (코드 스타일)
-  - Vercel (배포)
+Code Style: ![Prettier](https://img.shields.io/badge/Prettier-F7B93E?style=flat&logo=prettier&logoColor=white)
+Deployment: ![Vercel](https://img.shields.io/badge/Vercel-000000?style=flat&logo=vercel&logoColor=white)
   - Toast 알림, 모달 등 공통 UI 컴포넌트
 
 ---
