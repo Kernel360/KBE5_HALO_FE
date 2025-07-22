@@ -292,28 +292,80 @@ npm run dev
 ---
 
 ### 3. 관리자(Admin)
-
 - **대시보드**
-  - 실시간 통계(신규 가입자, 예약, 정산, 문의 등) 차트/그래프
-  - 최근 활동 내역, 주요 알림, 시스템 현황 요약
-- **회원(고객/매니저) 관리**
-  - 전체 회원 목록 조회, 검색(이름/연락처/상태 등), 가입일/상태별 필터링
-  - 회원 상세 정보(기본정보, 예약/정산/문의/리뷰 이력) 확인
-  - 신규 매니저 등록, 회원 정보 수정, 계정 비활성화/삭제
-  - 매니저 계약 상태(대기/승인/거절/해지) 변경 및 이력 관리
-  - 회원별 문의/리뷰/예약/정산 내역 바로가기
+  - 실시간 통계(신규 가입자, 예약, 정산, 문의 등) 차트/그래프  
+  - 최근 활동 내역, 주요 알림, 시스템 현황 요약  
+    <div align="center">
+      <img src="https://github.com/user-attachments/assets/5797c47d-4198-4f2e-931a-7fb94beccd46" width="600" style="margin-bottom: 16px;" /><br />
+    </div>
+
+- **문의 관리**
+  - 전체 문의 목록, 상태(답변대기/완료, 신고 등) 필터  
+    <div align="center">
+      <img src="https://github.com/user-attachments/assets/62bf73cb-eda1-4cf9-860a-4d63859f3d30" width="600" style="margin-bottom: 16px;" /><br />
+    </div>
+  - 문의/리뷰 상세 확인, 답변 작성, 신고/삭제 처리  
+    <div align="center">
+      <img src="https://github.com/user-attachments/assets/f1fbb790-7b71-4815-84ee-2a2c30b0e669" width="600" style="margin-bottom: 16px;" /><br />
+    </div>
+
 - **예약 관리**
-  - 전체 예약 목록 조회, 기간/상태별 검색 및 필터
-  - 예약 상세 정보(고객, 매니저, 서비스, 일정, 상태, 결제 등) 확인
-  - 예약 상태(진행중/완료/취소/노쇼/환불 등) 변경 및 사유 입력
-  - 예약 관련 이슈(노쇼, 환불, 변경 요청 등) 처리 및 이력 관리
+  - 전체 예약 목록 조회, 기간/상태별 검색 및 필터  
+    <div align="center">
+      <img src="https://github.com/user-attachments/assets/8d96eaa5-2fcd-474f-9450-7c592dda7e81" width="600" style="margin-bottom: 16px;" /><br />
+    </div>
+  - 예약 상세 정보(고객, 매니저, 서비스, 일정, 상태, 결제 등) 확인  
+    <div align="center">
+      <img src="https://github.com/user-attachments/assets/adfcc1a3-4bc0-476f-a581-38b376b9dbc1" width="600" style="margin-bottom: 16px;" /><br />
+    </div>
+
 - **정산 관리**
-  - 매니저별 정산 요청 목록, 상태(대기/승인/지급완료/반려) 관리
-  - 정산 상세 내역(예약 건별 금액, 수수료, 지급액 등) 확인
-  - 정산 요청 승인/반려, 지급 처리 및 이력 관리
-- **문의/리뷰 관리**
-  - 전체 문의/리뷰 목록, 상태(답변대기/완료, 신고 등) 필터
-  - 문의/리뷰 상세 확인, 답변 작성, 신고/삭제 처리
+  - 정산 목록, 상태(대기/승인/지급완료/반려) 관리  
+    <div align="center">
+      <img src="https://github.com/user-attachments/assets/930b2d84-6ca5-4155-9d9d-3cf6800d814a" width="600" style="margin-bottom: 16px;" /><br />
+    </div>
+
+- **매니저 관리**
+  - 전체 매니저 목록 조회, 검색(이름/연락처/상태 등), 가입일/상태별 필터링  
+    <div align="center">
+      <img src="https://github.com/user-attachments/assets/666b73dd-b0d7-45ea-a362-99ba6f92c26f" width="600" style="margin-bottom: 16px;" /><br />
+    </div>
+  - 회원 상세 정보(기본정보, 예약/정산/문의/리뷰 이력) 확인  
+    <div align="center">
+      <img src="https://github.com/user-attachments/assets/7a7fcb03-1877-4f34-8614-971791ed7f74" width="600" style="margin-bottom: 16px;" /><br />
+      <img src="https://github.com/user-attachments/assets/224a46c1-8962-4b76-aa86-42b0a5e11054" width="600" style="margin-bottom: 16px;" /><br />
+      <img src="https://github.com/user-attachments/assets/296b29da-3b3c-4639-acac-b6d2861baf8b" width="600" style="margin-bottom: 16px;" /><br />
+    </div>
+  - 매니저 계약 상태(대기/승인/거절/해지) 변경 및 이력 관리  
+    <div align="center">
+      <img src="https://github.com/user-attachments/assets/ebf1bc9c-2eff-4efb-b34e-f9d4330a589c" width="600" style="margin-bottom: 16px;" /><br />
+      <img src="https://github.com/user-attachments/assets/76bb275f-f5fe-45d9-b1ab-5b2d4d92059e" width="600" style="margin-bottom: 16px;" /><br />
+      <img src="https://github.com/user-attachments/assets/e84edb32-3eb6-49b0-aca3-1cf6dc303fe1" width="600" style="margin-bottom: 16px;" /><br />
+    </div>
+
+- **고객 관리**
+  - 전체 고객 목록 조회, 검색(이름/연락처/상태 등), 가입일/상태별 필터링  
+    <div align="center">
+      <img src="https://github.com/user-attachments/assets/b6a8c799-bafc-4746-ac50-e5d9b8741648" width="600" style="margin-bottom: 16px;" /><br />
+    </div>
+  - 회원 상세 정보(기본정보, 예약/정산/문의/리뷰 이력) 확인  
+    <div align="center">
+      <img src="https://github.com/user-attachments/assets/9a06f2e6-b3e0-4e9e-a0bf-1fb728eea665" width="600" style="margin-bottom: 16px;" /><br />
+    </div>
+
+- **관리자 계정 관리**
+  - 관리자 계정 생성  
+    <div align="center">
+      <img src="https://github.com/user-attachments/assets/b8d0514f-145f-4c95-84bf-c85ea79870bc" width="600" style="margin-bottom: 16px;" /><br />
+    </div>
+  - 관리자 목록 조회 및 필터  
+    <div align="center">
+      <img src="https://github.com/user-attachments/assets/d720d42f-3418-46d6-b626-d1b36af25e5e" width="600" style="margin-bottom: 16px;" /><br />
+    </div>
+  - 관리자 정보 수정  
+    <div align="center">
+      <img src="https://github.com/user-attachments/assets/aa3adc39-8330-4beb-9c40-36d36fa408ec" width="600" style="margin-bottom: 16px;" /><br />
+    </div>
 
 ---
 
