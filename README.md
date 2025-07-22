@@ -11,18 +11,45 @@ React 기반의 SPA로, 효율적인 상태 관리와 사용자 경험을 중시
 ## 폴더 구조
 
 ```plaintext
-src/
-  ├─ features/           # 도메인별(관리자, 고객, 매니저) 기능 모듈
-  │   ├─ admin/          # 관리자 기능
-  │   ├─ customer/       # 고객 기능
-  │   └─ manager/        # 매니저 기능
-  ├─ shared/             # 공통 컴포넌트, 유틸리티, 타입 등
-  ├─ services/           # API 통신(axios 등)
-  ├─ store/              # 전역 상태 관리(zustand 등)
-  ├─ assets/             # 이미지, 아이콘 등 정적 리소스
-  ├─ router/             # 라우팅 설정
-  ├─ types/              # 전역 타입 정의
-  └─ main.tsx, App.tsx   # 엔트리 포인트
+├─ features/                  # 도메인별(관리자, 고객, 매니저) 주요 비즈니스 로직 및 화면
+  │   ├─ admin/                 # 관리자 기능(계정, 예약, 정산, 문의 등)
+  │   │   ├─ api/               # 관리자 관련 API 함수 모음
+  │   │   ├─ components/        # 관리자 전용 UI 컴포넌트
+  │   │   ├─ layouts/           # 관리자 페이지 레이아웃
+  │   │   ├─ pages/             # 관리자별 라우트 단위 페이지
+  │   │   ├─ store/             # 관리자 전용 상태 관리(zustand 등)
+  │   │   └─ types/             # 관리자 관련 타입 정의
+  │   ├─ customer/              # 고객 기능(예약, 문의, 리뷰 등)
+  │   │   ├─ api/               # 고객 관련 API 함수 모음
+  │   │   ├─ components/        # 고객 전용 UI 컴포넌트
+  │   │   ├─ layouts/           # 고객 페이지 레이아웃
+  │   │   ├─ modal/             # 고객 전용 모달 컴포넌트
+  │   │   ├─ pages/             # 고객별 라우트 단위 페이지
+  │   │   └─ types/             # 고객 관련 타입 정의
+  │   ├─ manager/               # 매니저 기능(예약, 정산, 문의 등)
+  │   │   ├─ api/               # 매니저 관련 API 함수 모음
+  │   │   ├─ components/        # 매니저 전용 UI 컴포넌트
+  │   │   ├─ layouts/           # 매니저 페이지 레이아웃
+  │   │   ├─ pages/             # 매니저별 라우트 단위 페이지
+  │   │   ├─ types/             # 매니저 관련 타입 정의
+  │   │   └─ utils/             # 매니저 전용 유틸리티 함수
+  │   └─ notice/                # 공지사항 관련 기능
+  │       ├─ api.ts             # 공지사항 API 함수
+  │       └─ AdminNotices.tsx   # 관리자 공지사항 컴포넌트
+  ├─ shared/                    # 전역 공통 컴포넌트, 유틸리티, 타입 등
+  │   ├─ components/            # 공통 UI 컴포넌트(버튼, 모달, 토스트 등)
+  │   │   └─ ui/                # 세부 UI 컴포넌트(입력, 테이블, 뱃지 등)
+  │   ├─ constants/             # 상수, 아이콘 등
+  │   ├─ hooks/                 # 커스텀 훅
+  │   ├─ types/                 # 공통 타입 정의
+  │   └─ utils/                 # 공통 유틸리티 함수(날짜, 파일업로드 등)
+  ├─ services/                  # axios 등 API 인스턴스 관리
+  ├─ store/                     # 전역 상태 관리(zustand 등)
+  ├─ assets/                    # 이미지, 아이콘 등 정적 리소스
+  ├─ router/                    # 라우팅 설정
+  ├─ types/                     # 전역 타입 정의
+  ├─ main.tsx                   # 앱 엔트리 포인트
+  └─ App.tsx                    # 루트 컴포넌트
 ```
 
 ---
@@ -188,23 +215,79 @@ npm run dev
 
 ### 2. 매니저(Manager)
 
-- **내 정보/계약 관리**
-  - 프로필(사진, 연락처, 자기소개, 서비스 지역/시간) 수정
-  - 계약 정보(계약 상태, 시작/종료일, 해지 요청 등) 확인 및 관리
+- **매니저 지원**
+  - 기본 정보 입력  
+    <div align="center">
+      <img src="https://github.com/user-attachments/assets/3746bb7a-e861-4122-b9f1-0241d9a069d2" width="600" style="margin-bottom: 16px;" /><br />
+    </div>
+  - 근무 가능 조건 입력  
+    <div align="center">
+      <img src="https://github.com/user-attachments/assets/8d9a192d-954b-4d5d-96ed-9b01038f314c" width="600" style="margin-bottom: 16px;" /><br />
+    </div>
+
+- **대시보드**
+  - 서비스 제공 횟수, 평점, 정산 금액 등 통계 차트  
+    <div align="center">
+      <img src="https://github.com/user-attachments/assets/705c0b78-7a2b-45d5-97b5-87ae96042c25" width="600" style="margin-bottom: 16px;" /><br />
+    </div>
+
 - **예약 관리**
-  - 내 예약 목록(진행중/완료/취소/노쇼 등) 달력/리스트 뷰
-  - 예약 상세(고객 정보, 서비스 일정, 요청사항 등) 확인
-  - 체크인/체크아웃 처리(사진/파일 업로드, 시간 기록)
-  - 예약 상태 변경, 예약 관련 알림 확인
+  - 내 예약 목록(진행중/완료/취소 등)  
+    <div align="center">
+      <img src="https://github.com/user-attachments/assets/5703065f-ebae-4444-813f-fc71db86c619" width="600" style="margin-bottom: 16px;" /><br />
+    </div>
+  - 예약 상세(고객 정보, 서비스 일정, 요청사항 등) 확인  
+    <div align="center">
+      <img src="https://github.com/user-attachments/assets/b5a00ac5-5aa9-44c6-a175-3f046899d102" width="600" style="margin-bottom: 16px;" /><br />
+    </div>
+  - 체크인/체크아웃 처리(사진/파일 업로드, 시간 기록)  
+    <div align="center">
+      <img src="https://github.com/user-attachments/assets/17dc009e-67ba-4325-a37f-3f9f137253d4" width="600" style="margin-bottom: 16px;" /><br />
+      <img src="https://github.com/user-attachments/assets/b3765fbe-2997-42d7-ab56-0b8434131e7a" width="600" style="margin-bottom: 16px;" /><br />
+    </div>
+
 - **정산 관리**
-  - 월별/건별 정산 내역, 지급 상태(대기/완료/반려) 확인
-  - 정산 요청, 지급 내역 및 이력 확인
-- **문의/리뷰 관리**
-  - 고객 문의 내역 확인, 답변 작성
-  - 받은 리뷰 목록, 평점, 상세 내용 확인
-  - 부적절한 리뷰 신고
-- **활동 통계**
-  - 서비스 제공 횟수, 평점, 정산 금액 등 통계 차트
+  - 월별/건별 정산 내역, 지급 상태(대기/완료/반려) 확인  
+  - 정산 요청, 지급 내역 및 이력 확인  
+    <div align="center">
+      <img src="https://github.com/user-attachments/assets/23032152-fc01-45ff-8331-836a7b046ffb" width="600" style="margin-bottom: 16px;" /><br />
+    </div>
+
+- **리뷰 관리**
+  - 받은 리뷰 목록, 평점, 상세 내용 확인  
+    <div align="center">
+      <img src="https://github.com/user-attachments/assets/63e5c4b4-b32c-49a4-9c4f-34e1ea4a15c7" width="600" style="margin-bottom: 16px;" /><br />
+      <img src="https://github.com/user-attachments/assets/099e259e-5175-490c-90e1-e4fedc2c170f" width="600" style="margin-bottom: 16px;" /><br />
+    </div>
+
+- **문의 관리**
+  - 업무 관련 문의 등록  
+    <div align="center">
+      <img src="https://github.com/user-attachments/assets/6129d5c6-7015-4baa-b58c-1b2b457460e2" width="600" style="margin-bottom: 16px;" /><br />
+    </div>
+  - 문의 내역 확인  
+    <div align="center">
+      <img src="https://github.com/user-attachments/assets/26099587-dd13-4618-bf05-b0eea1a3ee9b" width="600" style="margin-bottom: 16px;" /><br />
+    </div>
+  - 문의 상세 및 답변 확인  
+    <div align="center">
+      <img src="https://github.com/user-attachments/assets/dd9d1593-bea8-42f4-81d0-4bbd9d0ea507" width="600" style="margin-bottom: 16px;" /><br />
+    </div>
+
+- **내 정보/계약 관리**
+  - 마이페이지 확인  
+    <div align="center">
+      <img src="https://github.com/user-attachments/assets/0b7b28e7-ce30-4506-8814-23237b9cd3b1" width="600" style="margin-bottom: 16px;" /><br />
+    </div>
+  - 프로필(사진, 연락처, 자기소개, 서비스 지역/시간) 수정  
+    <div align="center">
+      <img src="https://github.com/user-attachments/assets/e93f8fbe-49f9-48e2-ad55-d6a9a4c68eef" width="600" style="margin-bottom: 16px;" /><br />
+      <img src="https://github.com/user-attachments/assets/13236eee-eaea-43f5-b517-54c95ed35495" width="600" style="margin-bottom: 16px;" /><br />
+    </div>
+  - 계약 정보(계약 상태, 시작/종료일, 해지 요청 등) 확인 및 관리  
+    <div align="center">
+      <img src="https://github.com/user-attachments/assets/62d34e38-c924-438d-8b56-a031d5ea0e95" width="600" style="margin-bottom: 16px;" /><br />
+    </div>
 
 ---
 
