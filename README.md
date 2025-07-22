@@ -37,9 +37,8 @@ src/
 ![Axios](https://img.shields.io/badge/Axios-5A29E4?style=flat&logo=axios&logoColor=white)
 ![Zustand](https://img.shields.io/badge/Zustand-1F4CC8?style=flat&logo=&logoColor=white)
 ![KaKaoMap](https://img.shields.io/badge/KaKaoMap-FFCD00?style=flat&logo=kakao&logoColor=white)
+![GoogleApi](https://img.shields.io/badge/GoogleApi-4285F4?style=flat&logo=google&logoColor=white)
 
-- **스타일링**
-  - rem/em 단위 반응형 스타일
 - **기타**
   - Code Style: ![Prettier](https://img.shields.io/badge/Prettier-F7B93E?style=flat&logo=prettier&logoColor=white)
   - Deployment: ![Vercel](https://img.shields.io/badge/Vercel-000000?style=flat&logo=vercel&logoColor=white)
