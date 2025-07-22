@@ -120,41 +120,6 @@ npm run dev
 
 ---
 
-## Vercel 배포 방법
-
-1. **Vercel 계정 생성 및 로그인**
-   - [https://vercel.com/](https://vercel.com/)에서 계정을 생성하고 로그인합니다.
-
-2. **GitHub(또는 GitLab, Bitbucket) 저장소와 연동**
-   - Vercel 대시보드에서 'New Project'를 클릭하고, 해당 저장소(KBE5_HALO_FE)를 선택합니다.
-
-3. **환경 변수 등록**
-   - Vercel 프로젝트의 'Settings > Environment Variables'에서 아래 환경변수를 등록합니다:
-     - `VITE_API_BASE_URL`
-     - `VITE_GOOGLE_CLIENT_ID`
-     - `VITE_KAKAO_MAPS_API_KEY`
-
-4. **빌드 및 배포 설정**
-   - 빌드 명령어: `npm run build` 또는 `yarn build`
-   - 출력 디렉토리: `dist`
-   - 프레임워크: 'Other' 또는 'Vite' 선택
-
-5. **자동 배포**
-   - main, dev 등 지정 브랜치에 push 시 자동으로 빌드 및 배포가 진행됩니다.
-
-6. **수동 배포(로컬에서)**
-   - Vercel CLI 설치: `npm i -g vercel`
-   - 빌드: `npm run build` 또는 `yarn build`
-   - 배포: `vercel --prod`
-
-7. **배포 완료 후**
-   - Vercel에서 제공하는 도메인(예: `https://your-project.vercel.app`) 또는 커스텀 도메인으로 접속하여 서비스 확인
-
-> Vercel 환경 변수는 배포 환경(Production, Preview, Development)별로 각각 등록할 수 있습니다.
-> 자세한 내용은 [Vercel 공식 문서](https://vercel.com/docs) 참고
-
----
-
 ## 환경 변수
 
 - **VITE_API_BASE_URL**: 백엔드 API 서버의 기본 URL을 지정합니다. (예: https://api.example.com)
@@ -168,211 +133,137 @@ npm run dev
 
 ## 주요 기능 (상세)
 
-### 1. 고객(Customer)
+### 👤 1. 고객
 
-- **회원가입/로그인/인증**
-  - 카카오/구글 소셜 로그인 및 회원가입  
-    <div align="center">
-      <img src="https://github.com/user-attachments/assets/46bde130-3be5-4045-ab4a-92faa2a2b5de" width="600" style="margin-bottom: 16px;" /><br />
-    </div>
-  - 내 정보(이름, 연락처, 비밀번호 등) 수정  
-    <div align="center">
-      <img src="https://github.com/user-attachments/assets/6d67af3a-55e8-41ca-8fbc-6a47362ef8e8" width="600" style="margin-bottom: 16px;" /><br />
-    </div>
+**회원가입 / 로그인 / 인증**
 
-- **서비스 예약**
-  - 서비스 유형/매니저 선택, 예약 신청(날짜, 시간, 요청사항 입력)  
-    <div align="center">
-      <img src="https://github.com/user-attachments/assets/8f1692d8-864d-4c4a-b1ea-8836110c1212" width="600" style="margin-bottom: 16px;" /><br />
-      <img src="https://github.com/user-attachments/assets/d19f9dc6-cffe-4215-8af3-157c39739e42" width="600" style="margin-bottom: 16px;" /><br />
-      <img src="https://github.com/user-attachments/assets/c5cd86ad-0d0a-461e-bca7-3c58f7f78b0d" width="600" style="margin-bottom: 16px;" /><br />
-    </div>
-  - 예약 내역(진행중/완료/취소 등) 조회, 예약 취소  
-    <div align="center">
-      <img src="https://github.com/user-attachments/assets/35e16517-07e4-431c-a73b-baf2ad87860f" width="600" style="margin-bottom: 16px;" /><br />
-      <img src="https://github.com/user-attachments/assets/c5d7ede7-6a0f-4a86-9579-fd356465454f" width="600" style="margin-bottom: 16px;" /><br />
-    </div>
+| 구글 소셜 로그인 및 회원가입 | 내 정보(이름, 연락처, 비밀번호 등) 수정 |
+|:--:|:--:|
+| <img src="https://github.com/user-attachments/assets/46bde130-3be5-4045-ab4a-92faa2a2b5de" width="400"/> | <img src="https://github.com/user-attachments/assets/6d67af3a-55e8-41ca-8fbc-6a47362ef8e8" width="400"/> |
 
-- **포인트/결제 관리**
-  - 포인트 충전  
-    <div align="center">
-      <img src="https://github.com/user-attachments/assets/5b55b44b-7405-458c-bc82-733e48966830" width="600" style="margin-bottom: 16px;" /><br />
-    </div>
+**서비스 예약**
 
-- **문의/리뷰**
-  - 매니저/서비스 관련 문의 작성, 답변 확인  
-    <div align="center">
-      <img src="https://github.com/user-attachments/assets/c2a34ed1-a976-41ce-bab7-da7baec642da" width="600" style="margin-bottom: 16px;" /><br />
-      <img src="https://github.com/user-attachments/assets/a04ca479-adca-4aed-b431-352819b2e8b0" width="600" style="margin-bottom: 16px;" /><br />
-      <img src="https://github.com/user-attachments/assets/2e3b8019-24d1-457e-a79e-22e4d328ddd3" width="600" style="margin-bottom: 16px;" /><br />
-    </div>
-  - 서비스 이용 후 리뷰 작성, 내 리뷰 관리(수정)  
-    <div align="center">
-      <img src="https://github.com/user-attachments/assets/a99304b3-d2a2-41a4-8e90-038820541b18" width="600" style="margin-bottom: 16px;" /><br />
-    </div>
+| 예약 신청(날짜, 시간, 요청사항 입력) | 매니저 선택 및 결제 | 예약 요청 완료 |
+|:--:|:--:|:--:|
+| <img src="https://github.com/user-attachments/assets/8f1692d8-864d-4c4a-b1ea-8836110c1212" width="350"/> | <img src="https://github.com/user-attachments/assets/d19f9dc6-cffe-4215-8af3-157c39739e42" width="350"/> | <img src="https://github.com/user-attachments/assets/c5cd86ad-0d0a-461e-bca7-3c58f7f78b0d" width="350"/> |
+
+**예약 내역 조회, 예약 상세 조회(취소)**
+| 예약 내역 조회 | 예약 상세 조회 |
+|:--:|:--:|
+| <img src="https://github.com/user-attachments/assets/3123aeb4-941a-455e-9db1-42c0d3172693" width="400"/> | <img src="https://github.com/user-attachments/assets/c5d7ede7-6a0f-4a86-9579-fd356465454f" width="400"/> |
+
+**포인트/결제 관리**
+| 포인트 조회 | 포인트 충전 |
+|:--:|:--:|
+| <img src="https://github.com/user-attachments/assets/c1f1b2a9-b690-4e5c-9838-a79482d51f88" width="400"/> | <img src="https://github.com/user-attachments/assets/5b55b44b-7405-458c-bc82-733e48966830" width="400"/> |
+
+
+**문의 관리**
+| 문의 내역 | 문의 작성 | 답변 확인 |
+|:--:|:--:|:--:|
+| <img src="https://github.com/user-attachments/assets/8ceb2258-899a-4b33-9f90-00c2b7f892a9" width="300"/> | <img src="https://github.com/user-attachments/assets/c2a34ed1-a976-41ce-bab7-da7baec642da" width="300"/>  | <img src="https://github.com/user-attachments/assets/2e3b8019-24d1-457e-a79e-22e4d328ddd3" width="300"/> |
+
+**리뷰 관리**
+| 리뷰 작성 | 내 리뷰 조회 |
+|:--:|:--:|
+| <img src="https://github.com/user-attachments/assets/a99304b3-d2a2-41a4-8e90-038820541b18" width="400"/> | <img src="https://github.com/user-attachments/assets/149dba3a-afdc-4d1f-a0d4-1669929ef2cc" width="400"/> |
 
 ---
 
-### 2. 매니저(Manager)
+### 🧹 2. 매니저
 
-- **매니저 지원**
-  - 기본 정보 입력  
-    <div align="center">
-      <img src="https://github.com/user-attachments/assets/3746bb7a-e861-4122-b9f1-0241d9a069d2" width="600" style="margin-bottom: 16px;" /><br />
-    </div>
-  - 근무 가능 조건 입력  
-    <div align="center">
-      <img src="https://github.com/user-attachments/assets/8d9a192d-954b-4d5d-96ed-9b01038f314c" width="600" style="margin-bottom: 16px;" /><br />
-    </div>
+**매니저 지원**
+| 기본 정보 입력 | 근무 가능 조건 입력 |
+|:--:|:--:|
+| <img src="https://github.com/user-attachments/assets/3746bb7a-e861-4122-b9f1-0241d9a069d2" width="400"/> | <img src="https://github.com/user-attachments/assets/8d9a192d-954b-4d5d-96ed-9b01038f314c" width="400"/> |
 
-- **대시보드**
-  - 서비스 제공 횟수, 평점, 정산 금액 등 통계 차트  
-    <div align="center">
-      <img src="https://github.com/user-attachments/assets/705c0b78-7a2b-45d5-97b5-87ae96042c25" width="600" style="margin-bottom: 16px;" /><br />
-    </div>
+**대시보드**
+| 서비스 제공 횟수, 평점, 정산 금액 등 통계 차트 |
+|:--:|
+| <img src="https://github.com/user-attachments/assets/705c0b78-7a2b-45d5-97b5-87ae96042c25" width="500"/> |
 
-- **예약 관리**
-  - 내 예약 목록(진행중/완료/취소 등)  
-    <div align="center">
-      <img src="https://github.com/user-attachments/assets/5703065f-ebae-4444-813f-fc71db86c619" width="600" style="margin-bottom: 16px;" /><br />
-    </div>
-  - 예약 상세(고객 정보, 서비스 일정, 요청사항 등) 확인  
-    <div align="center">
-      <img src="https://github.com/user-attachments/assets/b5a00ac5-5aa9-44c6-a175-3f046899d102" width="600" style="margin-bottom: 16px;" /><br />
-    </div>
-  - 체크인/체크아웃 처리(사진/파일 업로드, 시간 기록)  
-    <div align="center">
-      <img src="https://github.com/user-attachments/assets/17dc009e-67ba-4325-a37f-3f9f137253d4" width="600" style="margin-bottom: 16px;" /><br />
-      <img src="https://github.com/user-attachments/assets/b3765fbe-2997-42d7-ab56-0b8434131e7a" width="600" style="margin-bottom: 16px;" /><br />
-    </div>
+**예약 관리**
 
-- **정산 관리**
-  - 월별/건별 정산 내역, 지급 상태(대기/완료/반려) 확인  
-  - 정산 요청, 지급 내역 및 이력 확인  
-    <div align="center">
-      <img src="https://github.com/user-attachments/assets/23032152-fc01-45ff-8331-836a7b046ffb" width="600" style="margin-bottom: 16px;" /><br />
-    </div>
+| 내 예약 목록 (진행중/완료/취소 등) | 예약 상세 (고객 정보, 서비스 일정 등) |
+|:--:|:--:|
+| <img src="https://github.com/user-attachments/assets/5703065f-ebae-4444-813f-fc71db86c619" width="400"/> | <img src="https://github.com/user-attachments/assets/b5a00ac5-5aa9-44c6-a175-3f046899d102" width="400"/> |
 
-- **리뷰 관리**
-  - 받은 리뷰 목록, 평점, 상세 내용 확인  
-    <div align="center">
-      <img src="https://github.com/user-attachments/assets/63e5c4b4-b32c-49a4-9c4f-34e1ea4a15c7" width="600" style="margin-bottom: 16px;" /><br />
-      <img src="https://github.com/user-attachments/assets/099e259e-5175-490c-90e1-e4fedc2c170f" width="600" style="margin-bottom: 16px;" /><br />
-    </div>
+| 체크인 처리 (사진/시간 기록) | 체크아웃 처리 (파일 업로드 등) |
+|:--:|:--:|
+| <img src="https://github.com/user-attachments/assets/17dc009e-67ba-4325-a37f-3f9f137253d4" width="400"/> | <img src="https://github.com/user-attachments/assets/b3765fbe-2997-42d7-ab56-0b8434131e7a" width="400"/> |
 
-- **문의 관리**
-  - 업무 관련 문의 등록  
-    <div align="center">
-      <img src="https://github.com/user-attachments/assets/6129d5c6-7015-4baa-b58c-1b2b457460e2" width="600" style="margin-bottom: 16px;" /><br />
-    </div>
-  - 문의 내역 확인  
-    <div align="center">
-      <img src="https://github.com/user-attachments/assets/26099587-dd13-4618-bf05-b0eea1a3ee9b" width="600" style="margin-bottom: 16px;" /><br />
-    </div>
-  - 문의 상세 및 답변 확인  
-    <div align="center">
-      <img src="https://github.com/user-attachments/assets/dd9d1593-bea8-42f4-81d0-4bbd9d0ea507" width="600" style="margin-bottom: 16px;" /><br />
-    </div>
+**정산 관리**
+| 월별/건별 정산 이력 조회 |
+|:--:|
+| <img src="https://github.com/user-attachments/assets/23032152-fc01-45ff-8331-836a7b046ffb" width="500"/> |
 
-- **내 정보/계약 관리**
-  - 마이페이지 확인  
-    <div align="center">
-      <img src="https://github.com/user-attachments/assets/0b7b28e7-ce30-4506-8814-23237b9cd3b1" width="600" style="margin-bottom: 16px;" /><br />
-    </div>
-  - 프로필(사진, 연락처, 자기소개, 서비스 지역/시간) 수정  
-    <div align="center">
-      <img src="https://github.com/user-attachments/assets/e93f8fbe-49f9-48e2-ad55-d6a9a4c68eef" width="600" style="margin-bottom: 16px;" /><br />
-      <img src="https://github.com/user-attachments/assets/13236eee-eaea-43f5-b517-54c95ed35495" width="600" style="margin-bottom: 16px;" /><br />
-    </div>
-  - 계약 정보(계약 상태, 시작/종료일, 해지 요청 등) 확인 및 관리  
-    <div align="center">
-      <img src="https://github.com/user-attachments/assets/62d34e38-c924-438d-8b56-a031d5ea0e95" width="600" style="margin-bottom: 16px;" /><br />
-    </div>
+ **리뷰 관리**
+| 받은 리뷰 목록 | 리뷰 상세 내용 |
+|:--:|:--:|
+| <img src="https://github.com/user-attachments/assets/63e5c4b4-b32c-49a4-9c4f-34e1ea4a15c7" width="400"/> | <img src="https://github.com/user-attachments/assets/099e259e-5175-490c-90e1-e4fedc2c170f" width="400"/> |
+
+**문의 관리**
+| 업무 관련 문의 등록 | 문의 내역 확인 | 문의 상세 및 답변 확인 |
+|:--:|:--:|:--:|
+| <img src="https://github.com/user-attachments/assets/6129d5c6-7015-4baa-b58c-1b2b457460e2" width="300"/> | <img src="https://github.com/user-attachments/assets/26099587-dd13-4618-bf05-b0eea1a3ee9b" width="300"/> | <img src="https://github.com/user-attachments/assets/dd9d1593-bea8-42f4-81d0-4bbd9d0ea507" width="300"/> |
+
+
+**내 정보/계약 관리**
+| 마이페이지 확인 | 프로필 수정 (사진, 연락처, 지역 등) | 계약 정보 확인 및 관리 |
+|:--:|:--:|:--:|
+| <img src="https://github.com/user-attachments/assets/0b7b28e7-ce30-4506-8814-23237b9cd3b1" width="300"/> | <img src="https://github.com/user-attachments/assets/e93f8fbe-49f9-48e2-ad55-d6a9a4c68eef" width="300"/><br><img src="https://github.com/user-attachments/assets/13236eee-eaea-43f5-b517-54c95ed35495" width="300"/> | <img src="https://github.com/user-attachments/assets/62d34e38-c924-438d-8b56-a031d5ea0e95" width="300"/> |
 
 ---
 
-### 3. 관리자(Admin)
-- **대시보드**
-  - 실시간 통계(신규 가입자, 예약, 정산, 문의 등) 차트/그래프  
-  - 최근 활동 내역, 주요 알림, 시스템 현황 요약  
-    <div align="center">
-      <img src="https://github.com/user-attachments/assets/5797c47d-4198-4f2e-931a-7fb94beccd46" width="600" style="margin-bottom: 16px;" /><br />
-    </div>
+### 🛠️ 3. 관리자
+**대시보드**
+| 실시간 통계 (가입자, 예약, 정산, 문의 등) |
+|:--:|
+| <img src="https://github.com/user-attachments/assets/5797c47d-4198-4f2e-931a-7fb94beccd46" width="500"/> |
 
-- **문의 관리**
-  - 전체 문의 목록, 상태(답변대기/완료, 신고 등) 필터  
-    <div align="center">
-      <img src="https://github.com/user-attachments/assets/62bf73cb-eda1-4cf9-860a-4d63859f3d30" width="600" style="margin-bottom: 16px;" /><br />
-    </div>
-  - 문의/리뷰 상세 확인, 답변 작성, 신고/삭제 처리  
-    <div align="center">
-      <img src="https://github.com/user-attachments/assets/f1fbb790-7b71-4815-84ee-2a2c30b0e669" width="600" style="margin-bottom: 16px;" /><br />
-    </div>
 
-- **예약 관리**
-  - 전체 예약 목록 조회, 기간/상태별 검색 및 필터  
-    <div align="center">
-      <img src="https://github.com/user-attachments/assets/8d96eaa5-2fcd-474f-9450-7c592dda7e81" width="600" style="margin-bottom: 16px;" /><br />
-    </div>
-  - 예약 상세 정보(고객, 매니저, 서비스, 일정, 상태, 결제 등) 확인  
-    <div align="center">
-      <img src="https://github.com/user-attachments/assets/adfcc1a3-4bc0-476f-a581-38b376b9dbc1" width="600" style="margin-bottom: 16px;" /><br />
-    </div>
+**문의 관리**
+| 전체 문의 목록 및 상태 필터 | 문의/리뷰 상세 확인 및 답변/삭제 |
+|:--:|:--:|
+| <img src="https://github.com/user-attachments/assets/62bf73cb-eda1-4cf9-860a-4d63859f3d30" width="400"/> | <img src="https://github.com/user-attachments/assets/f1fbb790-7b71-4815-84ee-2a2c30b0e669" width="400"/> |
 
-- **정산 관리**
-  - 정산 목록, 상태(대기/승인/지급완료/반려) 관리  
-    <div align="center">
-      <img src="https://github.com/user-attachments/assets/930b2d84-6ca5-4155-9d9d-3cf6800d814a" width="600" style="margin-bottom: 16px;" /><br />
-    </div>
 
-- **매니저 관리**
-  - 전체 매니저 목록 조회, 검색(이름/연락처/상태 등), 가입일/상태별 필터링  
-    <div align="center">
-      <img src="https://github.com/user-attachments/assets/666b73dd-b0d7-45ea-a362-99ba6f92c26f" width="600" style="margin-bottom: 16px;" /><br />
-    </div>
-  - 회원 상세 정보(기본정보, 예약/정산/문의/리뷰 이력) 확인  
-    <div align="center">
-      <img src="https://github.com/user-attachments/assets/7a7fcb03-1877-4f34-8614-971791ed7f74" width="600" style="margin-bottom: 16px;" /><br />
-      <img src="https://github.com/user-attachments/assets/224a46c1-8962-4b76-aa86-42b0a5e11054" width="600" style="margin-bottom: 16px;" /><br />
-      <img src="https://github.com/user-attachments/assets/296b29da-3b3c-4639-acac-b6d2861baf8b" width="600" style="margin-bottom: 16px;" /><br />
-    </div>
-  - 매니저 계약 상태(대기/승인/거절/해지) 변경 및 이력 관리  
-    <div align="center">
-      <img src="https://github.com/user-attachments/assets/ebf1bc9c-2eff-4efb-b34e-f9d4330a589c" width="600" style="margin-bottom: 16px;" /><br />
-      <img src="https://github.com/user-attachments/assets/76bb275f-f5fe-45d9-b1ab-5b2d4d92059e" width="600" style="margin-bottom: 16px;" /><br />
-      <img src="https://github.com/user-attachments/assets/e84edb32-3eb6-49b0-aca3-1cf6dc303fe1" width="600" style="margin-bottom: 16px;" /><br />
-    </div>
+**예약 관리**
+| 전체 예약 목록 조회 및 필터 | 예약 상세 정보 확인 |
+|:--:|:--:|
+| <img src="https://github.com/user-attachments/assets/8d96eaa5-2fcd-474f-9450-7c592dda7e81" width="400"/> | <img src="https://github.com/user-attachments/assets/adfcc1a3-4bc0-476f-a581-38b376b9dbc1" width="400"/> |
 
-- **고객 관리**
-  - 전체 고객 목록 조회, 검색(이름/연락처/상태 등), 가입일/상태별 필터링  
-    <div align="center">
-      <img src="https://github.com/user-attachments/assets/b6a8c799-bafc-4746-ac50-e5d9b8741648" width="600" style="margin-bottom: 16px;" /><br />
-    </div>
-  - 회원 상세 정보(기본정보, 예약/정산/문의/리뷰 이력) 확인  
-    <div align="center">
-      <img src="https://github.com/user-attachments/assets/9a06f2e6-b3e0-4e9e-a0bf-1fb728eea665" width="600" style="margin-bottom: 16px;" /><br />
-    </div>
 
-- **관리자 계정 관리**
-  - 관리자 계정 생성  
-    <div align="center">
-      <img src="https://github.com/user-attachments/assets/b8d0514f-145f-4c95-84bf-c85ea79870bc" width="600" style="margin-bottom: 16px;" /><br />
-    </div>
-  - 관리자 목록 조회 및 필터  
-    <div align="center">
-      <img src="https://github.com/user-attachments/assets/d720d42f-3418-46d6-b626-d1b36af25e5e" width="600" style="margin-bottom: 16px;" /><br />
-    </div>
-  - 관리자 정보 수정  
-    <div align="center">
-      <img src="https://github.com/user-attachments/assets/aa3adc39-8330-4beb-9c40-36d36fa408ec" width="600" style="margin-bottom: 16px;" /><br />
-    </div>
+**정산 관리**
+| 정산 목록 조회 및 기간별 수동 정산 |
+|:--:|
+| <img src="https://github.com/user-attachments/assets/930b2d84-6ca5-4155-9d9d-3cf6800d814a" width="500"/> |
+
+
+**매니저 관리**
+| 매니저 목록 조회 및 필터 | 매니저 상세 정보 이력 확인 | 계약 상태 변경 및 이력 관리 |
+|:--:|:--:|:--:|
+| <img src="https://github.com/user-attachments/assets/666b73dd-b0d7-45ea-a362-99ba6f92c26f" width="300"/> | <img src="https://github.com/user-attachments/assets/7a7fcb03-1877-4f34-8614-971791ed7f74" width="300"/><br><img src="https://github.com/user-attachments/assets/224a46c1-8962-4b76-aa86-42b0a5e11054" width="300"/>| <img src="https://github.com/user-attachments/assets/ebf1bc9c-2eff-4efb-b34e-f9d4330a589c" width="300"/><br><img src="https://github.com/user-attachments/assets/76bb275f-f5fe-45d9-b1ab-5b2d4d92059e" width="300"/><br><img src="https://github.com/user-attachments/assets/e84edb32-3eb6-49b0-aca3-1cf6dc303fe1" width="300"/> |
+
+
+**고객 관리**
+| 고객 목록 조회 및 필터 | 고객 상세 정보 이력 확인 |
+|:--:|:--:|
+| <img src="https://github.com/user-attachments/assets/b6a8c799-bafc-4746-ac50-e5d9b8741648" width="400"/> | <img src="https://github.com/user-attachments/assets/9a06f2e6-b3e0-4e9e-a0bf-1fb728eea665" width="400"/> |
+
+
+**관리자 계정 관리**
+| 계정 생성 | 목록 조회 및 필터 | 정보 수정 |
+|:--:|:--:|:--:|
+| <img src="https://github.com/user-attachments/assets/b8d0514f-145f-4c95-84bf-c85ea79870bc" width="300"/> | <img src="https://github.com/user-attachments/assets/d720d42f-3418-46d6-b626-d1b36af25e5e" width="300"/> |
+ <img src="https://github.com/user-attachments/assets/aa3adc39-8330-4beb-9c40-36d36fa408ec" width="300"/> |
 
 ---
 
 ### 4. 공통/기타
 
 - **지도 서비스**: Kakao Maps 기반 위치 선택, 매니저 서비스 가능 지역 시각화
-- **알림/토스트/모달**: 성공, 오류, 경고 등 주요 이벤트 실시간 알림
+- **알림/토스트/모달**: 성공, 오류, 경고 등 주요 이벤트 공통 Toast 사용
 - **접근성/UX**: 키보드 네비게이션, 명확한 피드백, 로딩/에러/빈 상태 안내
 - **보안**: 인증/인가, 토큰 관리, 개인정보 보호, 비정상 접근 차단
 
